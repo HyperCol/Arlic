@@ -18,7 +18,7 @@
 
 	//#define COLOR_BOOST
 	
-		#define SATURATION 0.8 // [0.2 0.35 0.5 0.65 0.8 0.95 1.1 1.25 1.4 1.55 1.7 2.0 2.3 2.6 2.9 3.2 3.5]
+		//#define SATURATION 0.8 // [0.2 0.35 0.5 0.65 0.8 0.95 1.1 1.25 1.4 1.55 1.7 2.0 2.3 2.6 2.9 3.2 3.5]
 		
 		//#define DOF1						//景深1 
 		//#define DOF2						//景深2 
@@ -52,7 +52,7 @@
 		
 		#define LOW_QUALITY_CALCULATECLOUDS
 		
-		#define BRIGHTNESS 0.9  // [0.5 0.6 0.7 0.8 0.9 1 1.1 1.2 1.3 1.4 1.5]
+		//#define BRIGHTNESS 0.9  // [0.5 0.6 0.7 0.8 0.9 1 1.1 1.2 1.3 1.4 1.5]
 		
 		#define WEATHER
 		
@@ -60,6 +60,7 @@
 /////////////////////////END OF CONFIGURABLE VARIABLES/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////END OF CONFIGURABLE VARIABLES/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "/libs/uniform.glsl"
 
 uniform sampler2D gcolor;
 uniform sampler2D gdepth;
@@ -69,40 +70,13 @@ uniform sampler2D composite;
 uniform sampler2D noisetex;
 uniform sampler2D gaux1;
 uniform sampler2D gaux2;
-uniform sampler2D depthtex0;
+//uniform sampler2D depthtex0;
+
+uniform float aspectRatio;
 
 varying vec4 texcoord;
 varying vec3 lightVector;
 
-uniform int worldTime;
-uniform int moonPhase;
-
-uniform float near;
-uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform float rainStrength;
-uniform float wetness;
-uniform float aspectRatio;
-uniform float centerDepthSmooth;
-uniform float frameTimeCounter;
-uniform mat4 gbufferProjection;
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferPreviousProjection;
-
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferPreviousModelView;
-
-uniform vec3 cameraPosition;
-uniform vec3 previousCameraPosition;
-
-uniform int   isEyeInWater;
-uniform float eyeAltitude;
-uniform ivec2 eyeBrightness;
-uniform ivec2 eyeBrightnessSmooth;
-uniform int   fogMode;
-uniform vec3 sunPosition;
-uniform vec3 moonPosition;
 varying float timeSunrise;
 varying float timeNoon;
 varying float timeSunset;
@@ -119,6 +93,8 @@ float TimeSunrise  = ((clamp(time, 23000.0, 24000.0) - 23000.0) / 1000.0) + (1.0
 float TimeNoon     = ((clamp(time, 0.0, 2000.0)) / 2000.0) - ((clamp(time, 10000.0, 12000.0) - 10000.0) / 2000.0);
 float TimeSunset   = ((clamp(time, 10000.0, 12000.0) - 10000.0) / 2000.0) - ((clamp(time, 12000.0, 12750.0) - 12000.0) / 750.0);
 float TimeMidnight = ((clamp(time, 12000.0, 12750.0) - 12000.0) / 750.0) - ((clamp(time, 23000.0, 24000.0) - 23000.0) / 1000.0);
+
+#include "/libs/tone.frag"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -637,17 +613,6 @@ float CalculateDitherPattern1() {
 	return float(dither) / 17.0f;
 }
 
-
-void CalculateExposure(inout vec3 color) {
-	float exposureMax = 1.55f;
-		  exposureMax *= mix(1.0f, 0.0f, timeMidnight);
-	float exposureMin = 0.13f;
-	float exposure = pow(eyeBrightnessSmooth.y / 240.0f, 6.0f) * exposureMax + exposureMin;
-
-	//exposure = 1.0f;
-
-	color.rgb /= vec3(exposure);
-}
 
 void TonemapVorontsov(inout vec3 color) {
 	//color = pow(color, vec3(2.2f));			//Put gcolor back into linear space
@@ -1530,6 +1495,8 @@ void MoonGlow(inout vec3 color)
 	}
 }
 
+Tone tone;
+
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main()
@@ -1537,11 +1504,11 @@ void main()
 	vec3 color = GetColorTexture(texcoord.st);
 
 	if (isEyeInWater > 0) {
-	DepthOfField1(color);
+		DepthOfField1(color);
 	}else{
-	#ifdef DOF1
-		  DepthOfField1(color);
-	#endif
+		#ifdef DOF1
+		DepthOfField1(color);
+		#endif
 	}
 	
 	#ifdef DOF2
@@ -1550,13 +1517,13 @@ void main()
 
 	#ifdef DOF
 	if (isEyeInWater <= 0) {
-	DOF_Blur(color);
+		DOF_Blur(color);
 	}
-#endif
+	#endif
 	
 	#ifdef Cinematic_Effect1
-CinematicEffect(color);
-#endif
+	CinematicEffect(color);
+	#endif
 	
 	#ifdef BLOOM_EFFECTS
 	CalculateBloom(bloomData);
@@ -1567,35 +1534,14 @@ CinematicEffect(color);
 	AddRainFogScatter(color, bloomData);
 	#endif
 	
-	//vec3 highpass = (GetColorTexture(texcoord.st).rgb - bloomData.blur0);
-	//color += bloomData.blur5;
-	//LowlightFuzziness(color, bloomData);
-
-	Vignette(color);
+	//Vignette(color);
 	CalculateExposure(color);
 
-	//TonemapVorontsov(color);
-	//TonemapReinhard(color);
-	//TonemapReinhardLum(color);
-	//TonemapReinhard07(color, bloomData);
 	#ifdef ACES_TONEMAPPING
 	aTonemapReinhard05(color, bloomData);
 	#else
 	TonemapReinhard05(color, bloomData);
 	#endif
-
-	//if (texture2D(composite, texcoord.st).g > 0.01f)
-	//color.g = 1.0f;
-
-	//TonemapReinhardLinearHybrid(color);
-	//SphericalTonemap(color);
-	//SaturationBoost(color);
-	//SaturationBoost(color);
-
-	//color.rgb += highpass * 10000.0f;
-	//LowtoneSaturate(color);
-	//ColorGrading(color);
-	//color.rgb = texture2D(gcolor, texcoord.st, 1).rgb * 100.0f;
 
 #ifdef LENS_FLARE
 	LensFlare(color);

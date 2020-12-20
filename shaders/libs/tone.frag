@@ -27,7 +27,7 @@ struct Tone {
 uniform vec3 vignetteColor;
 
 vec3 vignette(vec3 color) {
-    float dist = distance(texcoord, vec2(0.5f));
+    float dist = distance(texcoord.xy, vec2(0.5f));
     dist = dist * 1.7 - 0.65;
     dist = smoothstep(0.0, 1.0, dist);
     return mix(color, vignetteColor, dist);//vec3(hurt);//
@@ -37,6 +37,33 @@ vec3 vignette(vec3 color) {
 uniform float nightVision;
 uniform float blindness;
 uniform float valLive;
+
+#define plus(m, n) ((m + n) - m * n)
+
+const float gamma = 2.2f;
+const vec3 agamma = vec3(0.8 / 2.2f);
+
+vec3 fromGamma(vec3 c) {
+	return pow(c, vec3(gamma));
+}
+
+vec4 fromGamma(vec4 c) {
+	return pow(c, vec4(gamma));
+}
+
+#define SRGB_CLAMP
+
+vec3 toGamma(vec3 c) {
+	//c = c / (c + 1.0);
+	#ifdef SRGB_CLAMP
+	vec3 g = pow(c, vec3(agamma));
+	return vec3(0.0625) + g * vec3(0.9375);
+	#else
+	return pow(c, vec3(agamma));
+	#endif
+}
+
+float luma(in vec3 color) { return dot(color,vec3(0.2126, 0.7152, 0.0722)); }
 
 #define SHADER_NIGHT_VISION 0.0 //[-0.5 -0.4 -0.3 -0.2 -0.1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
@@ -72,8 +99,19 @@ vec3 colorBalance(vec3 rgbColor, vec3 s, vec3 m, vec3 h, bool p) {
 	return colorBalance(rgbColor, getLightness(rgbColor), s, m, h, p);
 }
 
-vec3 tonemap(in vec3 color, float adapted_lum) {
-	color *= adapted_lum;
+void CalculateExposure(inout vec3 color) {
+	float exposureMax = 1.55f;
+		  exposureMax *= mix(1.0f, 0.0f, timeMidnight);
+	float exposureMin = 0.13f;
+	float exposure = pow(eyeBrightnessSmooth.y / 240.0f, 6.0f) * exposureMax + exposureMin;
+
+	//exposure = 1.0f;
+
+	color.rgb /= vec3(exposure);
+}
+
+vec3 tonemap(in vec3 color) {
+	CalculateExposure(color);
 
 	const float a = 2.51f;
 	const float b = 0.03f;
@@ -116,9 +154,9 @@ vec3 tonemap(in vec3 color, float adapted_lum) {
 //#define KEEP_BROGHTNESS
 
 void init_tone(out Tone t, vec2 texcoord) {
-	t.exposure = get_exposure();
+	//t.exposure = get_exposure();
 	
-	t.color = texture(composite, texcoord).rgb;
+	t.color = texture2D(composite, texcoord).rgb;
 	//t.blur = texture(gaux4, texcoord).rgb;// * (1.0 + t.exposure);
 	
 	t.useAdjustment = 1.0;
@@ -215,7 +253,7 @@ void init_tone(out Tone t, vec2 texcoord) {
 void Hue_Adjustment(inout Tone t) {
 	//blur & dof
 	//t.blurIndex = clamp(t.blurIndex, 0.0, 1.0);
-	t.color = mix(t.color, t.blur, t.blurIndex);
+	//t.color = mix(t.color, t.blur, t.blurIndex);
 	
 	// This will turn it into gamma space
 	#ifdef BLACK_AND_WHITE
@@ -226,7 +264,7 @@ void Hue_Adjustment(inout Tone t) {
 
 	//tonemap
 	vec3 color = t.color;
-	if (t.useToneMap > 0) t.color = mix(t.color, tonemap(color, t.exposure), t.useToneMap);
+	if (t.useToneMap > 0) t.color = mix(t.color, tonemap(color), t.useToneMap);
 	
 	//hue
 	#ifdef HUE_ADJUSTMENT
