@@ -19,8 +19,8 @@ steps:
   displayName: 'Run a multi-line script'
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)/shaders'
-    includeRootFolder: false
+    rootFolderOrFile: '$(Build.BinariesDirectory)'
+    includeRootFolder: true
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)_$(Build.BuildId).zip'
     replaceExistingArchive: false
