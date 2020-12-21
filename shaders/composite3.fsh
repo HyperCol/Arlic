@@ -333,7 +333,7 @@ if (rainStrength > 0.01) {
 		pos = noisepattern(vec2(0.385282*floor(time2*0.5+0.5),-0.85282*floor(time2*0.5+0.5)));
 		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
 		
-		color += vec4(float.raindrops*watercolor * 300,1.0);				
+		color += vec4(raindrops*watercolor * 300.0,1.0);				
 }		
 	gl_FragData[0] = color;
 }
