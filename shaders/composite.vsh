@@ -333,7 +333,7 @@ vec3 sunset_sun;
 
 	//Torchlight color
 	colorTorchlight = KelvinToRGB(float(POINTLIGHT_COLOR_TEMPERATURE));
-	/float torchWhiteBalance = 0.02f;
+	//float torchWhiteBalance = 0.02f;
 	//colorTorchlight = vec3(0.8f + 0.2 * WHITE_TORCH_LIGHT, 0.24f + 0.76 * WHITE_TORCH_LIGHT, 0.00f + WHITE_TORCH_LIGHT);
 	//colorTorchlight = mix(colorTorchlight, vec3(1.0f), vec3(torchWhiteBalance));
 
