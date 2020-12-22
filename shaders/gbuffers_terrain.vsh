@@ -342,8 +342,7 @@ position.xyz += cameraPosition.xyz;
 		//heavy wind
 		float heavyAxialFrequency 			= 8.0f * wavePlantsSpeed;
 		float heavyAxialWaveLocalization 	= 0.9f;
-		float heavyAxialRand
-		omization 		= 13.0f;
+		float heavyAxialRandomization 		= 13.0f;
 		float heavyAxialAmplitude 			= 15.0f;
 		float heavyAxialOffset 				= 15.0f;
 
