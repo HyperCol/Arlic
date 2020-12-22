@@ -24,3 +24,7 @@ steps:
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)_$(Build.BuildId).zip'
     replaceExistingArchive: false
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: $(System.DefaultWorkingDirectory)
+    artifactName: Arlic-Shader
