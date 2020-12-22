@@ -38,7 +38,7 @@
 		const float FringeOffset = 0.25;
 
 	#define FOCUS_BLUR
-		#define LINK_FOCUS_TO_BRIGHTNESS_BAR
+		//#define LINK_FOCUS_TO_BRIGHTNESS_BAR
 	#define BlurAmount 4.8 // [0.4 0.8 1.6 3.2 4.8 6.4 8.0 9.6]
 	
 	#define DISTANCE_BLUR
