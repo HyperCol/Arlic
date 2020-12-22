@@ -38,6 +38,7 @@
 		const float FringeOffset = 0.25;
 
 	#define FOCUS_BLUR
+		#define LINK_FOCUS_TO_BRIGHTNESS_BAR
 	#define BlurAmount 4.8 // [0.4 0.8 1.6 3.2 4.8 6.4 8.0 9.6]
 	
 	#define DISTANCE_BLUR
@@ -251,7 +252,11 @@ void  DOF_Blur(inout vec3 color) {
 	#endif
 	
 #ifdef FOCUS_BLUR
-	naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount;
+	#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
+		naive += (depth - screenBrightness) * 0.01 * BlurAmount;
+	#else
+		naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount;
+	#endif
 #endif
 
 #ifdef DISTANCE_BLUR
