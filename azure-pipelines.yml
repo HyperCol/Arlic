@@ -19,10 +19,10 @@ steps:
   displayName: 'Run a multi-line script'
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)'
-    includeRootFolder: true
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+    includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/Arlic-Shader_$(Build.BuildId).zip'
     replaceExistingArchive: false
 - task: PublishPipelineArtifact@1
   inputs:
