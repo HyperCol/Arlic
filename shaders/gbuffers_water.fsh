@@ -2,6 +2,8 @@
 
 #define ICE_REFELECTION
 
+//#define LINK_ANIMATION_SPEED_TO_BRIGHTNESS_BAR
+
 #define WAVE_HEIGHT 0.35    //[0.0 0.05 0.1 0.2 0.35 0.5 0.65 0.8 1.0 1.2 1.4 1.7 2.0]
 #define WATER_WAVING_SPEED 0.9   //[0.5 0.7 0.9 1.1 1.3]
 
@@ -16,6 +18,8 @@ uniform sampler2D noisetex;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferPreviousProjection;
+
+uniform float screenBrightness;                 //screen brightness (0.0-1.0)
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferPreviousModelView;
@@ -48,12 +52,16 @@ varying float isice;
 
 //#define ANIMATE_USING_WORLDTIME
 
-
+//The best way to deal with these pieces of shit, is making more pieces of shit.
+float waveWaterSpeed = WATER_WAVING_SPEED;
+#ifdef LINK_ANIMATION_SPEED_TO_BRIGHTNESS_BAR
+	waveWaterSpeed *= screenBrightness;
+#endif
 
 #ifdef ANIMATE_USING_WORLDTIME
-#define FRAME_TIME worldTime * WATER_WAVING_SPEED / 20.0f
+#define FRAME_TIME worldTime * waveWaterSpeed / 20.0f
 #else
-#define FRAME_TIME frameTimeCounter * WATER_WAVING_SPEED
+#define FRAME_TIME frameTimeCounter * waveWaterSpeed
 #endif
 
 vec4 cubic(float x)
