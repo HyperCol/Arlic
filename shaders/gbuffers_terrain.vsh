@@ -26,6 +26,8 @@ uniform float aspectRatio;
 
 uniform sampler2D noisetex;
 
+uniform float screenBrightness;                 //screen brightness (0.0-1.0)
+
 varying vec3 normal;
 varying vec3 tangent;
 varying vec3 binormal;
@@ -55,7 +57,14 @@ varying vec3 vertexViewVector;
 #define WAVING_NETHER_WART
 #define WAVING_POTATOES
 
+#define LINK_ANIMATION_SPEED_TO_BRIGHTNESS_BAR
 #define WAVE_PLANT_SPEED 1.0    //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0 4.1 4.2 4.3 4.4 4.5 4.6 4.7 4.8 4.9 5.0 5.1 5.2 5.3 5.4 5.5 5.6 5.7 5.8 5.9 6.0]
+
+//The best way to deal with these pieces of shit, is making more pieces of shit.
+float wavePlantsSpeed = WAVE_PLANT_SPEED;
+#ifdef LINK_ANIMATION_SPEED_TO_BRIGHTNESS_BAR
+	wavePlantsSpeed *= screenBrightness;
+#endif
 
 #define ENTITY_VINES        106.0
 
@@ -331,27 +340,27 @@ position.xyz += cameraPosition.xyz;
 			  windStrength *= mix(windStrengthRandom, 0.5f, rainStrength * 0.25f);
 
 		//heavy wind
-		float heavyAxialFrequency 			= 8.0f * WAVE_PLANT_SPEED;
+		float heavyAxialFrequency 			= 8.0f * wavePlantsSpeed;
 		float heavyAxialWaveLocalization 	= 0.9f;
 		float heavyAxialRand
 		omization 		= 13.0f;
 		float heavyAxialAmplitude 			= 15.0f;
 		float heavyAxialOffset 				= 15.0f;
 
-		float heavyLateralFrequency 		= 6.732f * WAVE_PLANT_SPEED;
+		float heavyLateralFrequency 		= 6.732f * wavePlantsSpeed;
 		float heavyLateralWaveLocalization 	= 1.274f;
 		float heavyLateralRandomization 	= 1.0f;
 		float heavyLateralAmplitude 		= 6.0f;
 		float heavyLateralOffset 			= 0.0f;
 
 		//light wind
-		float lightAxialFrequency 			= 5.5f * WAVE_PLANT_SPEED;
+		float lightAxialFrequency 			= 5.5f * wavePlantsSpeed;
 		float lightAxialWaveLocalization 	= 1.1f;
 		float lightAxialRandomization 		= 21.0f;
 		float lightAxialAmplitude 			= 5.0f;
 		float lightAxialOffset 				= 5.0f;
 
-		float lightLateralFrequency 		= 5.9732f * WAVE_PLANT_SPEED;
+		float lightLateralFrequency 		= 5.9732f * wavePlantsSpeed;
 		float lightLateralWaveLocalization 	= 1.174f;
 		float lightLateralRandomization 	= 0.0f;
 		float lightLateralAmplitude 		= 1.0f;
@@ -382,7 +391,7 @@ position.xyz += cameraPosition.xyz;
 #ifdef WAVING_WHEAT
 //Wheat//
 	if (mc_Entity.x == 296 && texcoord.t < 0.35) {
-		float speed = 0.03 * WAVE_PLANT_SPEED;
+		float speed = 0.03 * wavePlantsSpeed;
 
 		float magnitude = sin((tick * pi / (28.0)) + position.x + position.z) * 0.12 + 0.02;
 			  magnitude *= grassWeight * 0.2f;
@@ -397,7 +406,7 @@ position.xyz += cameraPosition.xyz;
 
 	//small leaf movement
 	if (mc_Entity.x == 59.0 && texcoord.t < 0.35) {
-		float speed = 0.04 * WAVE_PLANT_SPEED;
+		float speed = 0.04 * wavePlantsSpeed;
 
 		float magnitude = (sin(((position.y + position.x)/2.0 + tick * pi / ((28.0)))) * 0.025 + 0.075) * 0.2;
 			  magnitude *= grassWeight;
@@ -421,7 +430,7 @@ position.xyz += cameraPosition.xyz;
 //Leaves//
 
 	if (materialIDs == 3.0f && texcoord.t < 1.90 && texcoord.t > -1.0) {
-		float speed = 0.05 * WAVE_PLANT_SPEED;
+		float speed = 0.05 * wavePlantsSpeed;
 
 
 			  //lightWeight = max(0.0f, 1.0f - (lightWeight * 5.0f));
@@ -441,7 +450,7 @@ position.xyz += cameraPosition.xyz;
 
 	//lower leaf movement
 	if (materialIDs == 3.0f) {
-		float speed = 0.075 * WAVE_PLANT_SPEED;
+		float speed = 0.075 * wavePlantsSpeed;
 
 
 
@@ -461,7 +470,7 @@ position.xyz += cameraPosition.xyz;
 #ifdef WAVING_VINES
     //large scale movement
     if ( mc_Entity.x == ENTITY_VINES ) {
-        float speed = 1.0 * WAVE_PLANT_SPEED;
+        float speed = 1.0 * wavePlantsSpeed;
         float magnitude = (sin(((position.y + position.x)/2.0 + worldTime * 3.14159265358979323846264 / ((88.0)))) * 0.05 + 0.15) * 0.26;
 			  magnitude *= vineweight;
 			  magnitude *= lightWeight;
@@ -475,7 +484,7 @@ position.xyz += cameraPosition.xyz;
 
     //small scale movement
     if (mc_Entity.x == 106.0 && texcoord.t < 0.20) {
-        float speed = 1.1 * WAVE_PLANT_SPEED;
+        float speed = 1.1 * wavePlantsSpeed;
         float magnitude = (sin(((position.y + position.x)/8.0 + worldTime * 3.14159265358979323846264 / ((88.0)))) * 0.15 + 0.05) * 0.22;
         float d0 = sin(worldTime * 3.14159265358979323846264 / (112.0 * speed)) * 3.0 + 0.5;
         float d1 = sin(worldTime * 3.14159265358979323846264 / (142.0 * speed)) * 3.0 + 0.5;
@@ -490,7 +499,7 @@ position.xyz += cameraPosition.xyz;
 	#ifdef WAVING_LILIES
     //flowing water
     if (mc_Entity.x == 111.0 && texcoord.t > 0.05) {
-        float speed = 2.7 * WAVE_PLANT_SPEED;
+        float speed = 2.7 * wavePlantsSpeed;
         float magnitude = (sin((worldTime * 3.14159265358979323846264 / ((28.0) * speed))) * 0.05 + 0.15) * 0.17;
         float d0 = sin(worldTime * 3.14159265358979323846264 / (132.0 * speed)) * 3.0 - 1.5;
         float d1 = sin(worldTime * 3.14159265358979323846264 / (132.0 * speed)) * 3.0 - 1.5;
@@ -502,7 +511,7 @@ position.xyz += cameraPosition.xyz;
     }
     //still water
     if (mc_Entity.x == 111.0 && texcoord.t > 0.05) {
-        float speed = 2.7 * WAVE_PLANT_SPEED;
+        float speed = 2.7 * wavePlantsSpeed;
         float magnitude = (sin((worldTime * 3.14159265358979323846264 / ((28.0) * speed))) * 0.05 + 0.15) * 0.17;
         float d0 = sin(worldTime * 3.14159265358979323846264 / (132.0 * speed)) * 3.0 - 1.5;
         float d1 = sin(worldTime * 3.14159265358979323846264 / (132.0 * speed)) * 3.0 - 1.5;
