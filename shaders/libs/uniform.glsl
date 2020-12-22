@@ -8,6 +8,8 @@ uniform float viewHeight;                       // viewHeight
 uniform vec2 pixel;
 #endif
 
+uniform float screenBrightness;                 //screen brightness (0.0-1.0)
+
 uniform float near;
 uniform float far;
 
