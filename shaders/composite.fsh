@@ -7,6 +7,7 @@
 #define SHADOW_MAP_BIAS 0.9
 
 #define ENABLE_SOFT_SHADOWS
+	#define SHADOWS_SOFTNESS 1.0 //[0.25 0.5 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.5 4.0]
 
 #define ADDSUNGLOW
 
@@ -869,7 +870,7 @@ float	CalculateSunlightVisibility(inout SurfaceStruct surface, in ShadingStruct 
 			#if defined ENABLE_SOFT_SHADOWS
 
 				int count = 0;
-				float spread = 1.0f / shadowMapResolution;
+				float spread = SHADOWS_SOFTNESS / shadowMapResolution;
 
 				for (float i = -1.0f; i <= 1.0f; i += 1.0f) {
 					for (float j = -1.0f; j <= 1.0f; j += 1.0f) {
