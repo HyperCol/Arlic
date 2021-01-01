@@ -14,10 +14,21 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 
 */
 
+#define VOLUMETRIC_CLOUDS // Volumetric clouds
+#define HQ_VOLUMETRIC_CLOUDS // High-quality volumetric clouds. Volumetric Clouds must be enabled!
+	#define CALCULATECLOUDDEPTH 500           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
+	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
+	#define CALCULATECLOUDSCONCENTRATION 2.5  // [0.5 1.0 1.5 2.0 2.5 3.0 4.0 5.0 7.0 9.0]
+	#define WHITECLOUDS 1                     // [0.01 1 4 6 9]
+	//#define MOREVOLUMETRIC_CLOUDS
+
 //#define SMOOTH_CLOUDS // Smooth out dither pattern from volumetric clouds. Not necessary if HQ Volumetric Clouds is enabled.
 #define CREPUSCULAR_RAYS // Light rays from sunlight
 
 //#define COMPOSITE2_FINAL
+
+#define NEW_SKY_LIGHT
+#define STAR
 
 /* DRAWBUFFERS:2 */
 const bool gcolorMipmapEnabled = true;
@@ -56,6 +67,7 @@ uniform mat4 gbufferPreviousModelView;
 uniform mat4 shadowModelViewInverse;
 uniform mat4 gbufferModelView;
 
+uniform vec3 sunPosition;
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 uniform vec3 fogColor;
@@ -723,6 +735,47 @@ float   CalculateSunspot(in SurfaceStruct surface) {
 	//return 0.0f;
 }
 
+vec3 NewSkyLight(float p, in SurfaceStruct surface){
+	float a = -1.;
+	float b = -0.24;
+	float c = 6.0;
+	float d = -0.8;
+	float e = 0.45;
+	vec3 sunVec = normalize(reflect(sunPosition, surface.normal));
+	vec3 upVec = normalize(reflect(surface.upVector, surface.normal));
+
+	vec3 sVector = surface.viewSpacePosition.xyz;
+		 sVector = normalize(sVector);
+	
+	float cosT = dot(sVector, upVec); 
+	float absCosT = max(cosT, 0.0);
+	float cosS = dot(sunVec, upVec);		
+	float cosY = dot(sunVec, sVector);
+	float Y = acos(cosY);
+
+	float SdotU = dot(sunVec, upVec);
+	float sunVisibility = pow(clamp(SdotU+0.1, 0.0, 0.1) / 0.1, 2.0);	
+	
+	float L = (1 + -(exp(b / (absCosT + 0.01)))) * (1 + c * exp(d * Y) + e * cosY * cosY); 
+		  //L = pow(L, 1.0 - rainStrength * 0.8)*(1.0 - rainStrength * 0.83);  
+		  
+	vec3 lightColor	= vec3(0.0);
+		 //lightColor += vec3(1.0, 0.6, 0.0) * 3.0 * timeSunrise;
+		 lightColor += vec3(5.5, 2.1, 0.0) * 1.5 * timeSunriseSunset;
+		 
+		 lightColor += vec3(0.0, 1.1, 5.0) * timeMidnight;
+		 
+		 lightColor *= 1-rainStrength;
+		 
+		 lightColor = pow(lightColor, vec3(2.2));
+		 lightColor *= 1.0 - exp(-0.005 * pow(L, 4.0) * (1.0 - rainStrength * 0.985));	
+		 lightColor *= p;
+		 //lightColor = min(lightColor, vec3(p / 10.0));
+		 lightColor *= sunVisibility;
+		 
+	return lightColor;
+}
+
 vec3 	ComputeReflectedSkyGradient(in SurfaceStruct surface) {
 	float curve = 5.0f;
 	surface.viewSpacePosition.xyz = reflect(surface.viewSpacePosition.xyz, surface.normal);
@@ -824,7 +877,6 @@ vec3 	ComputeReflectedSkyGradient(in SurfaceStruct surface) {
 
 	skyColor = mix(skyColor, colorSunlight * 2.0, pow(sunglow, 6.0) * (1.0 - rainStrength));
 
-
 	return skyColor;
 }
 
@@ -897,14 +949,10 @@ vec4 CloudColor2(in vec4 worldPosition, in float sunglow, in vec3 worldLightVect
 		  noise += (2.0f - abs(Get3DNoise(p) * 2.0f - 0.0f)) * (0.35f);								p *= 3.0f;	p.xz -= t * 0.905f;	p.x *= 2.0f;	vec3 p3 = p; 	float largeNoise = noise;
 		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.085f);							p *= 3.0f;	p.xz -= t * 3.905f;	vec3 p4 = p;
 		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.035f);							p *= 3.0f;	p.xz -= t * 3.905f;
-		  if (!isShadowPass)
-		  {
-		 		noise += ((Get3DNoise(p))) * (0.04f);												p *= 3.0f;
-		  		noise += ((Get3DNoise(p))) * (0.020f);
-		  }
+		  noise += ((Get3DNoise(p))) * (0.04f);												p *= 3.0f;
 		  noise /= 2.375f;
 
-
+//WEIFUIWEF
 	//cloud height coverage falloff
 
 	//cloud edge
@@ -914,11 +962,6 @@ vec4 CloudColor2(in vec4 worldPosition, in float sunglow, in vec3 worldLightVect
 		  float dist = length(worldPosition.xz - cameraPosition.xz * 0.5) * 0.5;
 		  coverage *= max(0.0f, 1.0f - dist / 4000.0f);
 	float density = 0.71f - rainStrength * 0.3;
-
-	if (isShadowPass)
-	{
-		return vec4(GetCoverage(0.4f, 0.4f, noise));
-	}
 
 	noise = GetCoverage(coverage, density, noise);
 
@@ -997,7 +1040,8 @@ vec4 CloudColor2(in vec4 worldPosition, in float sunglow, in vec3 worldLightVect
 	return result;
 
 }
-void ReflectedCloudPlane(inout vec3 color, SurfaceStruct surface)
+
+void ReflectedVolumeClouds(inout SurfaceStruct surface, inout vec3 color)
 {
 	//Initialize view ray
 	vec3 viewVector = normalize(surface.viewSpacePosition.xyz);
@@ -1010,37 +1054,72 @@ void ReflectedCloudPlane(inout vec3 color, SurfaceStruct surface)
 	float sunglow = CalculateReflectedSunglow(surface);
 
 
+
 	float cloudsAltitude = 540.0f;
-	float cloudsThickness = 150.0f;
+
+	#ifdef HQ_VOLUMETRIC_CLOUDS
+	float cloudsThickness = CALCULATECLOUDDEPTH;
+	#else
+	float cloudsThickness = CALCULATECLOUDDEPTH;
+	#endif
 
 	float cloudsUpperLimit = cloudsAltitude + cloudsThickness * 0.5f;
 	float cloudsLowerLimit = cloudsAltitude - cloudsThickness * 0.5f;
 
-	float density = 1.0f;
+	float density = 2.0f;
 
-	float planeHeight = cloudsUpperLimit;
-	float stepSize = 25.5f;
-	planeHeight -= cloudsThickness * 0.5f;
+	float planeHeight = cloudsAltitude;
+	//float stepSize = 25.5f;
+	//planeHeight -= cloudsThickness * 0.85f;
 
 
-	Plane pl;
-	pl.origin = vec3(0.0f, cameraPosition.y - planeHeight, 0.0f);
-	pl.normal = vec3(0.0f, 1.0f, 0.0f);
+	float alphaAccum = 1.0;
 
-	Intersection i = RayPlaneIntersectionWorld(surface.viewRay, pl);
 
-	if (i.angle < 0.0f)
+	vec3 original = color.rgb;
+
+	#ifdef HQ_VOLUMETRIC_CLOUDS
+	const int numSamples = 20;
+	#else
+	const int numSamples = 10;
+	#endif
+
+	float dither = CalculateDitherPattern1();
+
+	planeHeight -= dither * (cloudsThickness / numSamples);
+
+	float heightFactor = 0.0 + dither / numSamples;
+
+	for (int j = 0; j < numSamples; j++)
 	{
-		vec4 cloudSample = CloudColor2(vec4(i.pos.xyz * 0.5f + vec3(30.0f), 1.0f), sunglow, surface.worldLightVector, cloudsAltitude, 0.15, false);
-		 	 cloudSample.a = min(1.0f, cloudSample.a * density);
+		Plane pl;
+		pl.origin = vec3(0.0f, cameraPosition.y - planeHeight, 0.0f);
+		pl.normal = vec3(0.0f, 1.0f, 0.0f);
 
-		color.rgb = mix(color.rgb, cloudSample.rgb * 0.18f, cloudSample.a);
+		Intersection i = RayPlaneIntersectionWorld(surface.viewRay, pl);
 
-		// cloudSample = CloudColor2(vec4(i.pos.xyz * 1.65f + vec3(10.0f) + vec3(i.pos.z * 0.5f, 0.0f, 330.0f), 1.0f), sunglow, surface.worldLightVector, cloudsAltitude, cloudsThickness, false);
-		// cloudSample.a = min(1.0f, cloudSample.a * density);
+		if (i.angle < 0.0f)
+		{
+			vec4 cloudSample = CloudColor2(vec4(i.pos.xyz * 0.5f + vec3(30.0f), 1.0f), sunglow, surface.worldLightVector, cloudsAltitude, heightFactor, false);
+			 	 cloudSample.a = min(1.0f, cloudSample.a * density);
 
-		// color.rgb = mix(color.rgb, cloudSample.rgb * 0.18f, cloudSample.a);
+			alphaAccum *= cloudSample.a;
+
+			color.rgb = mix(color.rgb, cloudSample.rgb * 0.18f * 0.006f, cloudSample.a);
+
+			// cloudSample = CloudColor2(vec4(i.pos.xyz * 0.65f + vec3(10.0f) + vec3(i.pos.z * 0.5f, 0.0f, 330.0f), 1.0f), sunglow, surface.worldLightVector, cloudsAltitude, cloudsThickness, false);
+			// cloudSample.a = min(1.0f, cloudSample.a * density);
+
+			// surface.color.rgb = mix(surface.color.rgb, cloudSample.rgb * 0.001f, cloudSample.a);
+		}
+
+		planeHeight -= cloudsThickness / numSamples;
+		heightFactor += 1.0 / numSamples;
 	}
+
+	surface.cloudAlpha = 1.0 - alphaAccum;
+
+	//color.rgb = mix(color.rgb, original, surface.cloudAlpha);
 }
 
 void CloudPlane(inout SurfaceStruct surface)
@@ -1112,6 +1191,31 @@ void CloudPlane(inout SurfaceStruct surface)
 	surface.color.rgb = mix(surface.color.rgb, original, surface.cloudAlpha);
 }
 
+void CalStar(in SurfaceStruct surface, inout vec3 finalComposite) {
+
+	vec3 viewPos = normalize(surface.viewSpacePosition.xyz);
+		 viewPos = reflect(viewPos, surface.normal.xyz);
+
+	vec4 worldPos = gbufferModelViewInverse * (vec4(-viewPos.xyz, 0.0f));
+
+	float cosT2 = pow(0.89, distance(vec2(0.0), worldPos.xz) / 100.0); // Curved plane.
+	vec2 starsCoord = worldPos.xz / worldPos.y / 20.0 * (1.0 + cosT2 * cosT2 * 3.5) + vec2(frameTimeCounter / 800.0 / 16 * 2);
+
+
+	float stars = max(texture2D(noisetex, starsCoord * 16).x - 0.94, 0.0) * 2.0;
+
+
+	float position = abs(worldPos.y - cameraPosition.y - 65);
+	float horizonPos= max(exp(1.0 - position / 50.0), 0.0);
+		stars = mix(stars * timeMidnight, 0.0, horizonPos);
+	float calcSun = min(pow(max(dot(normalize(viewPos.xyz), -surface.lightVector), 0.0), 2000.0), 0.2) * 3.0;
+		stars = mix(stars, 0.0, calcSun);
+
+
+	finalComposite.rgb = mix(finalComposite.rgb , (vec3(0.8,1.2,1.2) * 0.02 - 0.02 * rainStrength) * 0.006f, stars);
+
+}
+
 vec4 	ComputeFakeSkyReflection(in SurfaceStruct surface) {
 
 	vec3 cameraSpacePosition = convertScreenSpaceToWorldSpace(texcoord.st);
@@ -1120,7 +1224,7 @@ vec4 	ComputeFakeSkyReflection(in SurfaceStruct surface) {
 	vec4 color = vec4(0.0f);
 
 	color.rgb = ComputeReflectedSkyGradient(surface);
-	ReflectedCloudPlane(color.rgb, surface);
+
 	color.rgb *= 0.006f;
 	color.rgb *= mix(1.0f, 20000.0f, timeSkyDark);
 
@@ -1137,6 +1241,16 @@ vec4 	ComputeFakeSkyReflection(in SurfaceStruct surface) {
 	DoNightEye(color.rgb);
 
 	color.rgb *= mix(1.0f, 0.125f, timeMidnight);
+#ifdef NEW_SKY_LIGHT
+	color.rgb += (NewSkyLight(0.045, surface) / 6.0) * 0.006f;
+#endif
+
+#ifdef STAR
+	if (rainStrength < 0.99) CalStar(surface, color.rgb);
+#endif
+#ifdef VOLUMETRIC_CLOUDS
+	ReflectedVolumeClouds(surface, color.rgb);
+#endif
 
 	return color;
 }
