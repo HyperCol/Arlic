@@ -1,13 +1,13 @@
-#version 130
-
+#version 120
+#extension GL_ARB_shader_texture_lod : enable
 /*
- _______ _________ _______  _______  _ 
+ _______ _________ _______  _______  _
 (  ____ \\__   __/(  ___  )(  ____ )( )
 | (    \/   ) (   | (   ) || (    )|| |
 | (_____    | |   | |   | || (____)|| |
 (_____  )   | |   | |   | ||  _____)| |
       ) |   | |   | |   | || (      (_)
-/\____) |   | |   | (___) || )       _ 
+/\____) |   | |   | (___) || )       _
 \_______)   )_(   (_______)|/       (_)
 
 Do not modify this code until you have read the LICENSE.txt contained in the root directory of this shaderpack!
@@ -18,12 +18,22 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 
 ////////////////////////////////////////////////////ADJUSTABLE VARIABLES/////////////////////////////////////////////////////////
 
-#define TEXTURE_RESOLUTION 128 // Resolution of current resource pack. This needs to be set properly for POM! [16 32 64 128 256 512]
+#define NORMAL_MAP_MAX_ANGLE 1.0f   		//The higher the value, the more extreme per-pixel normal mapping (bump mapping) will be.
+#define TEXTURE_RESOLUTION 64 				//[16 32 64 128 256 512 1024 2048]
 
-#define PARALLAX // 3D effect for resource packs with heightmaps. Make sure Texture Resolution is set properly!
-#define PARALLAX_SHADOW // Texture self-shadowing from heightmaps
+#define PARALLAX			//POM, need supported texture pack to get 3D look to blocks
+	//#define NO_LQ_POM
+	#define PARALLAXDEPTH 1.5	//[0.1 0.3 0.5 0.7 0.9 1.2 1.5 1.8 2.1 2.4 2.7 3.0 3.4 3.8 4.2 4.6 5.0 5.5 6.0 6.5 7.0]
+	#define PARALLAXDISTANCE 10 	//[5 10 15 20 25 30 40 50]
+	
+	#define SPEC_BRIGHTNESS 1.0f
+	// default is 1.0f - lower this number to increase the specular brightness for New specular
+		//---for Resource pack Faithful recommended 1.0f, for Ovos Rustic and Chromahills recommended 0.7f---//
 
-#define FORCE_WET_EFFECT // Make all surfaces get wet during rain regardless of specular texture values
+//#define   OLD_SPECULAR			
+#define NEW_SPECULAR				
+
+#define TEMP_UNDERGROUND_LIGHT_FIX
 
 ///////////////////////////////////////////////////END OF ADJUSTABLE VARIABLES///////////////////////////////////////////////////
 
@@ -34,12 +44,16 @@ uniform sampler2D lightmap;
 uniform sampler2D normals;
 uniform sampler2D specular;
 uniform sampler2D noisetex;
-//uniform float wetness;
 uniform float wetness;
 uniform float frameTimeCounter;
+uniform ivec2 atlasSize;
 uniform vec3 sunPosition;
 uniform vec3 upPosition;
-uniform ivec2 atlasSize;
+
+uniform int isEyeInWater;
+uniform int terrainIconSize;
+
+uniform float rainStrength;
 
 uniform float near;
 uniform float far;
@@ -63,10 +77,6 @@ varying float materialIDs;
 
 varying float distance;
 varying float idCheck;
-
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjection;
 
 const int GL_LINEAR = 9729;
 const int GL_EXP = 2048;
@@ -118,9 +128,8 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
 
 vec2 OffsetCoord(in vec2 coord, in vec2 offset, in int level)
 {
-	int tileResolution = TEXTURE_RESOLUTION;
-	ivec2 atlasTiles = textureSize(texture, 0) / TEXTURE_RESOLUTION;
-	ivec2 atlasResolution = tileResolution * atlasTiles;
+	int tileResolution = terrainIconSize;
+	vec2 atlasResolution = atlasSize * exp2(8 - log2(float(TEXTURE_RESOLUTION))) / terrainIconSize;
 
 	coord *= atlasResolution;
 
@@ -185,7 +194,7 @@ vec3 Get3DNoiseNormal(in vec3 pos)
 vec3 CalculateRainBump(in vec3 pos)
 {
 
-	
+
 
 	pos.y += frameTimeCounter * 3.0f;
 	pos.xz *= 1.0f;
@@ -205,11 +214,8 @@ vec3 CalculateRainBump(in vec3 pos)
 
 float GetModulatedRainSpecular(in vec3 pos)
 {
-	//pos.y += frameTimeCounter * 3.0f;
 	pos.xz *= 1.0f;
 	pos.y *= 0.2f;
-
-	// pos.y += Get3DNoise(pos.xyz * vec3(1.0f, 0.0f, 1.0f)).x * 2.0f;
 
 	vec3 p = pos;
 
@@ -217,7 +223,7 @@ float GetModulatedRainSpecular(in vec3 pos)
 		  n += Get3DNoise(p / 2.0f).x * 2.0f;
 		  n += Get3DNoise(p / 4.0f).x * 4.0f;
 
-		  n /= 7.0f;
+		  n /= 6.0f;
 
 	return n;
 }
@@ -227,7 +233,7 @@ vec4 GetTexture(in sampler2D tex, in vec2 coord)
 {
 	#ifdef PARALLAX
 		vec4 t = vec4(0.0f);
-		if (distance < 20.0f)
+		if (distance < PARALLAXDISTANCE)
 		{
 			t = texture2DLod(tex, coord, 0);
 		}
@@ -241,21 +247,26 @@ vec4 GetTexture(in sampler2D tex, in vec2 coord)
 	#endif
 }
 
+
 vec2 CalculateParallaxCoord(in vec2 coord, in vec3 viewVector)
 {
 	vec2 parallaxCoord = coord.st;
 	const int maxSteps = 112;
-	vec3 stepSize = vec3(0.001f, 0.001f, 0.15f);
+	vec3 stepSize = vec3(0.002f, 0.002f, 0.2f);
 
-	float parallaxDepth = 1.0f;
+	float parallaxDepth = PARALLAXDEPTH;
+
+	if (materialIDs > 2.5f && materialIDs < 3.5f)
+		parallaxDepth = 4 * PARALLAXDEPTH;
 
 	stepSize.xy *= parallaxDepth;
 
-
+#ifdef NO_LQ_POM
 	float heightmap = GetTexture(normals, coord.st).a;
+#else
+	float heightmap = texture2D(normals, coord.st).a;
+#endif
 
-	//if (viewVector.z < 0.0f)
-	//{
 		vec3 pCoord = vec3(0.0f, 0.0f, 1.0f);
 
 		//make "pop out"
@@ -264,9 +275,15 @@ vec2 CalculateParallaxCoord(in vec2 coord, in vec3 viewVector)
 		if (heightmap < 1.0f)
 		{
 			vec3 step = viewVector * stepSize;
+	#ifdef NO_LQ_POM
+			float distAngleWeight = ((distance * 0.6f) * (2.1f - viewVector.z)) * 0.070f;
+	#else
 			float distAngleWeight = ((distance * 0.6f) * (2.1f - viewVector.z)) / 16.0;
+	#endif
 				 step *= distAngleWeight;
+			#ifdef NO_LQ_POM
 				 step *= 2.0f;
+			#endif
 
 			float sampleHeight = heightmap;
 
@@ -275,8 +292,11 @@ vec2 CalculateParallaxCoord(in vec2 coord, in vec3 viewVector)
 				//if (heightmap < pCoord.z)
 				pCoord.xy = mix(pCoord.xy, pCoord.xy + step.xy, clamp((pCoord.z - sampleHeight) / (stepSize.z * 1.0 * distAngleWeight / (-viewVector.z + 0.05)), 0.0, 1.0));
 				pCoord.z += step.z;
-				//pCoord += step;
+			#ifdef NO_LQ_POM
 				sampleHeight = GetTexture(normals, OffsetCoord(coord.st, pCoord.st, 0)).a;
+			#else
+				sampleHeight = texture2D(normals, OffsetCoord(coord.st, pCoord.st, 0)).a;
+			#endif
 
 			}
 
@@ -284,91 +304,55 @@ vec2 CalculateParallaxCoord(in vec2 coord, in vec3 viewVector)
 			parallaxCoord.xy = OffsetCoord(coord.st, pCoord.st, 0);
 		}
 
-	//}
-
-	//parallaxCoord.xy = OffsetCoord(coord.st, viewVector.xy * (1.0f - heightmap) * 0.0045f, 0);
 
 	return parallaxCoord;
 }
 
 
-float GetParallaxShadow(in vec2 texcoord, in vec3 lightVector, float baseHeight)
-{
-	float sunVis = 1.0;
-
-
-
-	//lightVector = normalize(tbnMatrix * lightVector);
-
-	lightVector.z *= TEXTURE_RESOLUTION * 0.5;
-
-	// lightVector = normalize(vec3(1.0, 1.0, 0.5));
-
-	vec3 currCoord = vec3(texcoord, baseHeight);
-
-	float stepSize = 0.001;
-
-	for (int i = 0; i < 15; i++)
-	{
-		currCoord = vec3(OffsetCoord(currCoord.xy, lightVector.xy * stepSize, 0), currCoord.z + lightVector.z * stepSize);
-		float heightSample = GetTexture(normals, currCoord.xy).a;
-
-		if (heightSample > currCoord.z + 0.05)
-		{
-			sunVis *= 0.05;
-		}
-		// sunVis *= clamp((currCoord.z - heightSample) / 20.0 + 0.8, 0.0, 1.0);
-	}
-
-	return sunVis;
-}
-
-
-void main() {	
+void main() {
 
 	vec4 modelView = (gl_ModelViewMatrix * vertexPos);
-		 // modelView.x *= aspectRatio;
-		 // modelView.z *= 1.4f;
-		 // modelView = gl_ProjectionMatrix * modelView;
-		 // modelView.xyz /= modelView.w;
 
-		 // modelView.z = -modelView.z;
 
 	vec3 viewVector = normalize(tbnMatrix * modelView.xyz);
-		 //viewVector.x /= 2.0f;
-	int tileResolution = TEXTURE_RESOLUTION;
-	ivec2 atlasTiles = atlasSize / TEXTURE_RESOLUTION;
-	float atlasAspectRatio = atlasTiles.x / atlasTiles.y;
-		viewVector.y *= atlasAspectRatio;
-
+		 viewVector.x /= 2.0f;
 
 		 viewVector = normalize(viewVector);
 
 	vec2 parallaxCoord = texcoord.st;
 	#ifdef PARALLAX
-		if (distance < 20.0f)
+		if (distance < 50.0f)
 		 parallaxCoord = CalculateParallaxCoord(texcoord.st, viewVector);
 	#endif
 
 	float height = GetTexture(normals, parallaxCoord).a;
 
 
-	
-
-
 	float w = wetness;
 
 
-		
-	vec4 spec = GetTexture(specular, parallaxCoord.st);
 
-	#ifdef FORCE_WET_EFFECT
-	spec.g = 1.0;
-	#endif
+	vec4 spec = GetTexture(specular, parallaxCoord.st);
+	vec4 specs = texture2D(specular, parallaxCoord.st);
 
 	float wet = GetModulatedRainSpecular(worldPosition.xyz);
 
+#ifdef OLD_SPECULAR
 	float wetAngle = dot(worldNormal, vec3(0.0f, 1.0f, 0.0f)) * 0.5f + 0.5f;
+
+	if (abs(materialIDs - 20.0f) < 0.1f || abs(materialIDs - 21.0f) < 0.1f)
+	{
+
+	}
+	else
+	{
+		 specs.g += max(0.0f, clamp((wet * 1.0f + 0.2f), 0.0f, 1.0f) - (SPEC_BRIGHTNESS - w) * 1.0f);
+		 specs.b += max(0.0f, (wet) - (1.0f - w) * 1.0f) * w;
+	}
+#endif
+
+#ifdef NEW_SPECULAR
+		float wetAngle = dot(worldNormal, vec3(0.0f, 1.0f, 0.0f)) * 0.5f + 0.5f;
 	wet *= wetAngle;
 
 	if (abs(materialIDs - 20.0f) < 0.1f || abs(materialIDs - 21.0f) < 0.1f)
@@ -378,13 +362,13 @@ void main() {
 	else
 	{
 		wet = clamp(wet * 1.5f - 0.2f, 0.0f, 1.0f);
-		 spec.g *= max(0.0f, clamp((wet * 1.0f + 0.2f), 0.0f, 1.0f) - (1.0f - w) * 1.0f);
+		 spec.g += max(0.0f, clamp((wet * 1.0f + 0.2f), 0.0f, 1.0f) - (SPEC_BRIGHTNESS - w) * 1.0f);
 		 spec.b += max(0.0f, (wet) - (1.0f - w) * 1.0f) * w;
-		 // spec.g += wet;
-		 // spec.b += wet;
 	}
+#endif
 
-	//store lightmap in auxilliary texture. r = torch light. g = lightning. b = sky light.
+#ifdef TEMP_UNDERGROUND_LIGHT_FIX
+//store lightmap in auxilliary texture. r = torch light. g = lightning. b = sky light.
 	vec4 lightmap = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	
 	//Separate lightmap types
@@ -393,174 +377,118 @@ void main() {
 
 	lightmap.b = pow(lightmap.b, 1.0f);
 	lightmap.r = pow(lightmap.r, 3.0f);
-	// vec4 clr = color;
-	// 	 clr.rgb = clr.rgb / normalize(clr.rbg);
-	// 	 clr.rgb *= 0.5f;
-	// 	 clr.rgb = vec3(max(color.r, max(color.g, color.b)));
-
-	// float ao = (color.r + color.g + color.b) / 3.0f;
-
-	// float colorDiff = abs(color.r - color.g);
-	// 	  colorDiff += abs(color.r - color.b);
-	// 	  colorDiff += abs(color.g - color.b);
-
-	// if (colorDiff > 0.001f) {
-	// 	ao = 1.0f;
-	// }
-
-	// ao = pow(ao, 13.0f);
-
-	 // lightmap.b *= ao;
-
-	 // lightmap.r *= ao * 0.5f + 0.5f;
+	
 
 	 float wetfactor = clamp(lightmap.b * 1.05f - 0.9f, 0.0f, 0.1f) / 0.1f;
 	 	   wetfactor *= w;
+#else
 
-	 //spec.g += 0.9f;
+	vec4 mclightmap = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	vec4 mclightmaps = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+	//Separate lightmap types
+	mclightmap.r = clamp((lmcoord.s * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
+
+	if (isEyeInWater > 0.9 || rainStrength > 0.9) {
+
+		mclightmap.b = clamp((lmcoord.t * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
+		mclightmaps.b = clamp((lmcoord.t * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
+
+	} else {
+
+		mclightmap.b = texture2D(lightmap, vec2(0.0/16., lmcoord.t)).r*2.85 * pow(1-rainStrength, -0.27f);
+
+	}
+
+	mclightmaps.b = clamp((lmcoord.t * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
+
+
+	mclightmap.b = pow(mclightmap.b, 1.0f);
+	mclightmap.r = pow(mclightmap.r, 3.0f);
+
+
+	 float wetfactor = clamp(mclightmaps.b * 1.05f - 0.9f, 0.0f, 0.1f) / 0.1f;
+	 	   wetfactor *= w;
+#endif
 	 spec.g *= wetfactor;
 
+#ifdef OLD_SPECULAR
+	 specs.g *= wetfactor;
+#endif
 
 
 
-	
-	
-	
+
+
+
 	vec4 frag2;
-	
+
 	if (distance < bump_distance) {
-	
+
 			vec3 bump = GetTexture(normals, parallaxCoord.st).rgb * 2.0f - 1.0f;
-			
-			float bumpmult = clamp(bump_distance * fademult - distance * fademult, 0.0f, 1.0f);
-	              bumpmult *= 1.0f - (clamp(spec.g * 1.0f - 0.0f, 0.0f, 1.0f) * 0.97f);
-				  
+
+			float bumpmult = clamp(bump_distance * fademult - distance * fademult, 0.0f, 1.0f) * NORMAL_MAP_MAX_ANGLE;
+	              bumpmult *= 1.0f - (clamp(spec.g * 1.0f - 0.0f, 0.0f, 1.0f) * 0.75f);
+
 			bump = bump * vec3(bumpmult, bumpmult, bumpmult) + vec3(0.0f, 0.0f, 1.0f - bumpmult);
 
-			//bump += CalculateRainBump(worldPosition.xyz);
-			
+
 			frag2 = vec4(bump * tbnMatrix * 0.5 + 0.5, 1.0);
-			
+
 	} else {
-	
-			frag2 = vec4((normal) * 0.5f + 0.5f, 1.0f);					
+
+			frag2 = vec4((normal) * 0.5f + 0.5f, 1.0f);
 	}
-
-
-	float parallaxShadow = 1.0;
-
-	#ifdef PARALLAX_SHADOW
-
-	float baseHeight = GetTexture(normals, parallaxCoord.st).a;
-
-	if (dot(normalize(sunPosition), normalize(frag2.xyz * 2.0 - 1.0)) > 0.0 && baseHeight < 1.0 && distance < 20.0f)
-	{
-		vec3 lightVector = normalize(sunPosition.xyz);
-		lightVector = normalize(tbnMatrix * lightVector);
-		lightVector.y *= atlasAspectRatio;
-		lightVector = normalize(lightVector);
-		parallaxShadow = GetParallaxShadow(parallaxCoord.st, lightVector, baseHeight);
-	}
-
-	#endif
 
 	//Diffuse
 	vec4 albedo = GetTexture(texture, parallaxCoord.st) * color;
 
 
-		//sunlightVisibility *= clamp(dot(frag2.rgb * 2.0f - 1.0f, normalize(sunPosition.xyz)), 0.0f, 1.0f);
-
-		//albedo.rgb *= sunlightVisibility * 0.8f + 0.2f;
-
-		 //albedo.rgb *= texture2D(normals, parallaxCoord.st, int(mipLevel), false).a;
-
-		// vec3 noise = Get3DNoise(worldPosition.xyz);
-
-		// albedo.rgb = noise.rgb;
 
 	vec3 upVector = normalize(upPosition);
 
-	// albedo.rgb = mix(albedo.rgb, vec3(1.0), vec3(clamp(clamp(dot(frag2.xyz * 2.0 - 1.0, upVector) * 1.0 + 0.5, 0.0, 1.0) * clamp(lightmap.b * 10.0 - 9.0, 0.0, 1.0) * 6.0 - 2.0, 0.0, 1.0)));
-
 	float darkFactor = clamp(spec.g, 0.0f, 0.2f) / 0.2f;
 
-	//albedo.rgb *= mix(1.0f, 0.9f, darkFactor);
 	albedo.rgb = pow(albedo.rgb, vec3(mix(1.0f, 1.25f, darkFactor)));
-	//albedo.rgb = vec3(1.0f);
 
 
 
 		float metallicMask = 0.0f;
-		
+
 		if (   abs(materialIDs - 20.0f) < 0.1f
 			|| abs(materialIDs - 21.0f) < 0.1f
 			|| abs(materialIDs - 22.0f) < 0.1f
 			|| abs(materialIDs - 23.0f) < 0.1f) {
 			metallicMask = 1.0f;
 		}
-		
 
-		
+
+
 
 	float mats_1 = materialIDs;
 		  mats_1 += 0.1f;
 
-	// if (abs(materialIDs - 60.0f) < 0.1f)
-	// {
-	// 	mats_1 = 0.0f;
-	// 	albedo.rgb = gl_Fog.color.rgb * 1.0f;
-	// }
 
-/*
-	vec4 viewSpacePos = gl_ModelViewMatrix * vertexPos;
-	viewSpacePos = gbufferProjection * viewSpacePos;
-
-	viewSpacePos.xyz += worldNormal * (height) * 0.11;
-
-
-	viewSpacePos /= viewSpacePos.w;
-	viewSpacePos = viewSpacePos * 0.5 + 0.5;
-
-	gl_FragDepth = viewSpacePos.z;
-
-	albedo.rgb = viewSpacePos.xyz;
-// */
-
-	// albedo.rgb *= parallaxShadow;
-
-
-	//if (textureSize(texture, 4).y == atlasSize.y / 16)
-	//{
-	//	frag2.x = 0.0;
-	//}
-
-	// float tileSize = 2.0;
-	// for (int i = 4; i < 10; i++)
-	// {
-	// 	//if (textureSize(texture, i).y == atlasSize.y / exp2(i))
-	// 	if (textureSize(texture, i).y == 0)
-	// 	{
-	// 		tileSize = atlasSize.y / textureSize(texture, i-1).y;
-	// 		break;
-	// 	}
-	// }
-
-	// if (tileSize == 16.0)
-	// {
-	// 	frag2.x = 0.0;
-	// }
 
 	gl_FragData[0] = albedo;
 
-	//Depth  
+	//Depth
+#ifdef TEMP_UNDERGROUND_LIGHT_FIX
 	gl_FragData[1] = vec4(mats_1/255.0f, lightmap.r, lightmap.b, 1.0f);
-
+#else	
+	gl_FragData[1] = vec4(mats_1/255.0f, mclightmap.r, mclightmap.b, 1.0f);
+#endif
+	
 	//normal
 	gl_FragData[2] = frag2;
-		
+
 	//specularity
-	gl_FragData[3] = vec4(spec.r + spec.g, spec.b, 1.0 - parallaxShadow, 1.0f);	
+	#ifdef NEW_SPECULAR
+	gl_FragData[3] = vec4(spec.r + spec.g, spec.b, 0.0f, 1.0f);
+	#endif
+	#ifdef OLD_SPECULAR
+	gl_FragData[3] = vec4(specs.r + specs.g, specs.b, 0.0f, 1.0f);
+	#endif
 
-	gl_FragData[4] = frag2;
-
+gl_FragData[4] = frag2;
 }
