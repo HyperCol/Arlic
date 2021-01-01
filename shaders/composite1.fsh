@@ -48,6 +48,8 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 
 #define TORCHLIGHT_BRIGHTNESS 0.5 // How bright is light from torches, fire, etc. [0.25 0.5 0.75 1.0 1.5 2.0]
 
+#define STAR
+
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Do not change the name of these variables or their type. The Shaders Mod reads these lines and determines values to send to the inner-workings
@@ -2687,7 +2689,27 @@ void CrepuscularRays(inout float color, in SurfaceStruct surface)
 	*/
 }
 
+void CalStar(in SurfaceStruct surface, inout vec3 finalComposite) {
 
+	vec4 worldPos = surface.worldSpacePosition;
+
+	float cosT2 = pow(0.89, distance(vec2(0.0), worldPos.xz) / 100.0); // Curved plane.
+	vec2 starsCoord = worldPos.xz / worldPos.y / 20.0 * (1.0 + cosT2 * cosT2 * 3.5) + vec2(frameTimeCounter / 800.0 / 16 * 2);
+
+
+	float stars = max(texture2D(noisetex, starsCoord * 16).x - 0.94, 0.0) * 2.0;
+
+
+	float position = abs(worldPos.y + cameraPosition.y - 65);
+	float horizonPos= max(exp(1.0 - position / 50.0), 0.0);
+		stars = mix(stars * timeMidnight, 0.0, horizonPos);
+	float calcSun = min(pow(max(dot(normalize(surface.screenSpacePosition).xyz, surface.lightVector), 0.0), 2000.0), 0.2) * 3.0;
+		stars = mix(stars, 0.0, calcSun);
+
+
+	finalComposite.rgb = mix(finalComposite.rgb , vec3(0.8,1.2,1.2) * 0.02 - 0.02 * rainStrength, stars * float(surface.mask.sky));
+
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2981,6 +3003,10 @@ void main() {
 		finalComposite *= 9.0;
 		//CalculateUnderwaterFog(surface, finalComposite);
 	}
+
+#ifdef STAR
+	if (rainStrength < 0.99) CalStar(surface,finalComposite);
+#endif
 
 	CloudPlane(surface, finalComposite);
 
