@@ -22,9 +22,9 @@ steps:
     rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/Arlic-Shader_$(Build.BuildId).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/Arlic-Shader(Rewrited)_$(Build.BuildId).zip'
     replaceExistingArchive: false
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: $(Build.ArtifactStagingDirectory)
-    artifactName: Arlic-Shader_$(Build.BuildId)
+    artifactName: Arlic-Shader(Rewrited)_$(Build.BuildId)

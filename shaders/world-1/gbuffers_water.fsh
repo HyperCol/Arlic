@@ -1,6 +1,6 @@
 #version 120
 
-#define WAVE_HEIGHT 0.35    //[0.0 0.05 0.1 0.2 0.35 0.5 0.65 0.8 1.0 1.2 1.4 1.7 2.0]
+#define WAVE_HEIGHT 0.75f
 
 uniform sampler2D texture;
 uniform sampler2D specular;

@@ -30,7 +30,7 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 
 //If you want shadows to be pixelated to look more integrated with low res pixel-arty textures
 //#define PIXEL_SHADOWS
-#define TEXTURE_RESOLUTION 64 // Resolution of current resource pack. This needs to be set properly for POM! [16 32 64 128 256 512 1024 2048]
+#define TEXTURE_RESOLUTION 128 // Resolution of current resource pack. This needs to be set properly for POM! [16 32 64 128 256 512]
 
 
 

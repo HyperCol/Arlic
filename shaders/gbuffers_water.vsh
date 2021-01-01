@@ -1,6 +1,6 @@
-#version 130
+#version 120
 
-#define WAVING_WATER
+//#define WAVING_WATER
 
 uniform int worldTime;
 
@@ -20,18 +20,20 @@ varying vec3 globalNormal;
 varying vec3 tangent;
 varying vec3 binormal;
 varying vec3 viewVector;
+varying vec3 viewVector2;
 varying float distance;
 
 attribute vec4 mc_Entity;
 
 varying float iswater;
 varying float isice;
+varying float isStainedGlass;
 
 void main() {
 
 	iswater = 0.0f;
 	isice = 0.0f;
-
+	isStainedGlass = 0.0f;
 
 	
 	if (mc_Entity.x == 79) {
@@ -47,6 +49,11 @@ void main() {
 	
 	if (mc_Entity.x == 8 || mc_Entity.x == 9) {
 		iswater = 1.0f;
+	}
+
+	if (mc_Entity.x == 95 || mc_Entity.x == 160)
+	{
+		isStainedGlass = 1.0f;
 	}
 	
 		
@@ -96,7 +103,7 @@ void main() {
 		binormal = normalize(gl_NormalMatrix * vec3( 0.0,  0.0,  1.0));
 	} else if (gl_Normal.z > 0.5) {
 		//  0.0,  0.0,  1.0
-		tangent  = normalize(gl_NormalMatrix * vec3( 91.0,  0.0,  0.0));
+		tangent  = normalize(gl_NormalMatrix * vec3( 1.0,  0.0,  0.0));
 		binormal = normalize(gl_NormalMatrix * vec3( 0.0, -1.0,  0.0));
 	} else if (gl_Normal.z < -0.5) {
 		//  0.0,  0.0, -1.0
@@ -109,6 +116,7 @@ void main() {
                           tangent.z, binormal.z, normal.z);
 
 	viewVector = (gl_ModelViewMatrix * gl_Vertex).xyz;
+	viewVector2 = normalize(viewVector);
 	viewVector = normalize(tbnMatrix * viewVector);
 
 
