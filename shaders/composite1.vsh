@@ -1,5 +1,18 @@
 #version 120
 
+
+#define MOON_LIGHT_NIGHT  0.6  // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define SKYLIGHT_NIGHT  3.8    // [0.2 0.6 1.0 1.4 1.8 2.2 2.6 3.0 3.4 3.8 4.2 4.6 5.0]
+#define FANTASIC_NIGHTSKY  0.0 // [0.0 0.5 1.0 1.5 2.0 3.0 4.0 5.0]
+
+#define SKYLIGHT_NIGHT_R 0.6   //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6]  
+#define SKYLIGHT_NIGHT_G 0.45  //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6]  
+#define SKYLIGHT_NIGHT_B 4.0   //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.6 52.7 2.7 52.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]  
+
+#define SKYLIGHT_DAY_RED 0.6   //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6]  
+#define SKYLIGHT_DAY_GREEN 1.0 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6]  
+#define SKYLIGHT_DAY_BULE 0.6  //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6] 
+
 //---------- Point Light Color ----------//
 #define POINTLIGHT_COLOR_TEMPERATURE 4000 // Color temperature of point light in Kelvin. [1000 1100 1200 1300 1400 1500 1600 1700 1800 1900 2000 2100 2200 2300 2400 2500 2600 2700 2800 2900 3000 3100 3200 3300 3400 3500 3600 3700 3800 3900 4000 4100 4200 4300 4400 4500 4600 4700 4800 4900 5000 5100 5200 5300 5400 5500 5600 5700 5800 5900 6000 6100 6200 6300 6400 6500 6600 6700 6800 6900 7000 7100 7200 7300 7400 7500 7600 7700 7800 7900 8000 8100 8200 8300 8400 8500 8600 8700 8800 8900 9000]
 	#define POINTLIGHT_COL_TEMP_LINKER
@@ -73,7 +86,7 @@ void main() {
 	upVector = normalize(upPosition);
 	
 	
-	float timePow = 4.0f;
+	float timePow = 3.2f;
 
 	float LdotUp = dot(upVector, sunVector);
 	float LdotDown = dot(-upVector, sunVector);
@@ -103,10 +116,10 @@ void main() {
 //colors for shadows/sunlight and sky
 	
 	vec3 sunrise_sun;
-	 sunrise_sun.r = 1.00;
-	 sunrise_sun.g = 0.58;
-	 sunrise_sun.b = 0.00;
-	 sunrise_sun *= 0.65f;
+	 sunrise_sun.r = 1.0;
+	 sunrise_sun.g = 0.6;
+	 sunrise_sun.b = 0.0;
+	 sunrise_sun *= 1.55f;
 	
 	vec3 sunrise_amb;
 	 sunrise_amb.r = 0.30 ;
@@ -116,9 +129,9 @@ void main() {
 	 
 	
 	vec3 noon_sun;
-	 noon_sun.r = mix(1.00, 1.00, rayleigh);
-	 noon_sun.g = mix(1.00, 0.75, rayleigh);
-	 noon_sun.b = mix(1.00, 0.00, rayleigh);	 
+	 noon_sun.r = mix(0.90, 1.00, rayleigh);
+	 noon_sun.g = mix(0.80, 0.75, rayleigh);
+	 noon_sun.b = mix(0.60, 0.00, rayleigh); 
 	
 	vec3 noon_amb;
 	 noon_amb.r = 0.00 ;
@@ -138,9 +151,16 @@ void main() {
 	//  sunset_amb *= 1.0f;
 	
 	vec3 midnight_sun;
-	 midnight_sun.r = 1.0;
-	 midnight_sun.g = 1.0;
-	 midnight_sun.b = 1.0;
+	if (FANTASIC_NIGHTSKY > 0){
+	 midnight_sun.r = 1.2f;
+	 midnight_sun.g = 2.0f/sqrt(0.5*FANTASIC_NIGHTSKY+1);
+	 midnight_sun.b = 2.5f;
+	 }else{
+	 midnight_sun.r = 1.2f;
+	 midnight_sun.g = 2.0f;
+	 midnight_sun.b = 2.5f;
+	 }
+	 midnight_sun *= MOON_LIGHT_NIGHT;
 	
 	vec3 midnight_amb;
 	 midnight_amb.r = 0.0 ;
@@ -152,9 +172,14 @@ void main() {
 
 
 
-	sunrise_amb = vec3(0.19f, 0.35f, 0.7f) * 0.15f;
-	noon_amb    = vec3(0.15f, 0.29f, 0.99f);
-	midnight_amb = vec3(0.005f, 0.01f, 0.02f) * 0.025f;
+	sunrise_amb = vec3(1.5f, 0.5f, 1.1f) * 0.15f;
+	noon_amb	= vec3(0.15 * SKYLIGHT_DAY_RED, 0.375 * SKYLIGHT_DAY_GREEN, 1.34f * SKYLIGHT_DAY_BULE) * 0.62f;
+		if (FANTASIC_NIGHTSKY > 0){
+			//midnight_amb = vec3(0.6f, 0.45f/FANTASIC_NIGHTSKY, 4.0f) * 0.0003f * SKYLIGHT_NIGHT;
+			midnight_amb = vec3(SKYLIGHT_NIGHT_R, SKYLIGHT_NIGHT_G / FANTASIC_NIGHTSKY, SKYLIGHT_NIGHT_B) * 0.0003f * SKYLIGHT_NIGHT;
+		}else{
+			midnight_amb = vec3(0.005f, 0.25f, 1.0f) * 0.001f * SKYLIGHT_NIGHT;
+		}
 	
 	colorSkylight = sunrise_amb * timeSunriseSunset  +  noon_amb * timeNoon  +  midnight_amb * timeMidnight;
 
@@ -194,7 +219,7 @@ void main() {
 
 				
 	//Saturate sunlight colors
-	colorSunlight = pow(colorSunlight, vec3(4.2f));
+	colorSunlight = pow(colorSunlight, vec3(2.9f));
 	
 	colorSunlight *= 1.0f - horizonTime;
 
