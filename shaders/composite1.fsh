@@ -36,7 +36,7 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 
 #define VOLUMETRIC_CLOUDS // Volumetric clouds
 #define HQ_VOLUMETRIC_CLOUDS // High-quality volumetric clouds. Volumetric Clouds must be enabled!
-	#define CALCULATECLOUDDEPTH 500           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
+	#define CALCULATECLOUDDEPTH 300           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
 	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
 	#define CALCULATECLOUDSCONCENTRATION 2.5  // [0.5 1.0 1.5 2.0 2.5 3.0 4.0 5.0 7.0 9.0]
 	#define WHITECLOUDS 1                     // [0.01 1 4 6 9]
@@ -1290,8 +1290,8 @@ void 	AddSkyGradient(inout SurfaceStruct surface) {
 
 
 	// //Fake land
-	// vec3 fakeLandColor = vec3(0.2f, 0.5f, 1.0f) * 0.006f;
-	// surface.sky.albedo = mix(surface.sky.albedo, fakeLandColor, vec3(clamp(skyGradientFactor * 8.0f - 0.7f, 0.0f, 1.0f)));
+	//vec3 fakeLandColor = vec3(0.7f, 0.9f, 1.0f) * 0.012f;
+	//surface.sky.albedo = mix(surface.sky.albedo, fakeLandColor, clamp(skyGradientFactor * 8.0f - 0.7f, 0.0f, 1.0f));
 
 
 	surface.sky.albedo *= (surface.mask.sky);
@@ -1827,7 +1827,7 @@ vec4 CloudColor2(in vec4 worldPosition, in float sunglow, in vec3 worldLightVect
 	//cloud height coverage falloff
 
 	//cloud edge
-	float coverage = 0.25f + 0.001 * CALCULATECLOUDSDENSITY;
+	float coverage = 0.275f + 0.001 * CALCULATECLOUDSDENSITY;
 		  coverage = mix(coverage, 0.87f, rainStrength);
 
 		  float dist = length(worldPosition.xz - cameraPosition.xz * 0.5) * 0.5;
@@ -1973,7 +1973,7 @@ void VolumeClouds(inout SurfaceStruct surface, inout vec3 color)
 
 
 
-	float cloudsAltitude = 540.0f;
+	float cloudsAltitude = 400.0f;
 
 	#ifdef HQ_VOLUMETRIC_CLOUDS
 	float cloudsThickness = CALCULATECLOUDDEPTH;

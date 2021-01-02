@@ -16,7 +16,7 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 
 #define VOLUMETRIC_CLOUDS // Volumetric clouds
 #define HQ_VOLUMETRIC_CLOUDS // High-quality volumetric clouds. Volumetric Clouds must be enabled!
-	#define CALCULATECLOUDDEPTH 500           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
+	#define CALCULATECLOUDDEPTH 250           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
 	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
 	#define CALCULATECLOUDSCONCENTRATION 2.5  // [0.5 1.0 1.5 2.0 2.5 3.0 4.0 5.0 7.0 9.0]
 	#define WHITECLOUDS 1                     // [0.01 1 4 6 9]
@@ -806,9 +806,6 @@ vec3 	ComputeReflectedSkyGradient(in SurfaceStruct surface) {
 
 	float fogLum = max(max(linFogColor.r, linFogColor.g), linFogColor.b);
 
-
-	float fadeSize = 0.0f;
-
 	float fade1 = clamp(skyGradientFactor - 0.05f, 0.0f, 0.2f) / 0.2f;
 		  fade1 = fade1 * fade1 * (3.0f - 2.0f * fade1);
 	vec3 color1 = vec3(12.0f, 8.0, 4.7f) * 0.15f;
@@ -826,7 +823,7 @@ vec3 	ComputeReflectedSkyGradient(in SurfaceStruct surface) {
 
 
 
-	float horizonGradient = 1.0f - distance(skyDirectionGradient, 0.72f + fadeSize) / (0.72f + fadeSize);
+	float horizonGradient = 1.0f - distance(skyDirectionGradient, 0.72f) / 0.72f;
 		  horizonGradient = pow(horizonGradient, 10.0f);
 		  horizonGradient = max(0.0f, horizonGradient);
 
@@ -945,27 +942,28 @@ vec4 CloudColor2(in vec4 worldPosition, in float sunglow, in vec3 worldLightVect
 
 	vec3 p1 = p * vec3(1.0f, 0.5f, 1.0f)  + vec3(0.0f, t * 0.01f, 0.0f);
 
-	float noise  = 	Get3DNoise(p * vec3(1.0f, 0.5f, 1.0f) + vec3(0.0f, t * 0.01f, 0.0f)) * 1.3;		p *= 2.0f;	p.x -= t * 0.557f;	vec3 p2 = p;	
-		  noise += (2.0f - abs(Get3DNoise(p) * 2.0f - 0.0f)) * (0.35f);								p *= 3.0f;	p.xz -= t * 0.905f;	p.x *= 2.0f;	vec3 p3 = p; 	float largeNoise = noise;
-		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.085f);							p *= 3.0f;	p.xz -= t * 3.905f;	vec3 p4 = p;
-		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.035f);							p *= 3.0f;	p.xz -= t * 3.905f;
-		  noise += ((Get3DNoise(p))) * (0.04f);												p *= 3.0f;
-		  noise /= 2.375f;
+		float noise  = 	Get3DNoise(p * vec3(1.0f, 0.5f, 1.0f) + vec3(0.0f, t * 0.01f, 0.0f));	p *= 2.0f;	p.x -= t * 0.097f;	vec3 p2 = p;
+			  noise += (1.0 - abs(Get3DNoise(p) * 1.0f - 0.5f) - 0.1) * 0.55f;					p *= 2.5f;	p.xz -= t * 0.065f;	vec3 p3 = p;
+			  noise += (1.0 - abs(Get3DNoise(p) * 3.0f - 1.5f) - 0.2) * 0.065f;					p *= 2.5f;	p.xz -= t * 0.165f;	vec3 p4 = p;
+			  noise += (1.0 - abs(Get3DNoise(p) * 3.0f - 1.5f)) * 0.032f;						p *= 2.5f;	p.xz -= t * 0.165f;
+			  noise += (1.0 - abs(Get3DNoise(p) * 2.0 - 1.0)) * 0.015f;												p *= 2.5f;
+			  // noise += (1.0 - abs(Get3DNoise(p) * 2.0 - 1.0)) * 0.016f;
+			  noise /= 1.875f;
 
 //WEIFUIWEF
 	//cloud height coverage falloff
 
 	//cloud edge
-	float coverage = 0.5f;
+	float coverage = 0.275f + 0.001 * CALCULATECLOUDSDENSITY;
 		  coverage = mix(coverage, 0.87f, rainStrength);
 
 		  float dist = length(worldPosition.xz - cameraPosition.xz * 0.5) * 0.5;
 		  coverage *= max(0.0f, 1.0f - dist / 4000.0f);
-	float density = 0.71f - rainStrength * 0.3;
+	float density = 0.87f - rainStrength * 0.3;
 
 	noise = GetCoverage(coverage, density, noise);
 
-	const float lightOffset = 0.2f;
+		float lightOffset = 0.3f - timeMidnight;
 
 	noise *= pcurve(heightFactor, 0.5, 2.5) * saturate(heightFactor * 8.0 - 1.0);
 	//noise *= heightFactor;
@@ -976,58 +974,60 @@ vec4 CloudColor2(in vec4 worldPosition, in float sunglow, in vec3 worldLightVect
 	}
 
 
-	float sundiff = Get3DNoise(p1 + worldLightVector.xyz * lightOffset) * 1.3;
-		  sundiff += (2.0f - abs(Get3DNoise(p2 + worldLightVector.xyz * lightOffset / 2.0f) * 2.0f - 0.0f)) * (0.35f);
-		  				float largeSundiff = sundiff;
-		  				      largeSundiff = -GetCoverage(coverage, 0.0f, largeSundiff * 1.3f);
-		  // sundiff += (3.0f - abs(Get3DNoise(p3 + worldLightVector.xyz * lightOffset / 5.0f) * 3.0f - 0.0f)) * (0.035f);
-		  // sundiff += (3.0f - abs(Get3DNoise(p4 + worldLightVector.xyz * lightOffset / 8.0f) * 3.0f - 0.0f)) * (0.015f);
-		  sundiff /= 1.1f;
-		  sundiff *= max(0.0f, 1.0f - dist / 10000.0f);
-		  sundiff = -GetCoverage(coverage * 1.1f, -0.2f, sundiff);
-		  //sundiff *= pow(cos((heightFactor * 2.0 - 1.0) * 3.14159265 * 0.5) * 0.5 + 0.5, 0.8);
-		  //sundiff *= pcurve(max(0.0, heightFactor - worldLightVector.y * 0.1 - 0.05) * 0.5, 0.5, 1.5);
-		  sundiff *= pow(saturate(heightFactor * 1.5), 1.0);
-		  sundiff *= mix(1.0, pow(saturate((1.0 - heightFactor) * (1.0 + largeNoise * 1.0)), 1.0), 0.6);
-	float secondOrder 	= pow(clamp(sundiff * 1.0f + 1.2f, 0.0f, 1.0f), 2.7f);
-	float firstOrder 	= pow(clamp(sundiff * 0.9f + 1.1f, 0.0f, 1.0f), 13.0f);
-	float thirdOrder 	= pow(clamp(-largeNoise * 1.0 + 2.0, 0.0, 3.0), 1.0);
+	float sundiff = Get3DNoise(p1 + worldLightVector.xyz * lightOffset);
+		  sundiff += (1.0 - abs(Get3DNoise(p2 + worldLightVector.xyz * lightOffset / 2.0f) * 1.0f - 0.5f) - 0.1) * 0.55f;
+		  // sundiff += (1.0 - abs(Get3DNoise(p3 + worldLightVector.xyz * lightOffset / 5.0f) * 3.0f - 1.5f) - 0.2) * 0.085f;
+		  // sundiff += (1.0 - abs(Get3DNoise(p4 + worldLightVector.xyz * lightOffset / 8.0f) * 3.0f - 1.5f)) * 0.052f;
+		  sundiff *= 0.955f;
+	float preCoverage = sundiff;
+		  sundiff = -GetCoverage(coverage * 1.0f, density * 0.5, sundiff);
+	float sundiff2 = -GetCoverage(coverage * 1.0f, 0.0, preCoverage);
+	float firstOrder 	= pow(clamp(sundiff * 1.2f + 1.7f, 0.0f, 1.0f), 8.0f);
+	float secondOrder 	= pow(clamp(sundiff2 * 1.2f + 1.1f, 0.0f, 1.0f), 4.0f);
 
 
 
-	float directLightFalloff = mix(firstOrder * 2.0, secondOrder * 3.0, 0.15);
-	float anisoBackFactor = mix(clamp(pow(noise, 1.3f) * 7.5f, 0.0f, 2.0f), 1.0f, pow(sunglow, 1.0f));
-
-		  directLightFalloff *= anisoBackFactor * 0.8 + 0.2;
+	float anisoBackFactor = mix(clamp(pow(noise, 2.0f) * 1.0f, 0.0f, 1.0f), 1.0f, pow(sunglow, 1.0f));
+		  firstOrder *= anisoBackFactor * 0.99 + 0.01;
+		  secondOrder *= anisoBackFactor * 0.8 + 0.2;
+	float directLightFalloff = mix(firstOrder, secondOrder, 0.2f);
 	 	  //directLightFalloff *= mix(11.5f, 1.0f, pow(sunglow, 0.5f));
 
 	 	 //directLightFalloff *= 0.5 + pow(1.0 - noise, 18.0) * 0.9;
 
 
 
-	vec3 colorDirect = colorSunlight * 0.215f;
-		 colorDirect = mix(colorDirect, colorDirect * vec3(0.2f, 0.5f, 1.0f), timeMidnight);
-		 //colorDirect *= 1.0f + pow(sunglow, 2.0f) * 300.0f * pow(directLightFalloff, 1.1f) * (1.0f - rainStrength);
-		 //colorDirect *= 1.0f + rainStrength * 3.25;
-	 	 colorDirect *= 1.0 + 115.0 * pow((1.0 - noise), 5.0) * firstOrder * firstOrder * pow(sunglow, 1.0) * (1.0 - rainStrength);
+	vec3 colorDirect = colorSunlight * CALCULATECLOUDSCONCENTRATION * (1.2 - timeMidnight);
+		 DoNightEye(colorDirect);
+		 colorDirect *= 1.0f + pow(sunglow, 4.0f) * 2400.0f * pow(firstOrder, 1.1f) * (1.0f - rainStrength);
 
 
-	vec3 colorAmbient = mix(colorSkylight, colorSunlight * 2.0f, vec3(0.15f)) * 0.03f;
+		  #ifdef MOREVOLUMETRIC_CLOUDS
+	vec3 colorAmbient = colorSkylight * 0.16f * 0.215 * WHITECLOUDS;
+	#else
+	vec3 colorAmbient = colorSkylight * 0.0065f * 0.215 * WHITECLOUDS * WHITECLOUDS;
+	#endif
 		 colorAmbient *= mix(1.0f, 0.3f, timeMidnight);
+		 colorAmbient = mix(colorAmbient, colorAmbient * 2.0f + colorSunlight * 0.05f, vec3(clamp(pow(1.0f - noise, 2.0f) * 1.0f, 0.0f, 1.0f)));
 		 colorAmbient *= mix(1.0, 0.1, heightFactor);
 		 //colorAmbient = mix(colorAmbient, colorAmbient * 8.0f + colorSunlight * 0.0f, vec3(clamp(pow(1.0f - noise, 12.0f) * 1.0f, 0.0f, 1.0f)));
 		 //colorAmbient *= thirdOrder;
 		 //colorAmbient *= 0.0;
 		 //colorAmbient += colorSunlight * pow(thirdOrder, 3.0) * 0.02;
 
+	 vec3 colorBounced = colorBouncedSunlight * 0.35f * 0.215;
+	 	 colorBounced *= anisoBackFactor + 0.5;
+	 	 colorBounced *= 1.0 - rainStrength;
+
 	//directLightFalloff *= 1.0f;
 
-	directLightFalloff *= mix(1.0, 0.175, rainStrength);
+	directLightFalloff *= 1.0f - rainStrength * 0.6f;
 
 	//directLightFalloff += (pow(Get3DNoise(p3), 2.0f) * 0.5f + pow(Get3DNoise(p3 * 1.5f), 2.0f) * 0.25f) * 0.02f;
 	//directLightFalloff *= Get3DNoise(p2);
 
 	vec3 color = mix(colorAmbient, colorDirect, vec3(min(1.0f, directLightFalloff)));
+	color += colorBounced;
 
 	//color = colorAmbient;
 
@@ -1055,7 +1055,7 @@ void ReflectedVolumeClouds(inout SurfaceStruct surface, inout vec3 color)
 
 
 
-	float cloudsAltitude = 540.0f;
+	float cloudsAltitude = 400.0f;
 
 	#ifdef HQ_VOLUMETRIC_CLOUDS
 	float cloudsThickness = CALCULATECLOUDDEPTH;
