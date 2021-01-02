@@ -29,9 +29,30 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 
 //#define MOTION_BLUR // It's motion blur.
 
+#define ACES_TONEMAPPING
+	#define DARKNESS 2.5 // [0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 5.0 7.0 9.0 12.0]
 #define TONEMAP_STRENGTH 3.0 // Determines how bright colors are compressed during tonemapping. Lower levels result in more filmic soft look. Higher levels result in more natural vibrant look. [2.0 3.0 4.0]
 #define BRIGHTNESS_LEVEL 1.0 // Pre-tonemapping brightness levels. [1.0 1.25 1.5 1.75 2.0]
 #define BLOOM_AMOUNT 1.0 // How strong the bloom effect is. [0.5 0.75 1.0 1.25 1.5]
+
+#define MAX_BLUR_AMOUNT 1.2 // [0.2 0.4 0.6 0.9 1.2 1.5 1.9 2.3 2.7]
+//#define NOHANDDOF
+
+#define DOF
+	#define HEXAGONAL_BOKEH
+		const float FringeOffset = 0.25;
+
+	#define FOCUS_BLUR
+		//#define LINK_FOCUS
+	#define BlurAmount 4.8 // [0.4 0.8 1.6 3.2 4.8 6.4 8.0 9.6]
+	
+	#define DISTANCE_BLUR
+	#define MaxDistanceBlurAmount 0.9 // [0.1 0.2 0.4 0.6 0.9 1.2 1.5 1.8]
+	#define DistanceBlurRange 480 // [60 120 180 240 360 480 600 720 960 1200]
+		
+	#define EDGE_BLUR
+	#define EdgeBlurAmount 1.25  // [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
+	#define EdgeBlurDecline 2.4  // [0.3 0.6 0.9 1.2 1.5 1.8 2.1 2.4 3.0 3.3 3.6 3.9 4.2]
 
 uniform sampler2D gcolor;
 uniform sampler2D gdepth;
@@ -56,6 +77,8 @@ uniform float frameTimeCounter;
 uniform sampler2D shadowcolor;
 uniform sampler2D shadowcolor1;
 uniform sampler2D shadowtex1;
+
+uniform float centerDepthSmooth;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferPreviousProjection;
@@ -236,77 +259,273 @@ float Luminance(in vec3 color)
 	return dot(color.rgb, vec3(0.2125f, 0.7154f, 0.0721f));
 }
 
+float ld(float depth) {
+    return near / (far + near - depth * (far - near));
+}
+
+vec2 fake_refract = vec2(sin(frameTimeCounter*1.7 + texcoord.x*50.0 + texcoord.y*25.0),cos(frameTimeCounter*2.5 + texcoord.y*100.0 + texcoord.x*25.0)) * isEyeInWater;
+
+void  DOF_Blur(inout vec3 color) {
+
+	float depth= texture2D(gdepthtex, texcoord.st).x;
+		depth += float(GetMaterialMask(texcoord.st, 5)) * 0.36f;
+
+	float naive = 0.0;
+
+	#ifdef LOW_QUALITY_CALCULATECLOUDS
+	float aaa=0;
+	#ifdef NOCALCULATECLOUDSNIGHT
+	float bbb=1.5 - 0.6 * timeMidnight;
+	#else
+	float bbb=1.5;
+	#endif
+	if(weather(texcoord.st)==3){
+	aaa +=timeMidnight;
+	bbb *=0;
+	}
+	#else
+	float aaa=1;
+	float bbb=0;
+	#endif
+	
+#ifdef FOCUS_BLUR
+	#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
+		naive += (depth - screenBrightness) * 0.01 * BlurAmount;
+	#else
+		naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount;
+	#endif
+#endif
+
+#ifdef DISTANCE_BLUR
+#ifdef NOCALCULATECLOUDSNIGHT
+	naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
+#else
+naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb));
+#endif
+#endif
+
+#ifdef EDGE_BLUR
+	naive += pow(distance(texcoord.st, vec2(0.5)),EdgeBlurDecline) * 0.01 * EdgeBlurAmount;
+#endif
+
+	vec2 aspectcorrect = vec2(1.0, aspectRatio) * 1.6;
+	vec3 col = vec3(0.0);
+	col += GetColorTexture(texcoord.st);
+
+
+
+#ifdef HEXAGONAL_BOKEH
+const vec2 offsets[60] = vec2[60] (	vec2(  0.2165,  0.1250 ),
+									vec2(  0.0000,  0.2500 ),
+									vec2( -0.2165,  0.1250 ),
+									vec2( -0.2165, -0.1250 ),
+									vec2( -0.0000, -0.2500 ),
+									vec2(  0.2165, -0.1250 ),
+									vec2(  0.4330,  0.2500 ),
+									vec2(  0.0000,  0.5000 ),
+									vec2( -0.4330,  0.2500 ),
+									vec2( -0.4330, -0.2500 ),
+									vec2( -0.0000, -0.5000 ),
+									vec2(  0.4330, -0.2500 ),
+									vec2(  0.6495,  0.3750 ),
+									vec2(  0.0000,  0.7500 ),
+									vec2( -0.6495,  0.3750 ),
+									vec2( -0.6495, -0.3750 ),
+									vec2( -0.0000, -0.7500 ),
+									vec2(  0.6495, -0.3750 ),
+									vec2(  0.8660,  0.5000 ),
+									vec2(  0.0000,  1.0000 ),
+									vec2( -0.8660,  0.5000 ),
+									vec2( -0.8660, -0.5000 ),
+									vec2( -0.0000, -1.0000 ),
+									vec2(  0.8660, -0.5000 ),
+									vec2(  0.2163,  0.3754 ),
+									vec2( -0.2170,  0.3750 ),
+									vec2( -0.4333, -0.0004 ),
+									vec2( -0.2163, -0.3754 ),
+									vec2(  0.2170, -0.3750 ),
+									vec2(  0.4333,  0.0004 ),
+									vec2(  0.4328,  0.5004 ),
+									vec2( -0.2170,  0.6250 ),
+									vec2( -0.6498,  0.1246 ),
+									vec2( -0.4328, -0.5004 ),
+									vec2(  0.2170, -0.6250 ),
+									vec2(  0.6498, -0.1246 ),
+									vec2(  0.6493,  0.6254 ),
+									vec2( -0.2170,  0.8750 ),
+									vec2( -0.8663,  0.2496 ),
+									vec2( -0.6493, -0.6254 ),
+									vec2(  0.2170, -0.8750 ),
+									vec2(  0.8663, -0.2496 ),
+									vec2(  0.2160,  0.6259 ),
+									vec2( -0.4340,  0.5000 ),
+									vec2( -0.6500, -0.1259 ),
+									vec2( -0.2160, -0.6259 ),
+									vec2(  0.4340, -0.5000 ),
+									vec2(  0.6500,  0.1259 ),
+									vec2(  0.4325,  0.7509 ),
+									vec2( -0.4340,  0.7500 ),
+									vec2( -0.8665, -0.0009 ),
+									vec2( -0.4325, -0.7509 ),
+									vec2(  0.4340, -0.7500 ),
+									vec2(  0.8665,  0.0009 ),
+									vec2(  0.2158,  0.8763 ),
+									vec2( -0.6510,  0.6250 ),
+									vec2( -0.8668, -0.2513 ),
+									vec2( -0.2158, -0.8763 ),
+									vec2(  0.6510, -0.6250 ),
+									vec2(  0.8668,  0.2513 ));
+									#else
+									const vec2 offsets[60] = vec2[60] ( vec2(  0.0000,  0.2500 ),
+									vec2( -0.2165,  0.1250 ),
+									vec2( -0.2165, -0.1250 ),
+									vec2( -0.0000, -0.2500 ),
+									vec2(  0.2165, -0.1250 ),
+									vec2(  0.2165,  0.1250 ),
+									vec2(  0.0000,  0.5000 ),
+									vec2( -0.2500,  0.4330 ),
+									vec2( -0.4330,  0.2500 ),
+									vec2( -0.5000,  0.0000 ),
+									vec2( -0.4330, -0.2500 ),
+									vec2( -0.2500, -0.4330 ),
+									vec2( -0.0000, -0.5000 ),
+									vec2(  0.2500, -0.4330 ),
+									vec2(  0.4330, -0.2500 ),
+									vec2(  0.5000, -0.0000 ),
+									vec2(  0.4330,  0.2500 ),
+									vec2(  0.2500,  0.4330 ),
+									vec2(  0.0000,  0.7500 ),
+									vec2( -0.2565,  0.7048 ),
+									vec2( -0.4821,  0.5745 ),
+									vec2( -0.6495,  0.3750 ),
+									vec2( -0.7386,  0.1302 ),
+									vec2( -0.7386, -0.1302 ),
+									vec2( -0.6495, -0.3750 ),
+									vec2( -0.4821, -0.5745 ),
+									vec2( -0.2565, -0.7048 ),
+									vec2( -0.0000, -0.7500 ),
+									vec2(  0.2565, -0.7048 ),
+									vec2(  0.4821, -0.5745 ),
+									vec2(  0.6495, -0.3750 ),
+									vec2(  0.7386, -0.1302 ),
+									vec2(  0.7386,  0.1302 ),
+									vec2(  0.6495,  0.3750 ),
+									vec2(  0.4821,  0.5745 ),
+									vec2(  0.2565,  0.7048 ),
+									vec2(  0.0000,  1.0000 ),
+									vec2( -0.2588,  0.9659 ),
+									vec2( -0.5000,  0.8660 ),
+									vec2( -0.7071,  0.7071 ),
+									vec2( -0.8660,  0.5000 ),
+									vec2( -0.9659,  0.2588 ),
+									vec2( -1.0000,  0.0000 ),
+									vec2( -0.9659, -0.2588 ),
+									vec2( -0.8660, -0.5000 ),
+									vec2( -0.7071, -0.7071 ),
+									vec2( -0.5000, -0.8660 ),
+									vec2( -0.2588, -0.9659 ),
+									vec2( -0.0000, -1.0000 ),
+									vec2(  0.2588, -0.9659 ),
+									vec2(  0.5000, -0.8660 ),
+									vec2(  0.7071, -0.7071 ),
+									vec2(  0.8660, -0.5000 ),
+									vec2(  0.9659, -0.2588 ),
+									vec2(  1.0000, -0.0000 ),
+									vec2(  0.9659,  0.2588 ),
+									vec2(  0.8660,  0.5000 ),
+									vec2(  0.7071,  0.7071 ),
+									vec2(  0.5000,  0.8660 ),
+									vec2(  0.2588,  0.9659 ));
+#endif
+
+			
+	for ( int i = 0; i < 61; ++i) {
+		col.g += GetColorTexture(texcoord.st + offsets[i]*aspectcorrect*naive).g;
+	    col.r += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect + vec2(FringeOffset))*naive).r;
+		col.b += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect - vec2(FringeOffset))*naive).b;
+		if( isEyeInWater > 0)
+        col += GetColorTexture(texcoord.st + fake_refract * 0.01 + offsets[i]*aspectcorrect*naive*isEyeInWater);
+		
+	}
+	color = col/60;
+}
 
 void 	DepthOfField(inout vec3 color)
 {
 
-	float cursorDepth = 0.0f;
+	float cursorDepth = centerDepthSmooth;
 
 	bool isHand = GetMaterialMask(texcoord.st, 5);
-
-
-	const float blurclamp = 0.014;  // max blur amount
+	
+	#ifdef NOHANDDOF
+	if(isHand){
+		color = GetColorTexture(texcoord.st);
+		return;
+	}
+	#endif
+	
+	const float blurclamp = 0.014;  // MAX_BLUR_AMOUNT
 	const float bias = 0.15;	//aperture - bigger values for shallower depth of field
-
-
+	
+	
 	vec2 aspectcorrect = vec2(1.0, aspectRatio) * 1.5;
 
 	float depth = texture2D(gdepthtex, texcoord.st).x;
 		  depth += float(isHand) * 0.36f;
 
 	float factor = (depth - cursorDepth);
+	 
+	vec2 dofblur = vec2(factor * bias)*MAX_BLUR_AMOUNT;
 
-	vec2 dofblur = vec2(factor * bias)*0.6;
-
-	dofblur = vec2(0.001);
-
+	
+	
 
 	vec3 col = vec3(0.0);
 	col += GetColorTexture(texcoord.st);
-
+	
 	col += GetColorTexture(texcoord.st + (vec2( 0.0,0.4 )*aspectcorrect) * dofblur);
 	col += GetColorTexture(texcoord.st + (vec2( 0.15,0.37 )*aspectcorrect) * dofblur);
 	col += GetColorTexture(texcoord.st + (vec2( 0.29,0.29 )*aspectcorrect) * dofblur);
-	col += GetColorTexture(texcoord.st + (vec2( -0.37,0.15 )*aspectcorrect) * dofblur);
-	col += GetColorTexture(texcoord.st + (vec2( 0.4,0.0 )*aspectcorrect) * dofblur);
-	col += GetColorTexture(texcoord.st + (vec2( 0.37,-0.15 )*aspectcorrect) * dofblur);
-	col += GetColorTexture(texcoord.st + (vec2( 0.29,-0.29 )*aspectcorrect) * dofblur);
+	col += GetColorTexture(texcoord.st + (vec2( -0.37,0.15 )*aspectcorrect) * dofblur);	
+	col += GetColorTexture(texcoord.st + (vec2( 0.4,0.0 )*aspectcorrect) * dofblur);	
+	col += GetColorTexture(texcoord.st + (vec2( 0.37,-0.15 )*aspectcorrect) * dofblur);	
+	col += GetColorTexture(texcoord.st + (vec2( 0.29,-0.29 )*aspectcorrect) * dofblur);	
 	col += GetColorTexture(texcoord.st + (vec2( -0.15,-0.37 )*aspectcorrect) * dofblur);
-	col += GetColorTexture(texcoord.st + (vec2( 0.0,-0.4 )*aspectcorrect) * dofblur);
+	col += GetColorTexture(texcoord.st + (vec2( 0.0,-0.4 )*aspectcorrect) * dofblur);	
 	col += GetColorTexture(texcoord.st + (vec2( -0.15,0.37 )*aspectcorrect) * dofblur);
 	col += GetColorTexture(texcoord.st + (vec2( -0.29,0.29 )*aspectcorrect) * dofblur);
-	col += GetColorTexture(texcoord.st + (vec2( 0.37,0.15 )*aspectcorrect) * dofblur);
-	col += GetColorTexture(texcoord.st + (vec2( -0.4,0.0 )*aspectcorrect) * dofblur);
-	col += GetColorTexture(texcoord.st + (vec2( -0.37,-0.15 )*aspectcorrect) * dofblur);
-	col += GetColorTexture(texcoord.st + (vec2( -0.29,-0.29 )*aspectcorrect) * dofblur);
+	col += GetColorTexture(texcoord.st + (vec2( 0.37,0.15 )*aspectcorrect) * dofblur);	
+	col += GetColorTexture(texcoord.st + (vec2( -0.4,0.0 )*aspectcorrect) * dofblur);	
+	col += GetColorTexture(texcoord.st + (vec2( -0.37,-0.15 )*aspectcorrect) * dofblur);	
+	col += GetColorTexture(texcoord.st + (vec2( -0.29,-0.29 )*aspectcorrect) * dofblur);	
 	col += GetColorTexture(texcoord.st + (vec2( 0.15,-0.37 )*aspectcorrect) * dofblur);
-
+	
 	col += GetColorTexture(texcoord.st + (vec2( 0.15,0.37 )*aspectcorrect) * dofblur*0.9);
-	col += GetColorTexture(texcoord.st + (vec2( -0.37,0.15 )*aspectcorrect) * dofblur*0.9);
-	col += GetColorTexture(texcoord.st + (vec2( 0.37,-0.15 )*aspectcorrect) * dofblur*0.9);
+	col += GetColorTexture(texcoord.st + (vec2( -0.37,0.15 )*aspectcorrect) * dofblur*0.9);		
+	col += GetColorTexture(texcoord.st + (vec2( 0.37,-0.15 )*aspectcorrect) * dofblur*0.9);		
 	col += GetColorTexture(texcoord.st + (vec2( -0.15,-0.37 )*aspectcorrect) * dofblur*0.9);
 	col += GetColorTexture(texcoord.st + (vec2( -0.15,0.37 )*aspectcorrect) * dofblur*0.9);
-	col += GetColorTexture(texcoord.st + (vec2( 0.37,0.15 )*aspectcorrect) * dofblur*0.9);
-	col += GetColorTexture(texcoord.st + (vec2( -0.37,-0.15 )*aspectcorrect) * dofblur*0.9);
-	col += GetColorTexture(texcoord.st + (vec2( 0.15,-0.37 )*aspectcorrect) * dofblur*0.9);
-
+	col += GetColorTexture(texcoord.st + (vec2( 0.37,0.15 )*aspectcorrect) * dofblur*0.9);		
+	col += GetColorTexture(texcoord.st + (vec2( -0.37,-0.15 )*aspectcorrect) * dofblur*0.9);	
+	col += GetColorTexture(texcoord.st + (vec2( 0.15,-0.37 )*aspectcorrect) * dofblur*0.9);	
+	
 	col += GetColorTexture(texcoord.st + (vec2( 0.29,0.29 )*aspectcorrect) * dofblur*0.7);
-	col += GetColorTexture(texcoord.st + (vec2( 0.4,0.0 )*aspectcorrect) * dofblur*0.7);
-	col += GetColorTexture(texcoord.st + (vec2( 0.29,-0.29 )*aspectcorrect) * dofblur*0.7);
-	col += GetColorTexture(texcoord.st + (vec2( 0.0,-0.4 )*aspectcorrect) * dofblur*0.7);
+	col += GetColorTexture(texcoord.st + (vec2( 0.4,0.0 )*aspectcorrect) * dofblur*0.7);	
+	col += GetColorTexture(texcoord.st + (vec2( 0.29,-0.29 )*aspectcorrect) * dofblur*0.7);	
+	col += GetColorTexture(texcoord.st + (vec2( 0.0,-0.4 )*aspectcorrect) * dofblur*0.7);	
 	col += GetColorTexture(texcoord.st + (vec2( -0.29,0.29 )*aspectcorrect) * dofblur*0.7);
-	col += GetColorTexture(texcoord.st + (vec2( -0.4,0.0 )*aspectcorrect) * dofblur*0.7);
-	col += GetColorTexture(texcoord.st + (vec2( -0.29,-0.29 )*aspectcorrect) * dofblur*0.7);
+	col += GetColorTexture(texcoord.st + (vec2( -0.4,0.0 )*aspectcorrect) * dofblur*0.7);	
+	col += GetColorTexture(texcoord.st + (vec2( -0.29,-0.29 )*aspectcorrect) * dofblur*0.7);	
 	col += GetColorTexture(texcoord.st + (vec2( 0.0,0.4 )*aspectcorrect) * dofblur*0.7);
-
+			
 	col += GetColorTexture(texcoord.st + (vec2( 0.29,0.29 )*aspectcorrect) * dofblur*0.4);
-	col += GetColorTexture(texcoord.st + (vec2( 0.4,0.0 )*aspectcorrect) * dofblur*0.4);
-	col += GetColorTexture(texcoord.st + (vec2( 0.29,-0.29 )*aspectcorrect) * dofblur*0.4);
-	col += GetColorTexture(texcoord.st + (vec2( 0.0,-0.4 )*aspectcorrect) * dofblur*0.4);
+	col += GetColorTexture(texcoord.st + (vec2( 0.4,0.0 )*aspectcorrect) * dofblur*0.4);	
+	col += GetColorTexture(texcoord.st + (vec2( 0.29,-0.29 )*aspectcorrect) * dofblur*0.4);	
+	col += GetColorTexture(texcoord.st + (vec2( 0.0,-0.4 )*aspectcorrect) * dofblur*0.4);	
 	col += GetColorTexture(texcoord.st + (vec2( -0.29,0.29 )*aspectcorrect) * dofblur*0.4);
-	col += GetColorTexture(texcoord.st + (vec2( -0.4,0.0 )*aspectcorrect) * dofblur*0.4);
-	col += GetColorTexture(texcoord.st + (vec2( -0.29,-0.29 )*aspectcorrect) * dofblur*0.4);
-	col += GetColorTexture(texcoord.st + (vec2( 0.0,0.4 )*aspectcorrect) * dofblur*0.4);
+	col += GetColorTexture(texcoord.st + (vec2( -0.4,0.0 )*aspectcorrect) * dofblur*0.4);	
+	col += GetColorTexture(texcoord.st + (vec2( -0.29,-0.29 )*aspectcorrect) * dofblur*0.4);	
+	col += GetColorTexture(texcoord.st + (vec2( 0.0,0.4 )*aspectcorrect) * dofblur*0.4);	
 
 	color = col/41;
 
@@ -635,8 +854,6 @@ void main() {
 	MotionBlur(color);
 #endif
 
-	//DepthOfField(color);
-
 	#ifdef BLOOM_EFFECTS
 
 	CalculateBloom(bloomData);			//Gather bloom textures
@@ -649,6 +866,14 @@ void main() {
 
 	Vignette(color);
 
+	#ifdef DOF
+	if (isEyeInWater <= 0) {
+		DOF_Blur(color);
+	}else{
+		DepthOfField(color);
+	}
+	#endif
+
 	#ifdef AVERAGE_EXPOSURE
 	AverageExposure(color);
 	#else
@@ -657,11 +882,25 @@ void main() {
 
 	
 	color *= 50.0 * BRIGHTNESS_LEVEL;
-	const float p = TONEMAP_STRENGTH;
-	color = (pow(color, vec3(p)) - color) / (pow(color, vec3(p)) - 1.0);
-	color = pow(color, vec3(0.95 / 2.2));
 
-	color *= 1.01;
+	#ifdef ACES_TONEMAPPING
+		{
+			color.rgb *= 1./(DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.4*timeMidnight));
+			const float A = 2.51f;
+			const float B = 0.03f;
+			const float C = 2.43f;
+			const float D = 0.59f;
+			const float E = 0.14f;
+
+			color = (color * (A * color + B)) / (color * (C * color + D) + E);
+			color.rgb = pow(color.rgb, vec3(1.0f / 2.2f));
+		}
+	#else
+		const float p = TONEMAP_STRENGTH;
+		color = (pow(color, vec3(p)) - color) / (pow(color, vec3(p)) - 1.0);
+		color = pow(color, vec3(0.95 / 2.2));
+		color *= 1.01;
+	#endif
 
 
 	color = clamp(color, vec3(0.0), vec3(1.0));
