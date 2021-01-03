@@ -23,7 +23,9 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 	//#define MOREVOLUMETRIC_CLOUDS
 
 //#define SMOOTH_CLOUDS // Smooth out dither pattern from volumetric clouds. Not necessary if HQ Volumetric Clouds is enabled.
+
 #define CREPUSCULAR_RAYS // Light rays from sunlight
+    #define VL_STRENGTH 1.0 //[0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
 //#define COMPOSITE2_FINAL
 
@@ -1703,7 +1705,7 @@ void WaterRefraction(inout SurfaceStruct surface)
 	}
 }
 
-void AddCrepuscularRays(vec2 coord, inout SurfaceStruct surface)
+vec3 AddVolumeLights(vec2 coord, inout SurfaceStruct surface)
 {
 	float rays = 0.0;
 	float spread = 1.0;
@@ -1721,6 +1723,7 @@ void AddCrepuscularRays(vec2 coord, inout SurfaceStruct surface)
 	float sunglow = CalculateSunglow(surface);
 	float antiSunglow = CalculateAntiSunglow(surface);
 
+
 	vec3 rayColor = vec3(rays);
 
 	float anisoHighlight = pow(1.0f / (pow((1.0f - sunglow) * 3.0f, 2.0f) + 1.1f) * 1.5f, 1.5f) + 0.5f;
@@ -1729,14 +1732,22 @@ void AddCrepuscularRays(vec2 coord, inout SurfaceStruct surface)
 
 	rayColor *=  colorSunlight * 0.5f + colorSkylight * 4.0f + colorSunlight * (anisoHighlight * 120.0f);
 
-
 	rayColor *= 1.0 - timeNoon * 0.9;
-
 
 	DoNightEye(rayColor);
 
 
-	surface.color += rayColor * 0.000001;
+	vec3 rayNoonCol       = vec3(1.0) * timeNoon;
+	vec3 raySunriseSetCol = vec3(1.0) * timeSunriseSunset;
+	vec3 rayNightCol      = vec3(1.0) * timeMidnight;	
+	
+	vec3 rayTrueColor = rayNoonCol + raySunriseSetCol + rayNightCol;
+
+
+    float rayStength = 0.000001 * VL_STRENGTH;
+
+
+	return rayColor * rayTrueColor * rayStrength;
 }
 
 void CalculateExposure(inout vec3 color) {
@@ -1814,7 +1825,7 @@ void main() {
 	}
 
 	#ifdef CREPUSCULAR_RAYS
-	AddCrepuscularRays(texcoord.st, surface);
+	surface.color += AddVolumeLights(texcoord.st, surface);
 	#endif
 
 
