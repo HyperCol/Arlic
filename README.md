@@ -1,6 +1,6 @@
 # Arlic光影
 
-Project Arlic,修改自SEUS Dazzing光影
+Project Arlic,修改自SEUS V11光影
 针对视频拍摄进行优化
 
 ## 简介
