@@ -267,8 +267,8 @@ vec2 fake_refract = vec2(sin(frameTimeCounter*1.7 + texcoord.x*50.0 + texcoord.y
 
 void  DOF_Blur(inout vec3 color) {
 
-	float depth= texture2D(gdepthtex, texcoord.st).x;
-		depth += float(GetMaterialMask(texcoord.st, 5)) * 0.36f;
+	float depth= centerDepthSmooth/*texture2D(gdepthtex, texcoord.st).x*/;
+		//depth += float(GetMaterialMask(texcoord.st, 5)) * 0.36f;
 
 	float naive = 0.0;
 
