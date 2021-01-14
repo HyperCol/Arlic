@@ -78,6 +78,7 @@ uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float rainStrength;
+uniform float screenBrightness;
 uniform float wetness;
 uniform float aspectRatio;
 uniform float frameTimeCounter;
