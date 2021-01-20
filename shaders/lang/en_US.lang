@@ -140,6 +140,9 @@ option.CUSTOM_WC_R=水面颜色红色系数
 option.CUSTOM_WC_G=水面颜色绿色系数
 option.CUSTOM_WC_B=水面颜色蓝色系数
 option.CUSTOM_WC_L=水面颜色亮度系数（随RGB增大而减小）
+option.CUSTOM_VLFC_R=体积雾颜色红色系数
+option.CUSTOM_VLFC_G=体积雾颜色绿色系数
+option.CUSTOM_VLFC_B=体积雾颜色蓝色系数
 option.
 option.
 option.
@@ -545,7 +548,7 @@ screen.ATMOSPHERICS=大气，天空，环境及天气选项
 screen.LIGHTING=物理照明及阴影选项
 screen.SURFACE=外表及材质选项
 screen.GIADVANCED=全局光照设置
-screen.MISC=杂项
+screen.MISC=杂项§c（做汉化和proper文件的辛苦了）
 screen.FST_CON_CLOUDS=第二层体积云设置（continuum体积云）
 screen.Volumetric_Fog=体积雾
 screen.DOF=景深
@@ -610,7 +613,7 @@ screen.WORLD1_ATMOS=末地大气散射迷雾
 screen.WORLD1_STARS=末地星星
 screen.CUSTOM_LIGHT_COLOR=自定义RGB光照颜色亮度
 screen.CUSTOM_WATER_COLOR=自定义RGB水面颜色亮度
-screen.
+screen.Sky=天空
 screen.
 screen.
 screen.
