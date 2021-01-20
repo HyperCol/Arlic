@@ -45,11 +45,19 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 	#define WHITECLOUDS 1.5                     // [0.01 1 1.5 4 6 9]
 	//#define MOREVOLUMETRIC_CLOUDS
 
-#define NIGHT_AURORA		//Night aurora.
-	#define NIGHT_AURORA_R 0.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-	#define NIGHT_AURORA_G 0.8 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-	#define NIGHT_AURORA_B 0.5 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#define AURORA		//Night aurora.
+	#define NIGHT_AURORA_R 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+	#define NIGHT_AURORA_G 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+	#define NIGHT_AURORA_B 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 	#define NIGHT_AURORA_L 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#define AURORA_COLOR purpleAurora //[blueAurora purpleAurora greenAurora]
+#define AURORA_STRENGTH 0.7 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.7 2.0 2.5 3.0 4.0 5.0 7.0 10.0 15.0 20.0 30.0 50.0 70.0 100.0]
+#define aurora_power 0.3 //[0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
+#define aurora_speed 3.0 //[0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
+#define aurora_flash 50.0 //[0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0 21.0 22.0 23.0 24.0 25.0 26.0 27.0 28.0 29.0 30.0 31.0 32.0 33.0 34.0 35.0 36.0 37.0 38.0 39.0 40.0 41.0 42.0 43.0 44.0 45.0 46.0 47.0 48.0 49.0 50.0 51.0 52.0 53.0 54.0 55.0 56.0 57.0 58.0 59.0 60.0 61.0 62.0 63.0 64.0 65.0 66.0 67.0 68.0 69.0 70.0 71.0 72.0 73.0 74.0 75.0 76.0 77.0 78.0 79.0 80.0 81.0 82.0 83.0 84.0 85.0 86.0 87.0 88.0 89.0 90.0 91.0 92.0 93.0 94.0 95.0 96.0 97.0 98.0 99.0 100.0]
+#define AURORA_PRESET_COL //Preset color of aurora
+
+
 
 #define CREPUSCULAR_RAYS // Light rays from sunlight
 #define ATMOSPHERIC_SCATTERING // Blue tint of distant objects to simulate atmospheric scattering
@@ -70,6 +78,32 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 
 #define NEW_SKY_LIGHT
 #define STAR
+
+
+//JMSEUSFCM体积雾
+/*------This is VOLUMETRIC FOG from jmeseus, not VOLUMETRIC CLOUDS, but me -the Author- is too lazy to change it's name of #define :P ------*/
+#define TRUE_VOLUMETRIC_CLOUDS2  //Now it becomes VOLUMETRIC FOG, it was changed from True Volumetric clouds from Continuum
+//#define SOFT_FLUFFY_CLOUDS2						// dissable to fully remove dither Pattern ripple, adds a little pixel noise on cloud edge
+#define Volumetric_Cloud_Type2					//Turn this off to change the way Volumetric clouds are rendered,If off there will be less detail in the clouds BUT there will be less Dither Pattern ripple in them. Best set Vol_Cloud_Coverage to 0.52 if off!
+#define Cloud3Height2 60						    //[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 80 90 100 120 140 160 180 210 200 220 240 250 300 350 400 500] //Sets the Volumetric clouds3 Height
+#define Cloud3Depth2 100                            //[50 75 100 125 150 175 200 225 250 275 300 350 400]
+#define VOLUMETRIC_CLOUD_SPEED2 1.0				    //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0] //Default is 2.0f, Lower number to slow speed, Higher number to increase speed 
+#define CLOUD_DISPERSE2 15          			// [1 2 3 4 5 7 10 12 15 17 20 25 30]increase this for thicker clouds and so that they don't fizzle away when you fly close to them, 10 is default Dont Go Over 30 will lag and maybe crash
+#define Vol_Cloud_Coverage2 0.45   			    // Vol_Cloud_Coverage. 0.20 = Lowest Cover. 0.60 = Highest Cover [0.20 0.30 0.35 0.40 0.42 0.45 0.48 0.50 0.52 0.55 0.60 0.70 0.80 0.90 1.00]
+#define VOLUMETRIC_CLOUD_LIGHTING2 0.5          //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0]
+#define VFCWWT //Dynamic fog amount, which means that the strength of VOLUMETRIC FOG would be change with The worldTime
+#define VFDensityStrength 1.2 //strength of VOLUMETRIC FOG [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.5 3.0 3.5 4.0 5.0 7.0 10.0 15.0 20.0]
+#define FOGDENS_SUNRISE 1.5   //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
+#define FOGDENS_NOON 1.0      //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
+#define FOGDENS_MIDNIGHT 0.7  //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
+
+#define CLOUD_PRECISION2 2.0 //[0.5 1.0 2.0 4.0 6.0 8.0 10.0 12.0 16.0 32.0]
+
+#define CUSTOM_VLFC_R 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
+#define CUSTOM_VLFC_G 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
+#define CUSTOM_VLFC_B 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
+
+
 
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -538,6 +572,22 @@ float BlueNoise(vec2 coord)
 {
 	vec2 noiseCoord = vec2(coord.st * vec2(viewWidth, viewHeight)) / 64.0;
 	noiseCoord += vec2(sin(frameCounter * 0.75), cos(frameCounter * 0.75));
+
+	noiseCoord = (floor(noiseCoord * 64.0) + 0.5) / 64.0;
+
+	float blueNoise = texture2DLod(noisetex, noiseCoord.st, 0).b;
+
+	return blueNoise;
+}
+
+vec2 BlueNoiseXY(vec2 coord)
+{
+	return vec2(BlueNoise(coord.st), BlueNoise(coord.st + 32.0 / vec2(viewWidth, viewHeight)));
+}
+
+float BlueNoiseStatic(vec2 coord)
+{
+	vec2 noiseCoord = vec2(coord.st * vec2(viewWidth, viewHeight)) / 64.0;
 
 	noiseCoord = (floor(noiseCoord * 64.0) + 0.5) / 64.0;
 
@@ -1696,6 +1746,51 @@ float Get3DNoise(in vec3 pos)
 	return mix(xy1, xy2, f.z);
 }
 
+////////体积云///////
+float Get3DNoise2(in vec3 pos)
+{
+	pos.z += 0.0f;
+	
+	vec3 p = floor(pos);
+	vec3 f = fract(pos);
+
+	vec2 uv =  (p.xy + p.z * vec2(17.0f)) + f.xy;
+	vec2 uv2 = (p.xy + (p.z + 1.0f) * vec2(17.0f)) + f.xy;
+	
+	vec2 coord =  (uv  + 0.5f) / noiseTextureResolution;
+	vec2 coord2 = (uv2 + 0.5f) / noiseTextureResolution;
+	
+	float xy1 = texture2D(noisetex, coord).x;
+	float xy2 = texture2D(noisetex, coord2).x;
+	return mix(xy1, xy2, f.z);
+}
+
+float Get3DNoise3(in vec3 pos)
+{
+	pos.z += 0.0f;
+
+	pos.xyz += 0.5f;
+
+	vec3 p = floor(pos);
+	vec3 f = fract(pos);
+
+	 f.x = f.x * f.x * (3.0f - 2.0f * f.x);
+	 f.y = f.y * f.y * (3.0f - 2.0f * f.y);
+	 f.z = f.z * f.z * (3.0f - 2.0f * f.z);
+
+	vec2 uv =  (p.xy + p.z * vec2(17.0f)) + f.xy;
+	vec2 uv2 = (p.xy + (p.z + 1.0f) * vec2(17.0f)) + f.xy;
+
+	uv -= 0.5f;
+	uv2 -= 0.5f;
+
+	vec2 coord =  (uv  + 0.5f) / noiseTextureResolution;
+	vec2 coord2 = (uv2 + 0.5f) / noiseTextureResolution;
+	float xy1 = texture2D(noisetex, coord).x;
+	float xy2 = texture2D(noisetex, coord2).x;
+	return mix(xy1, xy2, f.z);
+}
+
 float GetCoverage(in float coverage, in float density, in float clouds)
 {
 	clouds = clamp(clouds - (1.0f - coverage), 0.0f, 1.0f -density) / (1.0f - density);
@@ -2143,6 +2238,243 @@ void CalculateClouds (inout vec3 color, inout SurfaceStruct surface)
 		}
 	}
 }
+
+vec4 CloudColor4(in vec4 worldPosition, in float sunglow, in vec3 worldLightVector)
+{
+	float cloudHeight = Cloud3Height2;
+
+	float cloudDepth  = Cloud3Depth2;
+
+	float cloudUpperHeight = cloudHeight + (cloudDepth / 2.0f);
+	float cloudLowerHeight = cloudHeight - (cloudDepth / 2.0f);
+
+	if (worldPosition.y < cloudLowerHeight || worldPosition.y > cloudUpperHeight)
+		return vec4(0.0f);
+	else
+	{
+
+		vec3 p = worldPosition.xyz / 150.0f;
+
+		float t = frameTimeCounter * VOLUMETRIC_CLOUD_SPEED2 ;
+		
+		
+	#ifdef Volumetric_Cloud_Type2	 
+		p.x -= t * 0.02f;
+
+		vec3 p1 = p * vec3(1.0f, 0.5f, 1.0f)  + vec3(0.0f, t * 0.01f, 0.0f);
+		float noise  = 			   Get3DNoise2(p) 				 * 1.0f;	p *= 4.0f;	p.x += t * 0.02f; vec3 p2 = p;
+			  noise += (1.0f - abs(Get3DNoise2(p) * 3.0f - 1.0f)) * 0.20f;	p *= 3.0f;	p.xz += t * 0.05f;
+			  noise += (1.0f - abs(Get3DNoise2(p) * 3.0f - 1.5f)-0.2) * 0.065f;	p.xz -=t * 0.165f;	p.xz += t * 0.05f;
+			  noise += (1.0f - abs(Get3DNoise2(p) * 3.0f - 1.0f)) * 0.05f;	p *= 2.0f;
+			  noise += (1.0 - abs(Get3DNoise3(p) * 2.0 - 1.0)) * 0.015f;
+			  noise /= 1.2f;
+		
+		#else	  
+		
+	t *= 0.0095;
+
+	p.x *= 0.5f;
+	p.x -= t * 0.01f;
+
+	vec3 p1 = p * vec3(1.0f, 0.5f, 1.0f)  + vec3(0.0f, t * 0.01f, 0.0f);
+
+	float noise  = 	Get3DNoise(p * vec3(1.0f, 0.5f, 1.0f) + vec3(0.0f, t * 0.01f, 0.0f)) * 1.3;		p *= 2.0f;	p.x -= t * 0.557f;	vec3 p2 = p;	
+		  noise += (2.0f - abs(Get3DNoise(p) * 2.0f - 0.0f)) * (0.35f);								p *= 3.0f;	p.xz -= t * 0.905f;	p.x *= 2.0f;	vec3 p3 = p; 	float largeNoise = noise;
+		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.085f);							p *= 3.0f;	p.xz -= t * 3.905f;	vec3 p4 = p;
+		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.035f);							p *= 3.0f;	p.xz -= t * 3.905f;
+		  noise += ((Get3DNoise(p))) * (0.04f);												p *= 3.0f;
+		  noise /= 2.375f;	  
+	
+	#endif	  
+
+		const float lightOffset = 0.3f;
+
+		float heightGradient = clamp(( - (cloudLowerHeight - worldPosition.y) / (cloudDepth * 1.0f)), 0.0f, 1.0f);
+		float heightGradient2 = clamp(( - (cloudLowerHeight - (worldPosition.y + worldLightVector.y * lightOffset * 150.0f)) / (cloudDepth * 1.0f)), 0.0f, 1.0f);
+
+		float cloudAltitudeWeight = 1.0f - clamp(distance(worldPosition.y, cloudHeight) / (cloudDepth / 2.0f), 0.0f, 1.0f);
+			  cloudAltitudeWeight = (-cos(cloudAltitudeWeight * 3.1415f)) * 0.5 + 0.5;
+			  cloudAltitudeWeight = pow(cloudAltitudeWeight, mix(0.33f, 0.8f, rainStrength));
+
+		float cloudAltitudeWeight2 = 1.0f - clamp(distance(worldPosition.y + worldLightVector.y * lightOffset * 150.0f, cloudHeight) / (cloudDepth / 2.0f), 0.0f, 1.0f);
+			  cloudAltitudeWeight2 = (-cos(cloudAltitudeWeight2 * 3.1415f)) * 0.5 + 0.5;
+			  cloudAltitudeWeight2 = pow(cloudAltitudeWeight2, mix(0.33f, 0.8f, rainStrength));
+
+		noise *= cloudAltitudeWeight;
+	
+	
+	//cloud edge
+		float rainy = mix(wetness, 1.0f, rainStrength);
+		float coverage = Vol_Cloud_Coverage2 + rainy * 0.335;		
+			  coverage = mix(coverage, 0.77f, rainStrength);
+	
+		float dist = length(worldPosition.xz - cameraPosition.xz);
+		coverage *= max(0.0f, 1.0f - dist / 40000.0f); 
+		
+		float density = 0.90f;
+		noise = GetCoverage(coverage, density, noise);
+		noise = pow(noise, 1.5);
+		
+		if (noise <= 0.001f)
+		{
+			return vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+
+	float sundiff = Get3DNoise2(p1 + worldLightVector.xyz * lightOffset);
+		  sundiff += (1.0 - abs(Get3DNoise2(p2 + worldLightVector.xyz * lightOffset / 2.0f) * 1.0f - 0.5f) - 0.1) * 0.55f;
+		  sundiff *= 0.955f;
+		  sundiff *= cloudAltitudeWeight2;
+	float preCoverage = sundiff;
+		  sundiff = -GetCoverage(coverage * 1.0f, density * 0.5, sundiff);
+	
+	float sundiff2 = -GetCoverage(coverage * 1.0f, 0.0, preCoverage);
+	float firstOrder 	= pow(clamp(sundiff * 1.2f + 1.7f, 0.0f, 1.0f), 8.0f);
+	float secondOrder 	= pow(clamp(sundiff2 * 1.2f + 1.1f, 0.0f, 1.0f), 4.0f);
+
+	float anisoBackFactor = mix(clamp(pow(noise, 1.6f) * 2.5f, 0.0f, 1.0f), 1.0f, pow(sunglow, 1.0f));
+		  firstOrder *= anisoBackFactor * 0.99 + 0.01;
+		  secondOrder *= anisoBackFactor * 1.19 + 0.9;
+
+	float directLightFalloff = clamp(pow(-(cloudLowerHeight - worldPosition.y) / cloudDepth, 3.5f), 0.0f, 1.0f);
+		  directLightFalloff *= mix(	clamp(pow(noise, 0.9f), 0.0f, 1.0f), 	clamp(pow(1.0f - noise, 10.3f), 0.0f, 0.5f), 	pow(sunglow, 0.2f));
+
+	vec3 colorDirect = colorSunlight * 1.0f + vec3(0.5, 0.5, 0.5);
+	     colorDirect *= VOLUMETRIC_CLOUD_LIGHTING2 * (1.25 - timeMidnight) * 0.8;
+		 colorDirect = mix(colorDirect, colorDirect * vec3(0.1f, 0.2f, 0.3f), timeMidnight);
+		 colorDirect = mix(colorDirect, colorDirect * vec3(0.2f, 0.2f, 0.2f), rainStrength);
+		 colorDirect *= 1.0f + pow(sunglow, 2.0f) * 50.0f;
+
+	vec3 colorAmbient = mix(colorSkylight, colorSunlight* 0.001, 0.15f) * 0.26f;
+		 colorAmbient *= mix(1.0f, 0.3f, timeMidnight);
+
+	 vec3 colorBounced = colorBouncedSunlight * 0.35f;
+	 	  colorBounced *= pow((1.0f - heightGradient), 12.0f);
+	 	  colorBounced *= anisoBackFactor + 0.5;
+	 	  colorBounced *= 1.0 - rainStrength;
+
+		vec3 color = mix(colorAmbient, colorDirect, vec3(directLightFalloff));
+			 color += colorBounced;
+
+		//color *= 1.0f;
+
+		vec4 result = vec4(color.rgb, noise);
+
+		return result;
+	}
+}
+
+void 	CalculateCloud (inout vec3 color, inout SurfaceStruct surface) 
+{
+		surface.cloudAlpha = 0.0f;
+
+		vec2 coord = texcoord.st * 2.0f;
+
+		vec4 worldPosition = gbufferModelViewInverse * surface.screenSpacePosition;
+			 worldPosition.xyz += cameraPosition.xyz;
+
+		float cloudHeight = 150.0f;
+		float cloudDepth  = 140.0f;
+		
+        float cloudDensity;
+		
+	#ifdef VFCWWT
+/*
+	    int worldTime2 = worldTime;
+		
+		while(worldTime2 > 24000){
+	        worldTime2 -= 24000;
+            }
+	    
+	    if(worldTime2 > 2000  && worldTime2 <= 11000)
+	        cloudDensity = 0.15;
+        if(worldTime2 > 11000 && worldTime2 <= 13000)
+            cloudDensity = 0.15 + (worldTime2 - 11000) * 0.000025;
+        if(worldTime2 > 13000 && worldTime2 <= 14000)
+            cloudDensity = 0.20 - (worldTime2 - 13000) * 0.000020;
+        if(worldTime2 > 13500 && worldTime2 <= 22500)
+        	cloudDensity = 0.18;
+        if(worldTime2 > 23000 && worldTime2 <= 24000)
+            cloudDensity = 0.18 + (worldTime2 - 23000) * 0.000020;
+        if(worldTime2 > 0     && worldTime2 <= 2000 )
+            cloudDensity = 0.20 - (worldTime2 - 0    ) * 0.000025;
+
+*/
+        cloudDensity = 0.16 * (FOGDENS_SUNRISE * timeSunriseSunset + FOGDENS_NOON * timeNoon + FOGDENS_MIDNIGHT * timeMidnight);
+	#else
+		cloudDensity = 0.16;
+	#endif
+
+		
+		
+	
+		
+        cloudDensity = cloudDensity * VFDensityStrength  * ( 1.0 - rainStrength  * 0.3 ) / CLOUD_PRECISION2;
+		
+		float startingRayDepth = far - 5.0f;
+
+		float rayDepth = startingRayDepth;
+			  
+		float rayIncrement = far / CLOUD_DISPERSE2;
+
+		#ifdef SOFT_FLUFFY_CLOUDS2
+			  //rayDepth += rand(texcoord.st + sin(frameTimeCounter)).x * rayIncrement;
+			  //rayDepth += BlueNoiseStatic(texcoord.st + sin(frameTimeCounter)) * rayIncrement;
+			  //rayDepth += rand(BlueNoiseXY(texcoord.st + sin(frameTimeCounter))).x * rayIncrement;
+			  rayDepth += BlueNoiseStatic(rand(texcoord.st + sin(frameTimeCounter)).xy) * rayIncrement;
+			#else
+			  //rayDepth += CalculateDitherPattern2() * rayIncrement;
+		      rayDepth += R2_dither() * rayIncrement;
+		#endif
+
+		int i = 0;
+
+		vec3 cloudColor4 = colorSunlight;
+		vec4 cloudSum = vec4(0.0f);
+			 cloudSum.rgb = color.rgb;
+
+		float sunglow = min(CalculateSunglow(surface), 2.0);
+		
+		float cloudDistanceMult = 400.0f / far;
+
+		//float surfaceDistance = length(worldPos);
+		float surfaceDistance = length(worldPosition.xyz - cameraPosition.xyz);
+
+
+		while (rayDepth > 0.0f) {
+			//determine worldspace ray position
+			vec4 rayPosition = GetCloudSpacePosition(texcoord.st, rayDepth, cloudDistanceMult);
+
+			float rayDistance = length((rayPosition.xyz - cameraPosition.xyz) / cloudDistanceMult);
+
+			vec4 proximity =  CloudColor4(rayPosition, sunglow/1.2, surface.worldLightVector);
+				 proximity.a *= cloudDensity;
+
+				 if (surfaceDistance < rayDistance * cloudDistanceMult  && surface.mask.sky == 0.0)
+				 	proximity.a = 0.0f;
+
+			cloudSum.rgb = mix(cloudSum.rgb, proximity.rgb, vec3(min(1.0f, proximity.a * cloudDensity)) );
+			cloudSum.a += proximity.a * cloudDensity;
+
+            cloudSum.r *= CUSTOM_VLFC_R * 0.00390625;
+			cloudSum.g *= CUSTOM_VLFC_G * 0.00390625;
+			cloudSum.b *= CUSTOM_VLFC_B * 0.00390625;
+
+
+			surface.cloudAlpha += proximity.a;
+
+			//Increment ray
+			rayDepth -= rayIncrement / CLOUD_PRECISION2;
+			i++;
+		}
+
+	color.rgb = mix(color.rgb, cloudSum.rgb, vec3(min(1.0f, cloudSum.a * 50.0f)));
+
+	if (cloudSum.a > 0.00f)
+	{
+		surface.mask.volumeCloud = 1.0;
+	}
+}
+
 
 void CloudPlane(SurfaceStruct surface, inout vec3 color)
 {
@@ -3230,6 +3562,12 @@ void main() {
 		CalculateClouds(finalComposite, surface);
 	#endif
 
+	#ifdef TRUE_VOLUMETRIC_CLOUDS2
+	    if(!(isEyeInWater > 0.0)){
+		    CalculateCloud(finalComposite.rgb, surface);
+		}
+	#endif	
+
 	WaterFog(finalComposite, surface, mcLightmap);
 	IceFog(finalComposite, surface, mcLightmap);
 
@@ -3249,7 +3587,7 @@ void main() {
 	#endif
 
 
-	#ifdef NIGHT_AURORA
+	#ifdef AURORA
 	NightAurora(finalComposite.rgb, surface.screenSpacePosition.xyz);
 	#endif
 
