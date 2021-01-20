@@ -73,12 +73,25 @@ float hash21(in vec2 n){
 	return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453); 
 }
 
+vec4 blueAurora = vec4(0.5, 2.0, 4.0,1.5);
+vec4 purpleAurora = vec4(4.0, 0.5, 3.0,1.5);
+vec4 greenAurora = vec4(0.2, 2.0, 1.5,1.5);
+
 vec4 aurora(vec3 ro, vec3 rd)
 {
     vec4 col = vec4(0.0);
-    vec4 avgCol = vec4(0.0);
+    //vec4 avgCol = vec4(0.0);
     
-    for(float i=0.0; i<50.0; i++){
+#ifdef AURORA_PRESET_COL
+    vec4 avgCol = vec4(0.7,0.4,0.6,1.0);
+	vec4 excolor = vec4(4);
+#else
+	vec4 avgCol = AURORA_COLOR;
+	vec4 excolor = AURORA_COLOR;
+#endif
+	
+	
+    for(float i=0.0; i<aurora_flash; i++){
 		
         float of = 0.006 * hash21(gl_FragCoord.xy) * smoothstep(0.0, 15.0, i);
         float pt = ((0.8 + pow(i, 1.4)*0.002 )- ro.y)/(rd.y*2.0+0.4);
@@ -86,18 +99,44 @@ vec4 aurora(vec3 ro, vec3 rd)
     	
 		vec3 bpos = ro + pt * rd;
         vec2 p = bpos.zx;
-        float rzt = triNoise2d(p, 0.06);
-        vec4 col2 = vec4(0.0, 0.0, 0.0, rzt);
-			 col2.rgb = (sin(1.0 - vec3(2.15, -0.5, 1.2) + i * 0.043)*0.5 + 0.5)*rzt;
+         float rzt = triNoise2d(p, aurora_speed * 0.1);
+		 
+        //vec4 col2 = vec4(0.0, 0.0, 0.0, rzt);
+		//	 col2.rgb = (sin(1.0 - vec3(2.15, -0.5, 1.2) + i * 0.043)*0.5 + 0.5)*rzt;
 			 
-        avgCol =  mix(avgCol, col2, 0.5);
+        //avgCol =  mix(avgCol, col2, 0.5);
+		
+		#ifdef AURORA_PRESET_COL
+		    vec4 col2 = vec4(0);
+		    col2 = vec4(2.5*(i-0.25*aurora_flash), 1.0*(aurora_flash*0.6-i), i*1.3, 1.0) / aurora_flash * rzt;
+			avgCol =  mix(avgCol, col2, 0.5);
+		#else
+            vec4 col2 = vec4(0.0,0.0,0.0, rzt);
+            col2.rgb = (sin(1.0-vec3(2.15,-.5, 1.2)+i*0.043)*0.5+0.5)*rzt;
+            avgCol =  mix(avgCol, col2, 0.5);
+		#endif
+		
         col += avgCol * exp2(-i*0.065 - 2.5) * smoothstep(0.0, 5.0, i);
         
     }
     
     col *= (clamp(rd.y*15.0 + 0.4, 0.0, 1.0));
     
-    return col*1.8;   
+		
+#ifdef AURORA_PRESET_COL
+   
+	if(col.r>=0.8)
+		col.r=0.8;
+	if(col.g>=0.5)
+		col.g=0.5;
+	if(col.b>=0.7)
+		col.b=0.7;
+
+#endif
+
+	
+	
+    return col*aurora_power * aurora_power;   
 }
 
 void NightAurora(inout vec3 color,vec3 fposition)
@@ -134,7 +173,7 @@ void NightAurora(inout vec3 color,vec3 fposition)
 		 
 			col = pow(col, vec3(1.5));
    
-		color += col * 0.0003 * timeMidnight * (1 - wetness*0.75)*vec3(NIGHT_AURORA_R, NIGHT_AURORA_G, NIGHT_AURORA_B)*NIGHT_AURORA_L;
+		color += col * AURORA_STRENGTH * 2.0 * (1-rainStrength) * timeMidnight * (1 - wetness*0.75)*vec3(NIGHT_AURORA_R, NIGHT_AURORA_G, NIGHT_AURORA_B)*NIGHT_AURORA_L;
 	}else{
 		color += vec3(0.0);	
 	}
