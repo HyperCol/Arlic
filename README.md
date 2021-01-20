@@ -1,6 +1,6 @@
 # Arlic光影
 
-Project Arlic,修改自SEUS Dazzing光影
+Project Arlic,修改自Sonic Ether's Unbelievable Shader V11光影
 针对视频拍摄进行优化
 
 ## 简介
@@ -11,7 +11,7 @@ Arlic为Minecraft创作者提供了一个工具，一种控制这个世界光照
 
 ## 功能
 
-* [ ] 可自定义的光照选项
+* [X] 可自定义的光照选项
 * [ ] 完备的镜头选项
 * [ ] 随场景而变的风格体系
 * [ ] 技术性创新
