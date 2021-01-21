@@ -1019,11 +1019,6 @@ vec3 	CalculateSunlightVisibility(inout SurfaceStruct surface, in ShadingStruct 
 
 		vec4 ssp = surface.screenSpacePosition;
 
-		if (isEyeInWater > 0.5)
-		{
-			ssp.xy *= 0.8;
-		}
-
 		vec4 worldposition = vec4(0.0f);
 			 worldposition = gbufferModelViewInverse * ssp;		//Transform from screen space to world space
 
