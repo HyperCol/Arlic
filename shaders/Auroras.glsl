@@ -1,26 +1,36 @@
-// Auroras by nimitz 2017 (twitter: @stormoid)
-// License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License
-// Contact the author for other licensing options
-
 /*
-	
-	There are two main hurdles I encountered rendering this effect. 
-	First, the nature of the texture that needs to be generated to get a believable effect
-	needs to be very specific, with large scale band-like structures, small scale non-smooth variations
-	to create the trail-like effect, a method for animating said texture smoothly and finally doing all
-	of this cheaply enough to be able to evaluate it several times per fragment/pixel.
+                                                                
+                       H                                         
+                       HCHCHC                  H                
+                       HCHCHCHCHC            HCH                
+                       HCHCHCHCHCHCHCH    HCHCHCH               
+                      HCHCHCHCHCHCHCHCHCHCHCHCHCHC              
+           HCHCHCHCHCHCHCHCHCHCHCHCH HCHCHCHCHCHCHC             
+     HCHCHCHCHCHCHCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHC             
+        HCHCHCHCHCHCHC HCHCH         HCHCHCHCHCHCHCH            
+          HCHCHCHCHCHC H                     HCHCHCH            
+          HCHCHCHCHCH                      HCHCHCHCHCHCHCHCHCH  
+         HCHCH HCHCH                        HCHCHCHCHCHCHCHC    
+       HCHCHCHCH  HC                          HCHCHCHCHCHCH     
+      HCHCHCHCHCH                              HCHCHCHCHCH      
+     HCHCHCHCHCHCHC                         HCHC HCHCHCH        
+   HCHCHCHCHCHCHCHCH                        HCHCHCHCHCH         
+  HCHCHCHCHCHCHCHCHCHC                     HCHCHCHCHC           
+            HCHCHCHCH                  HC HCHCHCHCHCHCH         
+             HCHCHCHCHCHCHCHCHC   HCHCHCH HCHCHCHCHCHCHCHC      
+             HCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHCHCHCHCHCHCHC     
+              HCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHC                
+              HCHCHCHCHCHCHCHCHCHCHCHCHCH                       
+               HCHCHC        HCHCHCHCHCHC                       
+                HCH             HCHCHCHCH                       
+                                      HCH                       
+										H
 
-	The second obstacle is the need to render a large volume while keeping the computational cost low.
-	Since the effect requires the trails to extend way up in the atmosphere to look good, this means
-	that the evaluated volume cannot be as constrained as with cloud effects. My solution was to make
-	the sample stride increase polynomially, which works very well as long as the trails are lower opcaity than
-	the rest of the effect. Which is always the case for auroras.
 
-	After that, there were some issues with getting the correct emission curves and removing banding at lowered
-	sample densities, this was fixed by a combination of sample number influenced dithering and slight sample blending.
+2021@HyperCol Studios
+VisionLab is part of HyperCol Studios
+Do not modify this code until you have read the LICENSE.txt contained in the root directory of this shaderpack!
 
-	N.B. the base setup is from an old shader and ideally the effect would take an arbitrary ray origin and
-	direction. But this was not required for this demo and would be trivial to fix.
 */
 
 mat2 mm2(in float a){
