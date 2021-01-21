@@ -144,14 +144,14 @@ const bool 		shadowcolor0Nearest = false;
 const bool 		shadowcolor1Mipmap = true;
 const bool 		shadowcolor1Nearest = false;
 
-const int 		R8 						= 0;
-const int 		RG8 					= 0;
-const int 		RGB8 					= 1;
-const int 		RGB16 					= 2;
-const int 		gcolorFormat 			= RGB16;
-const int 		gdepthFormat 			= RGB8;
-const int 		gnormalFormat 			= RGB16;
-const int 		compositeFormat 		= RGB8;
+const int 		RA8 						= 0;
+const int 		RGA8 					= 0;
+const int 		RGBA8 					= 1;
+const int 		RGBA16 					= 2;
+const int 		gcolorFormat 			= RGBA16;
+const int 		gdepthFormat 			= RGBA8;
+const int 		gnormalFormat 			= RGBA16;
+const int 		compositeFormat 		= RGBA8;
 
 const float 	eyeBrightnessHalflife 	= 10.0f;
 const float 	wetnessHalflife 		= 300.0f;
@@ -3091,18 +3091,14 @@ void IceFog(inout vec3 color, in SurfaceStruct surface, in MCLightmapStruct mcLi
 	}
 }
 
-void CrepuscularRays(inout float color, in SurfaceStruct surface)
+float CrepuscularRays(in SurfaceStruct surface)
 {
-	if (rainStrength == 1.0)
-		return;
-
-
 	float rayDepth = 0.02f;
-	float increment = 5.0f;
+	float increment = 4.0f;
 
-	const float rayLimit = 280.0f;
+	const float rayLimit = 30.0f;
 
-	float dither = CalculateDitherPattern1();
+	float dither = R2_dither() + sin(frameTimeCounter);
 
 	//rayDepth += dither * increment;
 
@@ -3128,13 +3124,15 @@ void CrepuscularRays(inout float color, in SurfaceStruct surface)
 		rayPosition = shadowProjection * rayPosition;
 		rayPosition /= rayPosition.w;
 
+
 		float dist = sqrt(dot(rayPosition.xy, rayPosition.xy));
 		float distortFactor = (1.0f - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
 		rayPosition.xy *= 0.95f / distortFactor;
 		rayPosition.z = mix(rayPosition.z, 0.5, 0.8);
 		rayPosition = rayPosition * 0.5f + 0.5f;
+		
 
-		float shadowSample = shadow2DLod(shadow, vec3(rayPosition.st, rayPosition.z + 0.0018f), 4).x;
+		float shadowSample = shadow2DLod(shadow, vec3(rayPosition.st, rayPosition.z), 2).x;
 
 		//if (count < 1)
 		//{
@@ -3161,39 +3159,9 @@ void CrepuscularRays(inout float color, in SurfaceStruct surface)
 	//lightAccumulation *= 0.25;
 	//mistLight /= numSteps;
 
-	color = lightAccumulation * 0.3 * (1.0 - rainStrength);
+	float rays = lightAccumulation;
 
-	return;
-
-/*
-	float sunglow = CalculateSunglow(surface);
-	float antiSunglow = CalculateAntiSunglow(surface);
-
-	//float anisoHighlight = max(0.0f, pow(sunglow, 1.0f)) * 0.0f + max(pow(antiSunglow, 2.0f), 0.0f) * 0.05f;
-		 // anisoHighlight += pow(sunglow, 4.0f) * 5.0f;
-
-	float anisoHighlight = pow(1.0f / (pow((1.0f - sunglow) * 3.0f, 2.0f) + 0.0001f) * 1.5f, 1.5f) + 0.5f;
-		  anisoHighlight *= sunglow + 0.0f;
-		  anisoHighlight += antiSunglow * 0.05f;
-
-	//lightAccumulation *= 1.0f + anisoHighlight * 300.0f;
-
-
-
-	//lightAccumulation = mix(1.0f, 10.0f, float(surface.mask.sky));
-
-	vec3 rays = vec3(lightAccumulation);
-
-	vec3 rayColor = colorSunlight * 0.5f + colorSkylight * 1.0f + colorSunlight * (anisoHighlight * 120.0f);
-
-	rays *= rayColor;
-
-	//vec3 mist = vec3(mistLight);
-
-	color.rgb += rays * (0.0025f + float(isEyeInWater) * 0.0001f);
-	//color.rgb += mist * 0.0001f;
-	//color.rgb += vec3(ambientFogAccumulation) * colorScatteredSunlight * 0.00001f;
-	*/
+	return rays * 0.1;
 }
 
 vec3 NewSkyLight(float p, in SurfaceStruct surface){
@@ -3606,11 +3574,6 @@ void main() {
 	NightAurora(finalComposite.rgb, surface.screenSpacePosition.xyz);
 	#endif
 
-	float crepuscularRays = 0.0f;
-	#ifdef CREPUSCULAR_RAYS
-	CrepuscularRays(crepuscularRays, surface);
-	#endif
-
 	//finalComposite.rgb += crepuscularRays.rgb * 0.0022;
 
 	 finalComposite = pow(finalComposite, vec3(1.0f / 2.2f)); 					//Convert final image into gamma 0.45 space to compensate for gamma 2.2 on displays
@@ -3634,9 +3597,12 @@ void main() {
 
 	finalComposite += CalculateNoisePattern1(vec2(0.0), 64.0) * (1.0 / 65535.0);
 
-
-	gl_FragData[0] = vec4(finalComposite, 1.0f);
-	gl_FragData[1] = vec4(surface.mask.matIDs, crepuscularRays, mcLightmap.sky, 1.0f);
+	#ifdef CREPUSCULAR_RAYS
+	gl_FragData[0] = vec4(finalComposite, CrepuscularRays(surface));
+	#else
+	gl_FragData[0] = vec4(finalComposite, 1.0);
+	#endif
+	gl_FragData[1] = vec4(surface.mask.matIDs, surface.shadow * surface.cloudShadow * pow(mcLightmap.sky, 0.2f), mcLightmap.sky, 1.0f);
 	gl_FragData[2] = vec4(surface.specular.specularity, surface.cloudAlpha, surface.specular.glossiness, 1.0f);
 	gl_FragData[3] = vec4(shading.sunlightVisibility, 1.0f);
 	// gl_FragData[4] = vec4(pow(surface.albedo.rgb, vec3(1.0f / 2.2f)), 1.0f);
