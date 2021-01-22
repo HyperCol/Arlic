@@ -51,7 +51,7 @@ void main() {
 		iswater = 1.0f;
 	}
 
-	if (mc_Entity.x == 95 || mc_Entity.x == 160)
+	if (mc_Entity.x == 95 || mc_Entity.x == 160 || mc_Entity.x == 90 || mc_Entity.x == 165)
 	{
 		isStainedGlass = 1.0f;
 	}
