@@ -29,7 +29,7 @@
 
 2021@HyperCol Studios
 VisionLab is part of HyperCol Studios
-Do not modify this code until you have read the LICENSE.txt contained in the root directory of this shaderpack!
+Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
 
