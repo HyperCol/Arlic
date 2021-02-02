@@ -8,6 +8,7 @@ uniform sampler2D texture;
 uniform sampler2D specular;
 uniform sampler2D normals;
 uniform sampler2D noisetex;
+uniform float screenBrightness;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferPreviousProjection;

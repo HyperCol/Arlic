@@ -59,13 +59,13 @@ Do not modify this code until you have read the LICENSE contained in the root di
 		//#define LINK_FOCUS_TO_BRIGHTNESS_BAR
 	#define BlurAmount 4.8 // [0.4 0.8 1.6 3.2 4.8 6.4 8.0 9.6]
 	
-	#define DISTANCE_BLUR
+	//#define DISTANCE_BLUR
 	#define MaxDistanceBlurAmount 0.9 // [0.1 0.2 0.4 0.6 0.9 1.2 1.5 1.8]
 	#define DistanceBlurRange 480 // [60 120 180 240 360 480 600 720 960 1200]
 		
 	#define EDGE_BLUR
-	#define EdgeBlurAmount 1.25  // [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
-	#define EdgeBlurDecline 2.0  // [0.3 0.6 0.9 1.2 1.5 1.8 1.9 2.0 2.1 2.4 3.0 3.3 3.6 3.9 4.2]
+	#define EdgeBlurAmount 1.0  // [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
+	#define EdgeBlurDecline 4.2  // [0.3 0.6 0.9 1.2 1.5 1.8 1.9 2.0 2.1 2.4 3.0 3.3 3.6 3.9 4.2]
 
 
 //#define CUSTOM_TONED
