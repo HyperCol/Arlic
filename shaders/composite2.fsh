@@ -36,11 +36,10 @@ Do not modify this code until you have read the LICENSE contained in the root di
 */
 
 #define VOLUMETRIC_CLOUDS // Volumetric clouds
-#define HQ_VOLUMETRIC_CLOUDS // High-quality volumetric clouds. Volumetric Clouds must be enabled!
-	#define CALCULATECLOUDDEPTH 250           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
+	#define CALCULATECLOUDDEPTH 280           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
 	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
 	#define CALCULATECLOUDSCONCENTRATION 2.5  // [0.5 1.0 1.5 2.0 2.5 3.0 4.0 5.0 7.0 9.0]
-	#define WHITECLOUDS 1                     // [0.01 1 4 6 9]
+	#define WHITECLOUDS 1.5                     // [0.01 1 1.5 4 6 9]
 	//#define MOREVOLUMETRIC_CLOUDS
 
 //#define SMOOTH_CLOUDS // Smooth out dither pattern from volumetric clouds. Not necessary if HQ Volumetric Clouds is enabled.
@@ -1060,11 +1059,7 @@ void ReflectedVolumeClouds(inout SurfaceStruct surface, inout vec3 color)
 
 	float cloudsAltitude = 400.0f;
 
-	#ifdef HQ_VOLUMETRIC_CLOUDS
 	float cloudsThickness = CALCULATECLOUDDEPTH;
-	#else
-	float cloudsThickness = CALCULATECLOUDDEPTH;
-	#endif
 
 	float cloudsUpperLimit = cloudsAltitude + cloudsThickness * 0.5f;
 	float cloudsLowerLimit = cloudsAltitude - cloudsThickness * 0.5f;
