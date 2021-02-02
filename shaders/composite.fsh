@@ -519,7 +519,7 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 
 		//fakeIndirect.rgb = vec3(mcSkylight / 1150.0);
 
-		return vec4(fakeIndirect.rgb * 1150.0f * GI_RADIUS, ao);
+		return vec4(fakeIndirect.rgb * 1400.0f * GI_RADIUS, ao);
 	}
 	else {
 		return vec4(0.0f);
