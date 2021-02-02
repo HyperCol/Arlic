@@ -1210,7 +1210,7 @@ void CalStar(in SurfaceStruct surface, inout vec3 finalComposite) {
 		stars = mix(stars, 0.0, calcSun);
 
 
-	finalComposite.rgb = mix(finalComposite.rgb , (vec3(0.8,1.2,1.2) * 0.02 - 0.02 * rainStrength) * 0.006f, stars);
+	finalComposite.rgb = mix(finalComposite.rgb , (vec3(0.8,1.2,1.2) * 0.02 - 0.02 * rainStrength) * 0.0005f, stars);
 
 }
 

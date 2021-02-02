@@ -302,7 +302,7 @@ void main() {
 
 float Plants_Speed = PLANT_WAVE_SPEED;
    #ifdef PLANT_SPEED_LIGHT_BAR_LINKER
-      Plants_Speed *= screenBrightness * 10.0f;
+      Plants_Speed *= pow(screenBrightness * 2.0f, 4.0);
    #endif
 #define FRAME_TIME frameTimeCounter * Plants_Speed
 

@@ -134,7 +134,7 @@ float GetWaves(vec3 position, in float scale) {
 
 float waveWaterSpeed = WATER_SPEED;
 #ifdef WATER_SPEED_LIGHT_BAR_LINKER
-      waveWaterSpeed *= screenBrightness * 10.0f;
+      waveWaterSpeed *= pow(screenBrightness * 2.0f, 4.0);
    #endif
 #define FRAME_TIME frameTimeCounter * waveWaterSpeed
 
