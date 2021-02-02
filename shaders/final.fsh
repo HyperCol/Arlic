@@ -331,7 +331,7 @@ void  DOF_Blur(inout vec3 color) {
 	
 #ifdef FOCUS_BLUR
 	#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
-		naive += (depth - screenBrightness) * 0.01 * BlurAmount;
+		naive += (1.0 - screenBrightness) * 0.01 * BlurAmount;
 	#else
 		naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount;
 	#endif
