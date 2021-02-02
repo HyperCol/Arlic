@@ -53,8 +53,6 @@ varying vec3 vertexViewVector;
 #define GRASS_MOVEMENT  0.85 //[0.00000085 0.000085 0.0085 0.55 0.65 0.85 0.95 1.0]Default is 0.85, Lower nimbers means slower
 #define GRASS_SPEED     1.0  //[1.0 100.0 500.0 1000.0 5000.0]Default is 1.0, Higher numbers means slower
 
-#define WAVING_VINES_SPEED 1.0  //[0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0] //Lower numbers means faster, Higher numbers means slower
-
 #define PLANT_WAVE_SPEED 1.0 //[0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0] //Lower numbers means faster, Higher numbers means slower
 //#define PLANT_SPEED_LIGHT_BAR_LINKER
 
@@ -498,7 +496,7 @@ position.xyz += cameraPosition.xyz;
   #ifdef WAVING_VINES
     //large scale movement
     if(mc_Entity.x == 106.0 ) {
-      float speed = WAVING_VINES_SPEED;
+      float speed = 1.0;
       float magnitude = (sin(((position.y + position.x)/2.0 + tick * pi / ((88.0)))) * 0.05 + 0.15) * 0.26;
 			magnitude *= vineweight;
 			magnitude *= lightWeight;
@@ -512,7 +510,7 @@ position.xyz += cameraPosition.xyz;
 
     //small scale movement
     if(mc_Entity.x == 106.0 && texcoord.t < 0.20) {
-      float speed = WAVING_VINES_SPEED;
+      float speed = 1.0;
       float magnitude = (sin(((position.y + position.x)/8.0 + tick * pi / ((88.0)))) * 0.15 + 0.05) * 0.22;
       float d0 = sin(tick * pi / (112.0 * speed)) * 3.0 + 0.5;
       float d1 = sin(tick * pi / (142.0 * speed)) * 3.0 + 0.5;
