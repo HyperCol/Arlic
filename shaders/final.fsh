@@ -37,7 +37,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 #define BLOOM_EFFECTS 
 //#define FINAL_ALT_COLOR_SOURCE 
-//#define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
+#define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
 #define ATMOSPHERIC_HAZE 1.0 // Amount of haziness added to distant land. [0.0 0.5 1.0 1.5 2.0] 
 
 //#define MOTION_BLUR // It's motion blur.
@@ -128,7 +128,7 @@ varying vec3 colorSkylight;
 #define BANDING_FIX_FACTOR 1.0f
 
 
-
+const bool gcolorMipmapEnabled = true;
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
