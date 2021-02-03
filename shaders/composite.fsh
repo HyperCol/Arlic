@@ -48,6 +48,9 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define GI_RENDER_RESOLUTION 0 // Render resolution of GI. 0 = High. 1 = Low. Set to 1 for faster but blurrier GI. [0 1]
 #define GI_RADIUS 0.75 // How far indirect light can spread. Can help to reduce artifacts with low GI samples. [0.5 0.75 1.0]
 
+#define WATER_SPEED 1.0    //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.32.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+//#define WATER_SPEED_LIGHT_BAR_LINKER
+
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Do not change the name of these variables or their type. The Shaders Mod reads these lines and determines values to send to the inner-workings
@@ -116,6 +119,7 @@ varying float timeSunriseSunset;
 varying float timeNoon;
 varying float timeMidnight;
 varying float timeSkyDark;
+uniform float screenBrightness;
 
 varying vec3 colorSunlight;
 varying vec3 colorSkylight;
@@ -920,15 +924,19 @@ float AlmostIdentity(in float x, in float m, in float n)
 
 float GetWaves(vec3 position) {
 	float speed = 0.9f;
-
+	float waveWaterSpeed = WATER_SPEED;
+#ifdef WATER_SPEED_LIGHT_BAR_LINKER
+      waveWaterSpeed *= pow(screenBrightness * 2.0f, 4.0);
+#endif
+#define FRAME_TIME frameTimeCounter * waveWaterSpeed
   vec2 p = position.xz / 20.0f;
 
   p.xy -= position.y / 20.0f;
 
   p.x = -p.x;
 
-  p.x += (frameTimeCounter / 40.0f) * speed;
-  p.y -= (frameTimeCounter / 40.0f) * speed;
+  p.x += (FRAME_TIME / 40.0f) * speed;
+  p.y -= (FRAME_TIME / 40.0f) * speed;
 
   float weight = 1.0f;
   float weights = weight;
@@ -937,31 +945,31 @@ float GetWaves(vec3 position) {
 
   float wave = 0.0;
 	//wave = textureSmooth(noisetex, (p * vec2(2.0f, 1.2f))  + vec2(0.0f,  p.x * 2.1f) ).x;
-	p /= 2.1f; 	/*p *= pow(2.0f, 1.0f);*/ 	p.y -= (frameTimeCounter / 20.0f) * speed; p.x -= (frameTimeCounter / 30.0f) * speed;
+	p /= 2.1f; 	/*p *= pow(2.0f, 1.0f);*/ 	p.y -= (FRAME_TIME / 20.0f) * speed; p.x -= (FRAME_TIME / 30.0f) * speed;
   //allwaves += wave;
 
   weight = 4.1f;
   weights += weight;
       wave = textureSmooth(noisetex, (p * vec2(2.0f, 1.4f))  + vec2(0.0f,  -p.x * 2.1f) ).x;
-			p /= 1.5f;/*p *= pow(2.0f, 2.0f);*/ 	p.x += (frameTimeCounter / 20.0f) * speed;
+			p /= 1.5f;/*p *= pow(2.0f, 2.0f);*/ 	p.x += (FRAME_TIME / 20.0f) * speed;
       wave *= weight;
   allwaves += wave;
 
   weight = 17.25f;
   weights += weight;
-      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  p.x * 1.1f) ).x);		p /= 1.5f; 	p.x -= (frameTimeCounter / 55.0f) * speed;
+      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  p.x * 1.1f) ).x);		p /= 1.5f; 	p.x -= (FRAME_TIME / 55.0f) * speed;
       wave *= weight;
   allwaves += wave;
 
   weight = 15.25f;
   weights += weight;
-      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  -p.x * 1.7f) ).x);		p /= 1.9f; 	p.x += (frameTimeCounter / 155.0f) * speed;
+      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  -p.x * 1.7f) ).x);		p /= 1.9f; 	p.x += (FRAME_TIME / 155.0f) * speed;
       wave *= weight;
   allwaves += wave;
 
   weight = 29.25f;
   weights += weight;
-      wave = abs(textureSmooth(noisetex, (p * vec2(1.0f, 0.8f))  + vec2(0.0f,  -p.x * 1.7f) ).x * 2.0f - 1.0f);		p /= 2.0f; 	p.x += (frameTimeCounter / 155.0f) * speed;
+      wave = abs(textureSmooth(noisetex, (p * vec2(1.0f, 0.8f))  + vec2(0.0f,  -p.x * 1.7f) ).x * 2.0f - 1.0f);		p /= 2.0f; 	p.x += (FRAME_TIME / 155.0f) * speed;
       wave = 1.0f - AlmostIdentity(wave, 0.2f, 0.1f);
       wave *= weight;
   allwaves += wave;
@@ -975,7 +983,7 @@ float GetWaves(vec3 position) {
 
   // weight = 10.0f;
   // weights += weight;
-  // 	wave = sin(length(position.xz * 5.0 + frameTimeCounter));
+  // 	wave = sin(length(position.xz * 5.0 + FRAME_TIME));
   //   wave *= weight;
   // allwaves += wave;
 

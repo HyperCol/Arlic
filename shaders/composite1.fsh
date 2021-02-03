@@ -569,22 +569,6 @@ float  	CalculateDitherPattern() {
 	return float(dither) / 4.0f;
 }
 
-
-float  	CalculateDitherPattern1() {
-	const int[16] ditherPattern = int[16] (0 , 8 , 2 , 10,
-									 	   12, 4 , 14, 6 ,
-									 	   3 , 11, 1,  9 ,
-									 	   15, 7 , 13, 5 );
-
-	vec2 count = vec2(0.0f);
-	     count.x = floor(mod(texcoord.s * viewWidth, 4.0f));
-		 count.y = floor(mod(texcoord.t * viewHeight, 4.0f));
-
-	int dither = ditherPattern[int(count.x) + int(count.y) * 4];
-
-	return float(dither) / 16.0f;
-}
-
 float R2_dither(){
 	vec2 alpha = vec2(0.75487765, 0.56984026);
 	
@@ -3303,7 +3287,7 @@ void main() {
 	//surface.sky.sunSpot     *= 1.0f - timeMidnight;
 
 	AddSkyGradient(surface);
-	//AddSunglow(surface);
+	AddSunglow(surface);
 
 
 
@@ -3544,6 +3528,10 @@ void main() {
 		}
 	#endif
 
+	#ifdef AURORA
+	NightAurora(finalComposite.rgb, surface.screenSpacePosition.xyz);
+	#endif
+
 	CloudPlane(surface, finalComposite);
 
 	
@@ -3575,11 +3563,6 @@ void main() {
 
 	#ifdef ATMOSPHERIC_SCATTERING
 	CalculateAtmosphericScattering(finalComposite.rgb, surface);
-	#endif
-
-
-	#ifdef AURORA
-	NightAurora(finalComposite.rgb, surface.screenSpacePosition.xyz);
 	#endif
 
 	//finalComposite.rgb += crepuscularRays.rgb * 0.0022;

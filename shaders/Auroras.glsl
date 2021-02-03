@@ -183,7 +183,7 @@ void NightAurora(inout vec3 color,vec3 fposition)
 		 
 			col = pow(col, vec3(1.5));
    
-		color += col * AURORA_STRENGTH * 2.0 * (1-rainStrength) * timeMidnight * (1 - wetness*0.75)*vec3(NIGHT_AURORA_R, NIGHT_AURORA_G, NIGHT_AURORA_B)*NIGHT_AURORA_L;
+		color += col * AURORA_STRENGTH * 2000.0 * (1-rainStrength) * timeMidnight * (1 - wetness*0.75)*vec3(NIGHT_AURORA_R, NIGHT_AURORA_G, NIGHT_AURORA_B)*NIGHT_AURORA_L;
 	}else{
 		color += vec3(0.0);	
 	}
