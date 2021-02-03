@@ -7,6 +7,7 @@ varying vec4 lmcoord;
 varying vec3 normal;
 varying vec3 tangent;
 varying vec3 binormal;
+varying float distance;
 
 //varying vec4 bloommask;
 
@@ -28,7 +29,9 @@ void main() {
 
 	lmcoord = gl_TextureMatrix[1] * gl_MultiTexCoord1;
 	
-
+	vec4 locposition = gl_ModelViewMatrix * gl_Vertex;
+	
+	distance = sqrt(locposition.x * locposition.x + locposition.y * locposition.y + locposition.z * locposition.z);
 
 	gl_FogFragCoord = gl_Position.z;
 	
