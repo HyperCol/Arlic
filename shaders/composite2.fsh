@@ -2523,12 +2523,12 @@ void main() {
 	}
 
 	CalculateSpecularReflections(surface);
+	CalculateSpecularHighlight(surface);
 
-	if (isEyeInWater == 0)
-	{
-		CalculateSpecularHighlight(surface);
+	//if (isEyeInWater == 0)
+	//{
 		//CalculateGlossySpecularReflections(surface);
-	}
+	//}
 
 	float sumLight = 0.0;
 	#ifdef TRUE_VOLUMETRIC_CLOUDS2
