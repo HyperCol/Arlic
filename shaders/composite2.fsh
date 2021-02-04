@@ -2607,11 +2607,9 @@ float CalculateWaterCaustics(SurfaceStruct surface, ShadingStruct shading)
 	worldPos.xyz += cameraPosition.xyz;
 
 	vec2 dither = CalculateNoisePattern1(vec2(0.0), 2.0).xy;
-	// float waterPlaneHeight = worldPos.y + 8.0;
 	float waterPlaneHeight = 63.0;
 
-	// vec4 wlv = shadowModelViewInverse * vec4(0.0, 0.0, 1.0, 0.0);
-	vec4 wlv = gbufferModelViewInverse * vec4(lightVector.xyz, 0.0);
+	vec4 wlv = gbufferModelViewInverse * vec4(lightVector.xyz, 1.0);
 	vec3 worldLightVector = -normalize(wlv.xyz);
 	// worldLightVector = normalize(vec3(-1.0, 1.0, 0.0));
 
