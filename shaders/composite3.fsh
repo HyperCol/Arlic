@@ -1209,7 +1209,7 @@ void CalculateClouds (inout vec3 color, in SurfaceStruct surface)
 	vec2 coord = texcoord.st * 2.0f;
 
 	vec4 worldPosition = gbufferModelViewInverse * vec4(-reflect(surface.viewSpacePosition.xyz, surface.normal.xyz), 0.0);
-		 worldPosition.xyz += cameraPosition.xyz;
+		 //worldPosition.xyz += cameraPosition.xyz;
 
 	float cloudHeight = 180.0f;
 	float cloudDepth  = 150.0f;

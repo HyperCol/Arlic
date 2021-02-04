@@ -55,7 +55,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 		//#define LINK_FOCUS_TO_BRIGHTNESS_BAR
 	#define BlurAmount 4.8 // [0.4 0.8 1.6 3.2 4.8 6.4 8.0 9.6]
 	
-	//#define DISTANCE_BLUR
+	#define DISTANCE_BLUR
 	#define MaxDistanceBlurAmount 0.9 // [0.1 0.2 0.4 0.6 0.9 1.2 1.5 1.8]
 	#define DistanceBlurRange 360 // [60 120 180 240 360 480 600 720 960 1200]
 		
@@ -316,12 +316,12 @@ void  DOF_Blur(out vec3 color) {
 	float bbb=1.5;
 	#endif
 	if(weather(texcoord.st)==3){
-	aaa +=timeMidnight;
-	bbb *=0;
+	aaa += timeMidnight;
+	bbb = 0.0;
 	}
 	#else
-	float aaa=1;
-	float bbb=0;
+	float aaa = 1.0;
+	float bbb = 0.0;
 	#endif
 	
 #ifdef FOCUS_BLUR
@@ -332,6 +332,7 @@ void  DOF_Blur(out vec3 color) {
 	#endif
 #endif
 
+if (depth <= 0.99999){
 #ifdef DISTANCE_BLUR
 #ifdef NOCALCULATECLOUDSNIGHT
 	naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
@@ -339,6 +340,7 @@ void  DOF_Blur(out vec3 color) {
 naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb));
 #endif
 #endif
+}
 
 #ifdef EDGE_BLUR
 	naive += pow(distance(texcoord.st, vec2(0.5)),EdgeBlurDecline) * 0.01 * EdgeBlurAmount;

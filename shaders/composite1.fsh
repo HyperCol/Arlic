@@ -52,7 +52,7 @@ uniform float viewHeight;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() 
 {
-	vec4 origColor = texture2DLod(gaux3, texcoord.st, 0.0);
+	vec4 origColor = texture2D(gaux3, texcoord.st);
 
 	vec3 wavesNormal = vec3(origColor.xy * 2.0 - 1.0, 1.0);
 	vec3 wavesNormalr = vec3(texture2D(gaux3, mod(texcoord.st + vec2(0.5, 0.0), vec2(1.0))).xy * 2.0 - 1.0, 1.0);
@@ -71,6 +71,7 @@ void main()
 
 
 	gl_FragData[0] = vec4(seamlessWavesNormal.xy * 0.5 + 0.5, origColor.zw);
+	//gl_FragData[0] = vec4(origColor);
 }
 
 //change GetWavesNormal
