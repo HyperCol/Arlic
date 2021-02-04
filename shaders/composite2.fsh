@@ -1710,6 +1710,13 @@ void 	CalculateSpecularReflections(inout SurfaceStruct surface) {
 			refractCol *= (1.0 - rainStrength * 0.95);
 			refractCol *= pow(eyeBrightnessSmooth.y / 240.0f, 4.0f) * 0.00002;
 
+			float refractedAmount = abs(dot(normalize(surface.viewSpacePosition.xyz), surface.normal.xyz));
+			if(refractedAmount > 1.0 / 1.3333)
+			{
+				refractCol = surface.color.rgb;
+				reflection.a *= 0.6;
+			}
+
 			surface.color.rgb = mix(refractCol, reflection.rgb, vec3(reflection.a));
 			surface.reflection = reflection;
 		}
