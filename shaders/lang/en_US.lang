@@ -32,7 +32,7 @@
 
 //-------------------------- Defined Options --------------------------//
 
-option.POINTLIGHT_COL_TEMP_LINKER=点光源亮度滑块绑定
+option.POINTLIGHT_COL_TEMP_LINKER=点光源色温亮度滑块绑定
 option.WATER_SPEED_LIGHT_BAR_LINKER=水波速度亮度滑块绑定
 option.PLANT_SPEED_LIGHT_BAR_LINKER=植物晃动速度亮度滑块绑定
 option.LINK_FOCUS_TO_BRIGHTNESS_BAR=对焦亮度滑块绑定
