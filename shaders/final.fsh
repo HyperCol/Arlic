@@ -308,7 +308,7 @@ void SaturationBoost(inout vec3 color) {
 
 void  DOF_Blur(inout vec3 color) {
 
-	float depth= centerDepthSmooth/*texture2D(gdepthtex, texcoord.st).x*/;
+	float depth= texture2D(gdepthtex, texcoord.st).x;
 		//depth += float(GetMaterialMask(texcoord.st, 5)) * 0.36f;
 
 	float naive = 0.0;
@@ -331,7 +331,7 @@ void  DOF_Blur(inout vec3 color) {
 	
 #ifdef FOCUS_BLUR
 	#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
-		naive += (1.0 - screenBrightness) * 0.01 * BlurAmount;
+		naive += (screenBrightness - depth) * 0.4 * 0.01 * BlurAmount;
 	#else
 		naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount;
 	#endif
