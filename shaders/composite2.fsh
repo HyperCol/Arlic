@@ -94,7 +94,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define Cloud3Height2 60						    //[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 80 90 100 120 140 160 180 210 200 220 240 250 300 350 400 500] //Sets the Volumetric clouds3 Height
 #define Cloud3Depth2 100                            //[50 75 100 125 150 175 200 225 250 275 300 350 400]
 #define VOLUMETRIC_CLOUD_SPEED2 1.0				    //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0] //Default is 2.0f, Lower number to slow speed, Higher number to increase speed 
-#define CLOUD_DISPERSE2 15          			// [1 2 3 4 5 7 10 12 15 17 20 25 30]increase this for thicker clouds and so that they don't fizzle away when you fly close to them, 10 is default Dont Go Over 30 will lag and maybe crash
+#define CLOUD_DISPERSE2 64          			// [1 2 3 4 5 7 10 12 15 17 20 25 30]increase this for thicker clouds and so that they don't fizzle away when you fly close to them, 10 is default Dont Go Over 30 will lag and maybe crash
 #define Vol_Cloud_Coverage2 0.45   			    // Vol_Cloud_Coverage. 0.20 = Lowest Cover. 0.60 = Highest Cover [0.20 0.30 0.35 0.40 0.42 0.45 0.48 0.50 0.52 0.55 0.60 0.70 0.80 0.90 1.00]
 #define VOLUMETRIC_CLOUD_LIGHTING2 0.5          //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0]
 #define VFCWWT //Dynamic fog amount, which means that the strength of VOLUMETRIC FOG would be change with The worldTime
@@ -108,6 +108,10 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define CUSTOM_VLFC_R 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
 #define CUSTOM_VLFC_G 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
 #define CUSTOM_VLFC_B 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
+
+	#define WATER_COLOR_F_R 0.15 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+	#define WATER_COLOR_F_G 0.6375 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.6375 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+	#define WATER_COLOR_F_B 0.75 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
 /* DRAWBUFFERS:2 */
 const int 		noiseTextureResolution  = 64;
@@ -626,18 +630,6 @@ vec4 	ComputeRaytraceReflection(inout SurfaceStruct surface)
 		  initialStepAmount *= 1.0f;
 
 
-	 // vec2 dither = CalculateNoisePattern1(vec2(0.0f), 4.0f).xy * 2.0f - 1.0f;
-	 // vec3 ditherNormal = vec3(0.0f);
-	 // 	 ditherNormal.x = dither.x;
-	 // 	 ditherNormal.y = dither.y;
-	 // 	 ditherNormal.z = sqrt(1.0f - dither.x * dither.x - dither.y * dither.y);
-	 // 	 ditherNormal.z = -1.0f;
-
-	 // 	 ditherNormal = normalize(ditherNormal);
-	 // 	 ditherNormal -= normalize(surface.viewSpacePosition.xyz) * 1.0f;
-
-
-
     vec2 screenSpacePosition2D = texcoord.st;
     vec3 cameraSpacePosition = convertScreenSpaceToWorldSpace(screenSpacePosition2D);
 
@@ -658,13 +650,12 @@ vec4 	ComputeRaytraceReflection(inout SurfaceStruct surface)
 
 	int numSteps = 0;
 
-    //while(count < far/initialStepAmount*reflectionRange)
     for (int i = 0; i < 40; i++)
     {
         if(currentPosition.x < 0 || currentPosition.x > 1 ||
            currentPosition.y < 0 || currentPosition.y > 1 ||
            currentPosition.z < 0 || currentPosition.z > 1 ||
-           -cameraSpaceVectorPosition.z > far * 1.4f ||
+           /*-cameraSpaceVectorPosition.z > far * 1.4f ||*/
            -cameraSpaceVectorPosition.z < 0.0f)
         {
 		   break;
@@ -708,17 +699,6 @@ vec4 	ComputeRaytraceReflection(inout SurfaceStruct surface)
 	if (finalSamplePos.x == 0.0f || finalSamplePos.y == 0.0f) {
 		color.a = 0.0f;
 	}
-
-	if (GetSkyMask(finalSamplePos))
-		color.a = 0.0f;
-
-	// if (GetWaterMask(finalSamplePos))
-	// 	color.a = 0.0f;
-
-	//color.a *= clamp(1 - pow(distance(vec2(0.5), finalSamplePos)*2.0, 2.0), 0.0, 1.0);
-	// color.a *= 1.0f - float(GetMaterialMask(finalSamplePos, 0, surface.mask.matIDs));
-
-	//surface.color = vec3(numSteps / 10000000.0f);
 
     return color;
 }
@@ -787,6 +767,25 @@ float   CalculateSunspot(in SurfaceStruct surface) {
 
 	return result;
 	//return 0.0f;
+}
+
+float   CalculateMoonspot(in SurfaceStruct surface) {
+
+	float curve = 1.0f;
+
+	vec3 npos = normalize(surface.viewSpacePosition.xyz);
+	vec3 halfVector2 = normalize(-surface.lightVector + npos);
+
+	float moonProximity = abs(1.0f - dot(halfVector2, npos));
+
+	float sizeFactor = 0.965f - surface.roughness * 0.7f;
+
+	float moonSpot = (clamp(moonProximity, sizeFactor, 0.97f) - sizeFactor) / (0.97f - sizeFactor);
+		  moonSpot = pow(cubicPulse(1.0f, 1.0f, moonSpot), 2.0f);
+
+	float result = moonSpot / (surface.roughness * 20.0f + 0.1f);
+
+	return result;
 }
 
 vec3 NewSkyLight(float p, in SurfaceStruct surface){
@@ -918,13 +917,19 @@ vec3 	ComputeReflectedSkyGradient(in SurfaceStruct surface) {
 			 sunspot *= 1.0f - timeMidnight;
 			 sunspot *= 1.0f - rainStrength;
 
+		vec3 moonSpot = vec3(CalculateMoonspot(surface)) * colorSunlight * surface.sunlightVisibility;
+			 moonSpot *= 2.0f;
+			 moonSpot *= timeMidnight;
+			 moonSpot *= 1.0f - rainStrength;
 
-		skyColor += sunspot;
+		DoNightEye(moonSpot);
+
+		skyColor += sunspot + moonSpot;
 	}
 
 	skyColor *= pow(1.0f - clamp(skyGradientRaw - 0.75f, 0.0f, 0.25f) / 0.25f, 3.0f);
 
-	skyColor *= mix(1.0f, 4.5f, timeNoon);
+	skyColor *= mix(1.0f, 4.5f, timeNoon + timeMidnight);
 
 	skyColor = mix(skyColor, colorSunlight * 2.0, pow(sunglow, 6.0) * (1.0 - rainStrength));
 
@@ -1204,7 +1209,7 @@ void CalculateClouds (inout vec3 color, in SurfaceStruct surface)
 	vec2 coord = texcoord.st * 2.0f;
 
 	vec4 worldPosition = gbufferModelViewInverse * vec4(-reflect(surface.viewSpacePosition.xyz, surface.normal.xyz), 0.0);
-		 //worldPosition.xyz += cameraPosition.xyz;
+		 worldPosition.xyz += cameraPosition.xyz;
 
 	float cloudHeight = 180.0f;
 	float cloudDepth  = 150.0f;
@@ -1244,7 +1249,7 @@ void CalculateClouds (inout vec3 color, in SurfaceStruct surface)
 		 if (surfaceDistance < rayDistance * cloudDistanceMult)
 			proximity.a = 0.0f;
 
-		color.rgb = mix(color.rgb, proximity.rgb, vec3(min(1.0f, proximity.a * cloudDensity)));
+		color.rgb = mix(color.rgb, proximity.rgb * 0.001, vec3(min(1.0f, proximity.a * cloudDensity)));
 
 	//Increment ray
 		rayDepth -= rayIncrement;
@@ -1675,33 +1680,39 @@ void 	CalculateSpecularReflections(inout SurfaceStruct surface) {
 	vec3 original = surface.color.rgb;
 
 	if (specularity > 0.00f) {
+		if (isEyeInWater < 0.5) {
+			vec4 reflection = ComputeRaytraceReflection(surface);
 
-		vec3 noise3 = vec3(noise(0.0f), noise(1.0f), noise(2.0f));
+			vec4 fakeSkyReflection = ComputeFakeSkyReflection(surface);
 
-		surface.normal += noise3 * 0.00f;
+			vec3 noSkyToReflect = vec3(0.0f);
 
-		vec4 reflection = ComputeRaytraceReflection(surface);
-		//vec4 reflection = vec4(0.0f);
+			if (defaultItself)
+			{
+				noSkyToReflect = surface.color.rgb;
+			}
+
+			fakeSkyReflection.rgb = mix(noSkyToReflect, fakeSkyReflection.rgb, clamp(surface.skylight * 16 - 5, 0.0f, 1.0f));
+			reflection.rgb = mix(reflection.rgb, fakeSkyReflection.rgb, pow(vec3(1.0f - reflection.a), vec3(10.1f)));
+			reflection.a = fakeSkyReflection.a * specularity;
 
 
-		vec4 fakeSkyReflection = ComputeFakeSkyReflection(surface);
+			reflection.rgb *= surface.specularColor;
 
-		vec3 noSkyToReflect = vec3(0.0f);
+			surface.color.rgb = mix(surface.color.rgb, reflection.rgb, vec3(reflection.a));
+			surface.reflection = reflection;
+		} else {
+			vec4 reflection = ComputeRaytraceReflection(surface);
+			reflection.rgb *= surface.specularColor;
 
-		if (defaultItself)
-		{
-			noSkyToReflect = surface.color.rgb;
+			vec3 refractCol = vec3(WATER_COLOR_F_R, WATER_COLOR_F_G, WATER_COLOR_F_B);
+			refractCol *= dot(vec3(0.33333), colorSunlight);
+			refractCol *= (1.0 - rainStrength * 0.95);
+			refractCol *= pow(eyeBrightnessSmooth.y / 240.0f, 4.0f) * 0.00002;
+
+			surface.color.rgb = mix(refractCol, reflection.rgb, vec3(reflection.a));
+			surface.reflection = reflection;
 		}
-
-		fakeSkyReflection.rgb = mix(noSkyToReflect, fakeSkyReflection.rgb, clamp(surface.skylight * 16 - 5, 0.0f, 1.0f));
-		reflection.rgb = mix(reflection.rgb, fakeSkyReflection.rgb, pow(vec3(1.0f - reflection.a), vec3(10.1f)));
-		reflection.a = fakeSkyReflection.a * specularity;
-
-
-		reflection.rgb *= surface.specularColor;
-
-		surface.color.rgb = mix(surface.color.rgb, reflection.rgb, vec3(reflection.a));
-		surface.reflection = reflection;
 	}
 
 	surface.color.rgb = mix(surface.color.rgb, original, vec3(surface.cloudAlpha));
@@ -2013,7 +2024,20 @@ float GetWaves(vec3 position, float frameTimeCounter) {
   return allwaves;
 }
 
-vec3 GetWavesNormal(vec3 position, float time) {
+vec3 GetWavesNormal(vec3 position) {
+
+	vec2 coord = position.xz / 50.0;
+	coord.xy -= position.y / 50.0;
+	coord -= floor(coord);
+
+	vec3 normal;
+	normal.xy = texture2DLod(gaux3, coord, 1).xy * 2.0 - 1.0;
+	normal.z = sqrt(1.0 - dot(normal.xy, normal.xy));
+
+	return normal;
+}
+
+vec3 GetWavesNormal2(vec3 position, float time) {
 
 	float WAVE_HEIGHT = 1.0;
 
@@ -2046,9 +2070,9 @@ void WaterRefraction(inout SurfaceStruct surface)
 	{
 		vec3 wavesNormal;
 		if (surface.mask.water)
-			 wavesNormal = GetWavesNormal(surface.worldSpacePosition.xyz + cameraPosition.xyz, frameTimeCounter).xzy;
+			 wavesNormal = GetWavesNormal(surface.worldSpacePosition.xyz + cameraPosition.xyz).xzy;
 		else if (surface.mask.ice || surface.mask.stainedGlass)
-			 wavesNormal = GetWavesNormal((surface.worldSpacePosition.xyz + cameraPosition.xyz) * 4.0, 0.0).xzy;
+			 wavesNormal = GetWavesNormal2((surface.worldSpacePosition.xyz + cameraPosition.xyz) * 4.0, 0.0).xzy;
 
 
 		float opaqueDepth = ExpToLinearDepth(texture2D(depthtex1, texcoord.st).x);
@@ -2368,8 +2392,6 @@ vec4 CloudColor4(in vec4 worldPosition, in float sunglow, in vec3 worldLightVect
 
 void 	CalculateCloud (inout SurfaceStruct surface, out float sumLight) 
 {
-		surface.cloudAlpha = 0.0f;
-
 		vec2 coord = texcoord.st * 2.0f;
 
 		vec4 worldPosition = gbufferModelViewInverse * surface.viewSpacePosition;
@@ -2381,30 +2403,9 @@ void 	CalculateCloud (inout SurfaceStruct surface, out float sumLight)
         float cloudDensity;
 		
 	#ifdef VFCWWT
-/*
-	    int worldTime2 = worldTime;
-		
-		while(worldTime2 > 24000){
-	        worldTime2 -= 24000;
-            }
-	    
-	    if(worldTime2 > 2000  && worldTime2 <= 11000)
-	        cloudDensity = 0.15;
-        if(worldTime2 > 11000 && worldTime2 <= 13000)
-            cloudDensity = 0.15 + (worldTime2 - 11000) * 0.000025;
-        if(worldTime2 > 13000 && worldTime2 <= 14000)
-            cloudDensity = 0.20 - (worldTime2 - 13000) * 0.000020;
-        if(worldTime2 > 13500 && worldTime2 <= 22500)
-        	cloudDensity = 0.18;
-        if(worldTime2 > 23000 && worldTime2 <= 24000)
-            cloudDensity = 0.18 + (worldTime2 - 23000) * 0.000020;
-        if(worldTime2 > 0     && worldTime2 <= 2000 )
-            cloudDensity = 0.20 - (worldTime2 - 0    ) * 0.000025;
-
-*/
-        cloudDensity = 0.16 * (FOGDENS_SUNRISE * timeSunriseSunset + FOGDENS_NOON * timeNoon + FOGDENS_MIDNIGHT * timeMidnight);
+        cloudDensity = 0.08 * (FOGDENS_SUNRISE * timeSunriseSunset + FOGDENS_NOON * timeNoon + FOGDENS_MIDNIGHT * timeMidnight);
 	#else
-		cloudDensity = 0.16;
+		cloudDensity = 0.08;
 	#endif
 
 		
@@ -2419,15 +2420,7 @@ void 	CalculateCloud (inout SurfaceStruct surface, out float sumLight)
 			  
 		float rayIncrement = far / CLOUD_DISPERSE2;
 
-		#ifdef SOFT_FLUFFY_CLOUDS2
-			  //rayDepth += rand(texcoord.st + sin(frameTimeCounter)).x * rayIncrement;
-			  //rayDepth += BlueNoiseStatic(texcoord.st + sin(frameTimeCounter)) * rayIncrement;
-			  //rayDepth += rand(BlueNoiseXY(texcoord.st + sin(frameTimeCounter))).x * rayIncrement;
-			  rayDepth += BlueNoiseStatic(rand(texcoord.st + sin(frameTimeCounter)).xy) * rayIncrement;
-			#else
-			  //rayDepth += CalculateDitherPattern2() * rayIncrement;
-		      rayDepth += R2_dither() * rayIncrement;
-		#endif
+		rayDepth += R2_dither() * rayIncrement;
 
 		int i = 0;
 
@@ -2462,16 +2455,13 @@ void 	CalculateCloud (inout SurfaceStruct surface, out float sumLight)
 			cloudSum.g *= CUSTOM_VLFC_G * 0.00390625;
 			cloudSum.b *= CUSTOM_VLFC_B * 0.00390625;
 
-
-			surface.cloudAlpha += proximity.a;
-
 			//Increment ray
 			rayDepth -= rayIncrement / CLOUD_PRECISION2;
 			i++;
 		}
 
-	sumLight = min(1.0f, cloudSum.a * 50.0f);
-	surface.color.rgb = mix(surface.color.rgb, surface.color.rgb + cloudSum.rgb * 0.001, vec3(sumLight));
+	sumLight = cloudSum.a * 50.0f;
+	surface.color.rgb = mix(surface.color.rgb, surface.color.rgb + cloudSum.rgb * 0.001, vec3(min(1.0f, sumLight)));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2515,8 +2505,6 @@ void main() {
 		surface.sunlightVisibility = vec3(1.0);
 
 	WaterRefraction(surface);
-	//if (surface.mask.sky)
-	//	CloudPlane(surface);
 
 
 
@@ -2527,9 +2515,10 @@ void main() {
 		surface.color *= transparentAlbedo.rgb * 1.0;
 	}
 
+	CalculateSpecularReflections(surface);
+
 	if (isEyeInWater == 0)
 	{
-		CalculateSpecularReflections(surface);
 		CalculateSpecularHighlight(surface);
 		//CalculateGlossySpecularReflections(surface);
 	}
@@ -2539,6 +2528,7 @@ void main() {
 	    if(isEyeInWater < 0.5){
 		    CalculateCloud(surface, sumLight);
 		}
+		//sumLight = clamp(sumLight, 0.0, 1.0);
 	#endif	
 
 	#ifdef CREPUSCULAR_RAYS
