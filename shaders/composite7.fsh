@@ -210,7 +210,7 @@ void 	AddRainFogScatter(inout vec3 color, in BloomDataStruct bloomData)
 	fogDensity += 0.001 * ATMOSPHERIC_HAZE;
 
 	if (isEyeInWater > 0)
-		fogDensity = 0.4;
+		fogDensity = 0.2;
 
 	float visibility = 1.0f / (pow(exp(linearDepth * fogDensity), 1.0f));
 	float fogFactor = 1.0f - visibility;

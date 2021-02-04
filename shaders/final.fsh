@@ -77,7 +77,6 @@ uniform sampler2D gdepth;
 uniform sampler2D gdepthtex;
 uniform sampler2D gnormal;
 uniform sampler2D composite;
-uniform sampler2D noisetex;
 
 varying vec4 texcoord;
 varying vec3 lightVector;
@@ -302,7 +301,7 @@ void SaturationBoost(inout vec3 color) {
 }
 
 
-void  DOF_Blur(inout vec3 color) {
+void  DOF_Blur(out vec3 color) {
 
 	float depth= texture2D(gdepthtex, texcoord.st).x;
 		//depth += float(GetMaterialMask(texcoord.st, 5)) * 0.36f;
@@ -480,11 +479,8 @@ const vec2 offsets[60] = vec2[60] (	vec2(  0.2165,  0.1250 ),
 		col.g += GetColorTexture(texcoord.st + offsets[i]*aspectcorrect*naive).g;
 	    col.r += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect + vec2(FringeOffset))*naive).r;
 		col.b += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect - vec2(FringeOffset))*naive).b;
-		if( isEyeInWater > 0)
-        col += GetColorTexture(texcoord.st + fake_refract * 0.01 + offsets[i]*aspectcorrect*naive*isEyeInWater);
-		
 	}
-	color = col/60;
+	color = col / 60.0;
 }
 
 void 	Vignette(inout vec3 color) {
