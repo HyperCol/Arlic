@@ -60,7 +60,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	
 	//#define DISTANCE_BLUR
 	#define MaxDistanceBlurAmount 0.9 // [0.1 0.2 0.4 0.6 0.9 1.2 1.5 1.8]
-	#define DistanceBlurRange 480 // [60 120 180 240 360 480 600 720 960 1200]
+	#define DistanceBlurRange 360 // [60 120 180 240 360 480 600 720 960 1200]
 		
 	#define EDGE_BLUR
 	#define EdgeBlurAmount 1.75  // [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
