@@ -35,224 +35,332 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
 
+/* DRAWBUFFERS:2 */
 
-#define BANDING_FIX_FACTOR 1.0f
+#define LF
 
-#define BLOOM_EFFECTS
-    #define BLOOM_AMOUNT 1.0 // How strong the bloom effect is. [0.5 0.75 1.0 1.25 1.5]
-    #define ATMOSPHERIC_HAZE 1.0 // Amount of haziness added to distant land. [0.0 0.5 1.0 1.5 2.0] 
+const float LensFlareDelay = 1.85;
+const float LensFlareNight = 0.425;
+const float LensFlareSunRS = 0.325;
+const float LensFlareDark  = 0.125;
 
-uniform sampler2D gcolor;
-uniform sampler2D gnormal;
-uniform sampler2D gdepthtex;
-uniform sampler2D noisetex;
+const bool gaux2MipmapEnabled = true;
+
+uniform sampler2D gaux2, gdepth, gcolor, gnormal, gaux1;
+
+uniform float aspectRatio;
+uniform float viewWidth;
+uniform float viewHeight;
+uniform float rainStrength;
+
+uniform vec3 sunPosition;
+uniform vec3 moonPosition;
+
+uniform int   isEyeInWater;
+
+uniform mat4 gbufferProjection;
+
+varying float timeSunrise;
+varying float timeNoon;
+varying float timeSunset;
+varying float timeMidnight;
 
 varying vec4 texcoord;
 
-uniform float near;
-uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform float frameTimeCounter;
+float timeDay = 1.0 - timeMidnight;
+float timeNoonNight = timeMidnight + timeNoon;
+float timeSunRiseSet = 1.0 - timeNoonNight;
 
-uniform float rainStrength;
+float pw = 1.0 / viewWidth;
+float ph = 1.0 / viewHeight;
 
-uniform int   isEyeInWater;
-uniform ivec2 eyeBrightnessSmooth;
+bool 	GetMaterialMask(in vec2 coord, in int ID, float matID) {
+	matID = floor(matID * 255.0f);
 
-/* DRAWBUFFERS:2 */
+	//Catch last part of sky
+	if (matID > 254.0f) {
+		matID = 0.0f;
+	}
 
-vec3 	GetTextureLod(in sampler2D tex, in vec2 coord, in int level) {				//Perform a texture lookup with BANDING_FIX_FACTOR compensation
-	return pow(texture2DLod(tex, coord, level).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
+	if (matID == ID) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
-vec3 	GetColorTexture(in vec2 coord) {
-	return GetTextureLod(gnormal, coord.st, 0).rgb;
+float FlarePoint(in vec3 sP, in vec2 lPos, in float xP, in float yP, in float Scale, in float flarePow, in float flareFill, in float flareOffset, in float sunmask){	
+	vec2 flareScale = vec2(xP * Scale, yP * Scale);
+	vec2 flarePos = vec2(((1.0 - lPos.x) * (flareOffset + 1.0) - (flareOffset * 0.5)) * aspectRatio * flareScale.x,
+                         ((1.0 - lPos.y) * (flareOffset + 1.0) - (flareOffset * 0.5))  				* flareScale.y);			
+	float flare = distance(flarePos, vec2(texcoord.s * aspectRatio * flareScale.x, texcoord.t * flareScale.y));
+		  flare = 0.5 - flare;
+		  flare = clamp(flare * flareFill, 0.0, 1.0) * clamp(-sP.z, 0.0, 1.0);
+		  flare = sin(flare * 1.57075);
+		  flare *= sunmask;
+		  flare = pow(flare, 1.1);	  
+		  flare *= flarePow;
+					
+	return flare;
+}	
+
+float FlarePointA(in vec3 sP, in vec2 lPos, in float xP, in float yP, in float Scale, in float flarePow, in float flareFill, in float flareOffset, in float sunmask){	
+	vec2 flareScale = vec2(xP * Scale, yP * Scale);
+	vec2 flarePos = vec2(((1.0 - lPos.x) * (flareOffset + 1.0) - (flareOffset * 0.5)) * aspectRatio * flareScale.x,
+                         ((1.0 - lPos.y) * (flareOffset + 1.0) - (flareOffset * 0.5))  				* flareScale.y);			
+	float flare = distance(flarePos, vec2(texcoord.s * aspectRatio * flareScale.x, texcoord.t * flareScale.y));
+		  flare = 0.5 - flare;
+		  flare = clamp(flare * flareFill, 0.0, 1.0) * clamp(-sP.z, 0.0, 1.0);
+		  flare = sin(flare * 10.0);
+		  flare *= sunmask;
+		  flare = pow(flare, 1.0);	  
+		  flare *= flarePow;
+					
+	return flare;
 }
 
-float 	GetDepthLinear(in vec2 coord) {					//Function that retrieves the scene depth. 0 - 1, higher values meaning farther away
-	return 2.0f * near * far / (far + near - (2.0f * texture2D(gdepthtex, coord).x - 1.0f) * (far - near));
+float FlareRing(in vec3 sP, in vec2 lPos, in float xP, in float yP, in float Scale, in float flarePow, in float flareFill, in float flareOffset, in float sunmask){	
+	vec2 flareScale = vec2(xP * Scale, yP * Scale);
+	vec2 flarePos = vec2(((1.0 - lPos.x) * (flareOffset + 1.0) - (flareOffset * 0.5)) * aspectRatio * flareScale.x,
+                         ((1.0 - lPos.y) * (flareOffset + 1.0) - (flareOffset * 0.5))  				* flareScale.y);			
+	float flare = distance(flarePos, vec2(texcoord.s * aspectRatio * flareScale.x, texcoord.t * flareScale.y));
+		  flare = 0.5 - flare;
+		  flare = clamp(flare * flareFill, 0.0, 1.0) * clamp(-sP.z, 0.0, 1.0);
+		  flare = pow(flare, 1.9);
+		  flare = sin(flare * 3.1415);
+		  flare *= sunmask; 
+		  flare *= flarePow;
+					
+	return flare;
 }
 
-float Luminance(in vec3 color)
-{
-	return dot(color.rgb, vec3(0.2125f, 0.7154f, 0.0721f));
+float FlareHalf(in vec3 sP, in vec2 lPos, in float xP, in float yP, in float Scale, in float flarePow, in float flareFill, in float flareOffset, in float sunmask,
+				in float xPHalf, in float yPHalf, in float flarePowHalf, in float flareFillHalf, in float flareOffsetHalf){	
+	vec2 flareScale = vec2(xP * Scale, yP * Scale);
+	vec2 flarePos = vec2(((1.0 - lPos.x) * (flareOffset + 1.0) - (flareOffset * 0.5)) * aspectRatio * flareScale.x,
+                         ((1.0 - lPos.y) * (flareOffset + 1.0) - (flareOffset * 0.5))  				* flareScale.y);						 
+	float flare = distance(flarePos, vec2(texcoord.s * aspectRatio * flareScale.x, texcoord.t * flareScale.y));
+		  flare = 0.5 - flare;
+		  flare = clamp(flare * flareFill, 0.0, 1.0) * clamp(-sP.z, 0.0, 1.0);
+		  flare = sin(flare * 1.57075);
+		  flare *= sunmask;
+		  flare = pow(flare, 1.1);	  
+		  flare *= flarePow;
+
+	vec2 flareScaleHalf = vec2(xPHalf * Scale, yPHalf * Scale);	  
+	vec2 flarePosHalf = vec2(((1.0 - lPos.x) * (flareOffsetHalf + 1.0) - (flareOffsetHalf * 0.5)) * aspectRatio * flareScaleHalf.x,
+                             ((1.0 - lPos.y) * (flareOffsetHalf + 1.0) - (flareOffsetHalf * 0.5))  				* flareScaleHalf.y);		  
+	float flareHalf = distance(flarePosHalf, vec2(texcoord.s * aspectRatio * flareScaleHalf.x, texcoord.t * flareScaleHalf.y)); 
+		  flareHalf = 0.5 - flareHalf;
+		  flareHalf = clamp(flareHalf * flareFillHalf, 0.0, 1.0) * clamp(-sP.z, 0.0, 1.0);
+		  flareHalf = sin(flareHalf * 1.57075);
+		  flareHalf *= sunmask;
+		  flareHalf = pow(flareHalf, 0.9);
+		  flareHalf *= flarePowHalf;
+		  
+	float FinalFlare = clamp(flare - flareHalf, 0.0, 10.0);
+		  
+	return FinalFlare;
+}	
+
+void LensFlare(inout vec3 color){
+    vec3 sP = sunPosition * timeDay + -sunPosition * timeMidnight;
+	vec4 tpos = vec4(sP, 1.0) * gbufferProjection;
+		 tpos = vec4(tpos.xyz / tpos.w, 1.0);	   
+	vec2 lPos = tpos.xy / tpos.z;
+		 lPos = (lPos + 1.0) / 2.0;
+	vec2 PosD = tpos.xy / (tpos.z * LensFlareDelay);
+		 PosD.y *= LensFlareDelay / 2.0;
+		 PosD.x *= LensFlareDelay / 2.0;
+		 PosD = (PosD + 1.0) / 2.0;	
+	float distof = min(min(1.0 - lPos.x, lPos.x), min(1.0 - lPos.y, lPos.y));
+	float fading = clamp(1.0 - step(distof, 0.5) + pow(distof * 10.0, 2.0), 0.0, 1.0);
+    vec2 checkcoord = lPos + vec2(pw * 5.0, ph * 5.0); 
+	
+	float sunmask = 0.0;				
+    float flarescale = 1.0;
+	
+	//光晕颜色
+    float FlareR = 1.0;
+    float FlareG = 1.0;
+    float FlareB = 1.0;		
+	
+    if (isEyeInWater < 0.9) {
+		if (checkcoord.x < 1.0f && checkcoord.x > 0.0f && checkcoord.y < 1.0f && checkcoord.y > 0.0f){          		   
+			//sunmask = texture2D(gaux2, lPos).a;
+			//sunmask = 1.0 - sunmask;
+			//sunmask *= float(GetMaterialMask(texcoord.st, 0, texture2D(gdepth, lPos).r));
+			sunmask = float(GetMaterialMask(texcoord.st, 0, texture2D(gdepth, lPos).r));
+			sunmask = clamp(sunmask, 0.0, 0.025 - 0.022 * timeMidnight);
+		}
+		sunmask *= fading;
+		sunmask *= 0.5 - 0.5 * rainStrength - 0.5 * timeSunrise - 0.4 * timeSunset;
+		
+		FlareR -= LensFlareNight * timeMidnight;
+		FlareG -= LensFlareNight * timeMidnight;
+		FlareB -= LensFlareNight * timeMidnight;
+
+		FlareR -= LensFlareSunRS * (timeSunrise + timeSunset);
+		FlareG -= LensFlareSunRS * (timeSunrise + timeSunset);
+		FlareB -= LensFlareSunRS * (timeSunrise + timeSunset);		
+		
+		if (sunmask > 0.0) {
+		    float centermask = 1.0 - clamp(distance(lPos.xy, vec2(0.5f, 0.5f))*2.0, 0.0, 1.0);
+				  centermask = pow(centermask, 1.0f);
+				  centermask *= sunmask;
+				  centermask *= LensFlareDark;
+			
+			    flarescale *= (1.0 - centermask);
+			
+			color.rgb *= (1.0 - centermask);	
+				
+		/*-----------Half Flare-----------*/
+			float Flare26 = FlareHalf(sP, lPos, 2.0, 2.0, flarescale, 0.7, 10.0, -0.5, sunmask, 1.4, 1.4, 1.0, 2.0, -0.65);
+				color.r += Flare26 * (1.0 * timeSunRiseSet) * FlareR;
+				color.g += Flare26 *  0.3                   * FlareG;	
+				color.b += Flare26 * (1.0 * timeNoonNight ) * FlareB;				
+			
+			float Flare27 = FlareHalf(sP, lPos, 3.2, 3.2, flarescale, 1.4, 10.0, 0.0, sunmask, 2.1, 2.1, 2.7, 1.4, -0.05);
+				color.r += Flare27 * (1.0 * timeSunRiseSet) * FlareR;
+				color.g += Flare27 *  0.7 					* FlareG;	
+				color.b += Flare27 * (1.0 * timeNoonNight ) * FlareB;				
+			
+			/*
+			float Flare28 = FlareHalf(sP, lPos, 2.5, 2.5, flarescale, 0.4, 10.0, -3.35, sunmask, 1.95, 1.95, 1.2, 6.5, -2.95);
+				color.r += Flare28 * (1.2 * timeSunRiseSet		) * FlareR;
+				color.g += Flare28 * (0.4 - 0.1 * timeSunRiseSet) * FlareG;	
+				color.b += Flare28 * (0.6 * timeNoonNight 		) * FlareB;			
+			*/
+			float Flare29 = FlareHalf(sP, lPos, 3.6, 3.6, flarescale, 1.4, 10.0, -2.95, sunmask, 2.3, 2.3, 2.7, 1.4, -2.85);
+				color.r += Flare29 * (0.5 * timeSunRiseSet		 ) * FlareR;
+				color.g += Flare29 * (0.7 - 0.35 * timeSunRiseSet) * FlareG;	
+				color.b += Flare29 * (1.0 * timeNoonNight 		 ) * FlareB;				
+		/*---------End Half Flare---------*/
+			
+        ///////////////////////////////////////////////////////////////////		
+
+		/*---Close Blue/Red Flare Point---*/ 
+			float Flare30 = FlarePoint(sP, lPos, 4.5, 4.5, flarescale, 0.3, 3.0, -0.1, sunmask);
+				color.r += Flare30 * (0.8 * timeSunRiseSet) * FlareR;
+				color.g += Flare30 * (0.2 * timeSunRiseSet) * FlareG;	
+				color.b += Flare30 * (0.8 * timeNoonNight ) * FlareB;	
+			
+			float Flare31 = FlarePoint(sP, lPos, 7.5, 7.5, flarescale, 0.4, 2.0, 0.0, sunmask);
+				color.r += Flare31 * (0.8 * timeSunRiseSet) * FlareR;
+				color.b += Flare31 * (0.8 * timeNoonNight ) * FlareB;	
+	
+			float Flare32 = FlarePoint(sP, lPos, 37.5, 37.5, flarescale, 2.0, 2.0, -0.3, sunmask);
+				color.r += Flare32 * (0.8 * timeSunRiseSet) * FlareR;
+				color.g += Flare32 * 0.6					* FlareG;	
+				color.b += Flare32 * (0.8 * timeNoonNight ) * FlareB;
+			
+			float Flare33 = FlarePoint(sP, lPos, 67.5, 67.5, flarescale, 1.0, 2.0, -0.35, sunmask);
+				color.r += Flare33 * (0.4 * timeSunRiseSet) * FlareR;
+				color.g += Flare33 * 0.2					* FlareG;	
+				color.b += Flare33 * (0.8 * timeNoonNight ) * FlareB;			
+			
+			float Flare34 = FlarePoint(sP, lPos, 60.5, 60.5, flarescale, 1.0, 3.0, -0.3393, sunmask);
+				color.r += Flare34 * (0.6 * timeSunRiseSet) * FlareR;
+				color.g += Flare34 * 0.2					* FlareG;	
+				color.b += Flare34 * (0.6 * timeNoonNight ) * FlareB;			
+			
+			float Flare35 = FlarePoint(sP, lPos, 20.5, 20.5, flarescale, 3.0, 3.0, -0.4713, sunmask);
+				color.r += Flare35 * (0.1 * timeSunRiseSet) * FlareR;
+				color.g += Flare35 * 0.1					* FlareG;	
+				color.b += Flare35 * (0.1 * timeNoonNight ) * FlareB;			
+		/*-End Close Blue/Red Flare Point-*/
+
+		/*--------Close Half Flare--------*/
+			float Flare36 = FlareHalf(sP, lPos, 6.0, 6.0, flarescale, 1.9, 1.1, -0.7, sunmask, 5.1, 5.1, 1.5, 1.0, -0.77);
+				color.r += Flare36 * (0.4 * timeSunRiseSet) * FlareR;
+				color.g += Flare36 * 0.2					* FlareG;	
+				color.b += Flare36 * (0.1 * timeNoonNight ) * FlareB;
+			
+			float Flare37 = FlareHalf(sP, lPos, 6.0, 6.0, flarescale, 1.9, 1.1, -0.6, sunmask, 5.1, 5.1, 1.5, 1.0, -0.67);
+				color.r += Flare37 * (0.9 * timeSunRiseSet) * FlareR;
+				color.g += Flare37 * 0.2 					* FlareG;
+				color.b += Flare37 * (0.9 * timeNoonNight ) * FlareB;
+		/*------End Close Half Flare------*/		
+			
+        ///////////////////////////////////////////////////////////////////	
+			
+			if(timeMidnight < 0.5){				
+				
+				
+				/*----Far Blue/Red Flare Point----*/ 					
+				float Flare41 = FlarePoint(sP, lPos, 8.5, 8.5, flarescale, 0.3, 3.0, -3.1, sunmask);
+					color.r += Flare41 * (0.8 * timeSunRiseSet) * FlareR;
+					color.b += Flare41 * (0.8 * timeNoonNight ) * FlareB;
+
+				float Flare42 = FlarePoint(sP, lPos, 24.5, 24.5, flarescale, 0.3, 3.0, -3.5, sunmask);
+					color.r += Flare42 * (2.0 * timeSunRiseSet) * FlareR;
+					color.g += Flare42 *  0.4 					* FlareG;
+					color.b += Flare42 * (2.0 * timeNoonNight ) * FlareB;
+					
+				float Flare43 = FlarePoint(sP, lPos, 64.5, 64.5, flarescale, 0.3, 3.0, -3.55, sunmask);
+					color.r += Flare43 * (2.0 * timeSunRiseSet) * FlareR;
+					color.g += Flare43 *  0.4 					* FlareG;
+					color.b += Flare43 * (2.0 * timeNoonNight ) * FlareB;
+					
+				float Flare44 = FlarePoint(sP, lPos, 32.5, 32.5, flarescale, 0.3, 3.0, -3.6, sunmask);
+					color.r += Flare44 * (0.4 * timeSunRiseSet						) * FlareR;
+					color.g += Flare44 * (0.3 * timeNoonNight + 0.1 * timeSunRiseSet) * FlareG;
+					color.b += Flare44 * (0.4 * timeNoonNight 						) * FlareB;	
+						
+				float Flare45 = FlarePoint(sP, lPos, 16.5, 16.5, flarescale, 0.3, 3.0, -3.7, sunmask);
+					color.r += Flare45 * (0.8 * timeSunRiseSet) * FlareR;
+					color.g += Flare45 *  0.6 					* FlareG;
+					color.b += Flare45 * (0.8 * timeNoonNight ) * FlareB;
+				/*--End Far Blue/Red Flare Point--*/
+
+				/*------Close Blue/Red FRing------*/
+				float Flare46 = FlareRing(sP, lPos, 0.85, 0.85, flarescale, 0.4, 15.0, 1.6, sunmask);
+					color.r += Flare46 * (0.5 * timeSunRiseSet) * FlareR;
+					color.g += Flare46 *  0.1					* FlareG;
+					color.b += Flare46 * (0.2 * timeNoonNight ) * FlareB;				
+				
+				/*----End Close Blue/Red FRing----*/
+				
+			}else if(timeMidnight >= 0.5){
+				/*-----------Moon FRing-----------*/
+				
+				/*---------End Moon FRing---------*/
+
+				/*-----------Close Ring-----------*/
+				float Flare49 = FlareRing(sP, lPos, 1.45, 1.45, flarescale, 0.4, 15.0, 1.0, sunmask);		
+					color.g += Flare49 * 0.1 * FlareG;
+					color.b += Flare49 * 0.2 * FlareB;
+				/*---------End Close Ring---------*/				
+            }
+        }
+    }
 }
 
-vec4 cubic(float x)
-{
-    float x2 = x * x;
-    float x3 = x2 * x;
-    vec4 w;
-    w.x =   -x3 + 3*x2 - 3*x + 1;
-    w.y =  3*x3 - 6*x2       + 4;
-    w.z = -3*x3 + 3*x2 + 3*x + 1;
-    w.w =  x3;
-    return w / 6.f;
-}
-
-vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
-{
-	vec2 resolution = vec2(viewWidth, viewHeight);
-
-	coord *= resolution;
-
-	float fx = fract(coord.x);
-    float fy = fract(coord.y);
-    coord.x -= fx;
-    coord.y -= fy;
-
-    fx -= 0.5;
-    fy -= 0.5;
-
-    vec4 xcubic = cubic(fx);
-    vec4 ycubic = cubic(fy);
-
-    vec4 c = vec4(coord.x - 0.5, coord.x + 1.5, coord.y - 0.5, coord.y + 1.5);
-    vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
-    vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
-
-    vec4 sample0 = texture2D(tex, vec2(offset.x, offset.z) / resolution);
-    vec4 sample1 = texture2D(tex, vec2(offset.y, offset.z) / resolution);
-    vec4 sample2 = texture2D(tex, vec2(offset.x, offset.w) / resolution);
-    vec4 sample3 = texture2D(tex, vec2(offset.y, offset.w) / resolution);
-
-    float sx = s.x / (s.x + s.y);
-    float sy = s.z / (s.z + s.w);
-
-    return mix( mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
-}
-
-struct BloomDataStruct
-{
-	vec3 blur0;
-	vec3 blur1;
-	vec3 blur2;
-	vec3 blur3;
-	vec3 blur4;
-	vec3 blur5;
-	vec3 blur6;
-
-	vec3 bloom;
-} bloomData;
-
-void 	CalculateBloom(inout BloomDataStruct bloomData) {		//Retrieve previously calculated bloom textures
-
-	//constants for bloom bloomSlant
-	const float    bloomSlant = 0.25f;
-	const float[7] bloomWeight = float[7] (pow(7.0f, bloomSlant),
-										   pow(6.0f, bloomSlant),
-										   pow(5.0f, bloomSlant),
-										   pow(4.0f, bloomSlant),
-										   pow(3.0f, bloomSlant),
-										   pow(2.0f, bloomSlant),
-										   1.0f
-										   );
-
-	vec2 recipres = vec2(1.0f / viewWidth, 1.0f / viewHeight);
-
-	bloomData.blur0  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(2.0f 	)) + 	vec2(0.0f, 0.0f)		+ vec2(0.000f, 0.000f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur1  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(3.0f 	)) + 	vec2(0.0f, 0.25f)		+ vec2(0.000f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur2  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(4.0f 	)) + 	vec2(0.125f, 0.25f)		+ vec2(0.025f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur3  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(5.0f 	)) + 	vec2(0.1875f, 0.25f)	+ vec2(0.050f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur4  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(6.0f 	)) + 	vec2(0.21875f, 0.25f)	+ vec2(0.075f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur5  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(7.0f 	)) + 	vec2(0.25f, 0.25f)		+ vec2(0.100f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur6  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(8.0f 	)) + 	vec2(0.28f, 0.25f)		+ vec2(0.125f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-
-	// bloomData.blur2 *= vec3(0.5, 0.5, 2.0);
-	bloomData.blur4 *= vec3(1.0, 0.85, 0.85);
-	bloomData.blur5 *= vec3(0.85, 0.85, 1.2);
-
- 	bloomData.bloom  = bloomData.blur0 * bloomWeight[0];
- 	bloomData.bloom += bloomData.blur1 * bloomWeight[1];
- 	bloomData.bloom += bloomData.blur2 * bloomWeight[2];
- 	bloomData.bloom += bloomData.blur3 * bloomWeight[3];
- 	bloomData.bloom += bloomData.blur4 * bloomWeight[4];
- 	bloomData.bloom += bloomData.blur5 * bloomWeight[5];
- 	bloomData.bloom += bloomData.blur6 * bloomWeight[6];
-
-}
-
-void 	AddRainFogScatter(inout vec3 color, in BloomDataStruct bloomData)
-{
-	const float    bloomSlant = 1.0f;
-	const float[7] bloomWeight = float[7] (pow(7.0f, bloomSlant),
-										   pow(6.0f, bloomSlant),
-										   pow(5.0f, bloomSlant),
-										   pow(4.0f, bloomSlant),
-										   pow(3.0f, bloomSlant),
-										   pow(2.0f, bloomSlant),
-										   1.0f
-										   );
-
-	vec3 fogBlur = bloomData.blur0 * bloomWeight[6] +
-			       bloomData.blur1 * bloomWeight[5] +
-			       bloomData.blur2 * bloomWeight[4] +
-			       bloomData.blur3 * bloomWeight[3] +
-			       bloomData.blur4 * bloomWeight[2] +
-			       bloomData.blur5 * bloomWeight[1] +
-			       bloomData.blur6 * bloomWeight[0];
-
-	float fogTotalWeight = 	1.0f * bloomWeight[0] +
-			       			1.0f * bloomWeight[1] +
-			       			1.0f * bloomWeight[2] +
-			       			1.0f * bloomWeight[3] +
-			       			1.0f * bloomWeight[4] +
-			       			1.0f * bloomWeight[5] +
-			       			1.0f * bloomWeight[6];
-
-	fogBlur /= fogTotalWeight;
-
-	float linearDepth = GetDepthLinear(texcoord.st);
-
-	float fogDensity = 0.007f * (rainStrength);
-
-	fogDensity += 0.001 * ATMOSPHERIC_HAZE;
-
-	if (isEyeInWater > 0)
-		fogDensity = 0.4;
-
-	float visibility = 1.0f / (pow(exp(linearDepth * fogDensity), 1.0f));
-	float fogFactor = 1.0f - visibility;
-		  fogFactor = clamp(fogFactor, 0.0f, 1.0f);
-
-		  if (isEyeInWater < 1)
-		  fogFactor *= mix(0.0f, 1.0f, pow(eyeBrightnessSmooth.y / 240.0f, 6.0f));
-
-	color = mix(color, fogBlur, fogFactor * 1.0f);
-}
-
-void LowlightFuzziness(inout vec3 color, in BloomDataStruct bloomData)
-{
-	float lum = Luminance(color.rgb);
-	float factor = 1.0f - clamp(lum * 50000000.0f, 0.0f, 1.0f);
-	      //factor *= factor * factor;
-
-
-	float time = frameTimeCounter * 4.0f;
-	vec2 coord = texture2D(noisetex, vec2(time, time / 64.0f)).xy;
-	vec3 snow = BicubicTexture(noisetex, (texcoord.st + coord) / (512.0f / vec2(viewWidth, viewHeight))).rgb;	//visual snow
-	vec3 snow2 = BicubicTexture(noisetex, (texcoord.st + coord) / (128.0f / vec2(viewWidth, viewHeight))).rgb;	//visual snow
-
-	vec3 rodColor = vec3(0.2f, 0.4f, 1.0f) * 2.5;
-	vec3 rodLight = dot(color.rgb + snow.r * 0.0000000005f, vec3(0.0f, 0.6f, 0.4f)) * rodColor;
-	color.rgb = mix(color.rgb, rodLight, vec3(factor));	//visual acuity loss
-
-	color.rgb += snow.rgb * snow2.rgb * snow.rgb * 0.000000002f;
-
-
-}
-
-void main()
-{
-    vec3 color = GetColorTexture(texcoord.st);	//Sample color texture
-    #ifdef BLOOM_EFFECTS
-
-	CalculateBloom(bloomData);			//Gather bloom textures
-	color = mix(color, bloomData.bloom, vec3(0.0100f * BLOOM_AMOUNT));
-
-    AddRainFogScatter(color, bloomData);
+void main() {
+	vec3 color = texture2D(gnormal, texcoord.xy).rgb;
+	pow(color, vec3(2.2));
+	
+	vec3 sP = sunPosition * timeDay + -sunPosition * timeMidnight;   
+	vec4 tpos = vec4(sP, 1.0) * gbufferProjection;
+		 tpos = vec4(tpos.xyz / tpos.w, 1.0);	   
+	vec2 lPos = tpos.xy / tpos.z;
+		 lPos = (lPos + 1.0) / 2.0;	
+	vec2 checkcoord = lPos + vec2(pw * 5.0, ph * 5.0); 	 
+	
+ #ifdef LF
+ if (isEyeInWater < 0.5){
+	LensFlare(color.rgb);
+	}
 	#endif
-
-    gl_FragData[0] = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
+	
+	float a = 0.0;
+	
+	if (checkcoord.x < 1.0f && checkcoord.x > 0.0f && checkcoord.y < 1.0f && checkcoord.y > 0.0f){          		   
+		a = texture2D(gaux2, lPos).a;	
+		a = clamp(a, 0.0, 1.0);
+	}	
+	
+	pow(color, vec3(1.0 / 2.2));
+	gl_FragData[0] = vec4(color.rgb, a);
+	//gl_FragData[5] = vec4(a);
 }
