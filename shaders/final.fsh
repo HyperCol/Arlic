@@ -34,11 +34,9 @@ VisionLab is part of HyperCol Studios
 Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
-
-#define BLOOM_EFFECTS 
+ 
 //#define FINAL_ALT_COLOR_SOURCE 
 #define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
-#define ATMOSPHERIC_HAZE 1.0 // Amount of haziness added to distant land. [0.0 0.5 1.0 1.5 2.0] 
 
 //#define MOTION_BLUR // It's motion blur.
 
@@ -46,7 +44,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define DARKNESS 4.25 // [0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.25 5.0 7.0 9.0 12.0]
 #define TONEMAP_STRENGTH 3.0 // Determines how bright colors are compressed during tonemapping. Lower levels result in more filmic soft look. Higher levels result in more natural vibrant look. [2.0 3.0 4.0]
 #define BRIGHTNESS_LEVEL 1.5 // Pre-tonemapping brightness levels. [1.0 1.25 1.5 1.75 2.0]
-#define BLOOM_AMOUNT 1.0 // How strong the bloom effect is. [0.5 0.75 1.0 1.25 1.5]
 #define SATURATION_STRENGTH 0.0 // [-2.0 -1.95 -1.9 -1.85 -1.8 -1.75 -1.7 -1.65 -1.6 -1.55 -1.5 -1.45 -1.4 -1.35 -1.3 -1.25 -1.2 -1.15 -1.1 -0.05 0.0 0.05 1.0 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.17 1.75 1.8 1.85 1.9 1.95 2.0]
 #define MAX_BLUR_AMOUNT 1.2 // [0.2 0.4 0.6 0.9 1.2 1.5 1.9 2.3 2.7]
 
@@ -127,7 +124,7 @@ varying vec3 colorSkylight;
 #define BANDING_FIX_FACTOR 1.0f
 
 
-const bool gcolorMipmapEnabled = true;
+const bool gnormalMipmapEnabled = true;
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -599,19 +596,6 @@ float   CalculateSunspot() {
 /////////////////////////STRUCTS///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////STRUCTS///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct BloomDataStruct
-{
-	vec3 blur0;
-	vec3 blur1;
-	vec3 blur2;
-	vec3 blur3;
-	vec3 blur4;
-	vec3 blur5;
-	vec3 blur6;
-
-	vec3 bloom;
-} bloomData;
-
 
 
 struct MaskStruct {
@@ -685,119 +669,6 @@ void 	CalculateMasks(inout MaskStruct mask) {
 		mask.water 			= GetWaterMask(texcoord.st);
 }
 
-
-void 	CalculateBloom(inout BloomDataStruct bloomData) {		//Retrieve previously calculated bloom textures
-
-	//constants for bloom bloomSlant
-	const float    bloomSlant = 0.25f;
-	const float[7] bloomWeight = float[7] (pow(7.0f, bloomSlant),
-										   pow(6.0f, bloomSlant),
-										   pow(5.0f, bloomSlant),
-										   pow(4.0f, bloomSlant),
-										   pow(3.0f, bloomSlant),
-										   pow(2.0f, bloomSlant),
-										   1.0f
-										   );
-
-	vec2 recipres = vec2(1.0f / viewWidth, 1.0f / viewHeight);
-
-	bloomData.blur0  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(2.0f 	)) + 	vec2(0.0f, 0.0f)		+ vec2(0.000f, 0.000f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur1  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(3.0f 	)) + 	vec2(0.0f, 0.25f)		+ vec2(0.000f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur2  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(4.0f 	)) + 	vec2(0.125f, 0.25f)		+ vec2(0.025f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur3  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(5.0f 	)) + 	vec2(0.1875f, 0.25f)	+ vec2(0.050f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur4  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(6.0f 	)) + 	vec2(0.21875f, 0.25f)	+ vec2(0.075f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur5  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(7.0f 	)) + 	vec2(0.25f, 0.25f)		+ vec2(0.100f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur6  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(8.0f 	)) + 	vec2(0.28f, 0.25f)		+ vec2(0.125f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-
-	// bloomData.blur2 *= vec3(0.5, 0.5, 2.0);
-	bloomData.blur4 *= vec3(1.0, 0.85, 0.85);
-	bloomData.blur5 *= vec3(0.85, 0.85, 1.2);
-
- 	bloomData.bloom  = bloomData.blur0 * bloomWeight[0];
- 	bloomData.bloom += bloomData.blur1 * bloomWeight[1];
- 	bloomData.bloom += bloomData.blur2 * bloomWeight[2];
- 	bloomData.bloom += bloomData.blur3 * bloomWeight[3];
- 	bloomData.bloom += bloomData.blur4 * bloomWeight[4];
- 	bloomData.bloom += bloomData.blur5 * bloomWeight[5];
- 	bloomData.bloom += bloomData.blur6 * bloomWeight[6];
-
-}
-
-
-void 	AddRainFogScatter(inout vec3 color, in BloomDataStruct bloomData)
-{
-	const float    bloomSlant = 1.0f;
-	const float[7] bloomWeight = float[7] (pow(7.0f, bloomSlant),
-										   pow(6.0f, bloomSlant),
-										   pow(5.0f, bloomSlant),
-										   pow(4.0f, bloomSlant),
-										   pow(3.0f, bloomSlant),
-										   pow(2.0f, bloomSlant),
-										   1.0f
-										   );
-
-	vec3 fogBlur = bloomData.blur0 * bloomWeight[6] +
-			       bloomData.blur1 * bloomWeight[5] +
-			       bloomData.blur2 * bloomWeight[4] +
-			       bloomData.blur3 * bloomWeight[3] +
-			       bloomData.blur4 * bloomWeight[2] +
-			       bloomData.blur5 * bloomWeight[1] +
-			       bloomData.blur6 * bloomWeight[0];
-
-	float fogTotalWeight = 	1.0f * bloomWeight[0] +
-			       			1.0f * bloomWeight[1] +
-			       			1.0f * bloomWeight[2] +
-			       			1.0f * bloomWeight[3] +
-			       			1.0f * bloomWeight[4] +
-			       			1.0f * bloomWeight[5] +
-			       			1.0f * bloomWeight[6];
-
-	fogBlur /= fogTotalWeight;
-
-	float linearDepth = GetDepthLinear(texcoord.st);
-
-	float fogDensity = 0.007f * (rainStrength);
-
-	fogDensity += 0.001 * ATMOSPHERIC_HAZE;
-
-	if (isEyeInWater > 0)
-		fogDensity = 0.4;
-
-		  //fogDensity += texture2D(composite, texcoord.st).g * 0.1f;
-	float visibility = 1.0f / (pow(exp(linearDepth * fogDensity), 1.0f));
-	float fogFactor = 1.0f - visibility;
-		  fogFactor = clamp(fogFactor, 0.0f, 1.0f);
-
-		  if (isEyeInWater < 1)
-		  fogFactor *= mix(0.0f, 1.0f, pow(eyeBrightnessSmooth.y / 240.0f, 6.0f));
-
-	// bool waterMask = GetWaterMask(texcoord.st);
-	// fogFactor = mix(fogFactor, 0.0f, float(waterMask));
-
-	color = mix(color, fogBlur, fogFactor * 1.0f);
-}
-
-void LowlightFuzziness(inout vec3 color, in BloomDataStruct bloomData)
-{
-	float lum = Luminance(color.rgb);
-	float factor = 1.0f - clamp(lum * 50000000.0f, 0.0f, 1.0f);
-	      //factor *= factor * factor;
-
-
-	float time = frameTimeCounter * 4.0f;
-	vec2 coord = texture2D(noisetex, vec2(time, time / 64.0f)).xy;
-	vec3 snow = BicubicTexture(noisetex, (texcoord.st + coord) / (512.0f / vec2(viewWidth, viewHeight))).rgb;	//visual snow
-	vec3 snow2 = BicubicTexture(noisetex, (texcoord.st + coord) / (128.0f / vec2(viewWidth, viewHeight))).rgb;	//visual snow
-
-	vec3 rodColor = vec3(0.2f, 0.4f, 1.0f) * 2.5;
-	vec3 rodLight = dot(color.rgb + snow.r * 0.0000000005f, vec3(0.0f, 0.6f, 0.4f)) * rodColor;
-	color.rgb = mix(color.rgb, rodLight, vec3(factor));	//visual acuity loss
-
-	color.rgb += snow.rgb * snow2.rgb * snow.rgb * 0.000000002f;
-
-
-}
-
 void AverageExposure(inout vec3 color)
 {
 	float avglod = int(log2(min(viewWidth, viewHeight))) - 1;
@@ -818,20 +689,11 @@ void main() {
 	MotionBlur(color);
 #endif
 
-	#ifdef BLOOM_EFFECTS
-
-	CalculateBloom(bloomData);			//Gather bloom textures
-	color = mix(color, bloomData.bloom, vec3(0.0100f * BLOOM_AMOUNT));
-
-	#endif
-	
-	AddRainFogScatter(color, bloomData);
-
-	Vignette(color);
-
 	#ifdef DOF
 		DOF_Blur(color);
 	#endif
+
+	Vignette(color);
 
 	#ifdef AVERAGE_EXPOSURE
 	AverageExposure(color);
