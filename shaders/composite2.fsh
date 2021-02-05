@@ -80,8 +80,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 
 #define CREPUSCULAR_RAYS // Light rays from sunlight
-#define MAX_VL_LIMIT 0.1 //[0.01 0.02 0.03 0.04 0.05 0.07 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1000.0]
-#define VL_PRECISION 2.0 //[1.0 2.0 4.0 8.0 16.0 32.0 64.0 128.0 256.0]
+#define RAYS_SAMPLES 16.0  // Ray samples. [8.0 16.0 24.0 32.0 48.0 64.0 72.0 100.0 120.0]
 
 #define ATMOSPHERIC_SCATTERING // Blue tint of distant objects to simulate atmospheric scattering
 #define RAYLEIGH_AMOUNT 1.0 // Strength of atmospheric scattering (atmospheric density). [0.5 1.0 1.5 2.0]
@@ -2787,81 +2786,63 @@ void IceFog(inout vec3 color, in SurfaceStruct surface, in MCLightmapStruct mcLi
 	}
 }
 
+vec3 WorldPosToShadowProjPosBias(vec3 worldPos, vec3 worldNormal, out float dist, out float distortFactor)
+{
+
+	vec4 shadowPos = shadowModelView * vec4(worldPos, 1.0);
+		 shadowPos = shadowProjection * shadowPos;
+		 shadowPos /= shadowPos.w;
+
+	dist = length(shadowPos.xy);
+	distortFactor = (1.0f - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
+
+	shadowPos.xy *= 0.95f / distortFactor;
+	shadowPos.z = mix(shadowPos.z, 0.5, 0.8);
+	shadowPos = shadowPos * 0.5f + 0.5f;		//Transform from shadow space to shadow map coordinates
+
+	return shadowPos.xyz;
+}
+
 float CrepuscularRays(in SurfaceStruct surface)
 {
-if(rainStrength > 0.0) {return 0.0;}else{
-	float rayDepth = 0.02f;
-	float increment = 4.0f;
+	if(rainStrength > 0.99f) return vec3(0.0);
+	vec3 worldPos = surface.worldSpacePosition.xyz;
+	float raySamples = RAYS_SAMPLES;
 
-	const float rayLimit = 30.0f;
+	float rayDistance = length(worldPos); //Get surface distance in meters
+	float raySteps = min(shadowDistance, rayDistance) / raySamples;
+
+	vec3 camPosCentre = (gbufferModelViewInverse * vec4(vec3(0.0), 1.0)).xyz;
+	vec3 rayDir = normalize(worldPos - camPosCentre) * raySteps;
 
 	float dither = R2_dither();
 
-	//rayDepth += dither * increment;
+	float dist, distortFactor;
+	float lightIncrease = 0.0;
+	float prevLight = 0.0;
+	for(int i = 0; i < raySamples; i++){
+		worldPos -= rayDir.xyz;
 
-	float lightAccumulation = 0.0f;
-	//float mistLight = 0.0f;
-	float ambientFogAccumulation = 0.0f;
+		vec3 rayPos = rayDir.xyz * dither + worldPos;
+			 rayPos = WorldPosToShadowProjPosBias(rayPos, surface.normal.xyz, dist, distortFactor);
 
-	float numSteps = rayLimit / increment;
-
-	int count = 0;
-
-	while (rayDepth < rayLimit)
-	{
-		if (surface.linearDepth < rayDepth + dither * increment)
-		{
-			break;
-		}
-		vec4 rayPosition = GetScreenSpacePosition(texcoord.st, LinearToExponentialDepth(rayDepth + dither * increment));
-		rayPosition = gbufferModelViewInverse * rayPosition;
-		//vec4 rayWorldPosition = rayPosition + vec4(cameraPosition.xyz, 0.0f);
-
-		rayPosition = shadowModelView * rayPosition;
-		rayPosition = shadowProjection * rayPosition;
-		rayPosition /= rayPosition.w;
+		//Offsets
+		float diffthresh = dist - 0.10f;
+			  diffthresh *= 1.5f / (shadowMapResolution / 2048.0f);
+		rayPos.z -= diffthresh * 0.0008f;
 
 
-		float dist = sqrt(dot(rayPosition.xy, rayPosition.xy));
-		float distortFactor = (1.0f - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
-		rayPosition.xy *= 0.95f / distortFactor;
-		rayPosition.z = mix(rayPosition.z, 0.5, 0.8);
-		rayPosition = rayPosition * 0.5f + 0.5f;
-		
 
-		float shadowSample = shadow2DLod(shadow, vec3(rayPosition.st, rayPosition.z), 2).x;
+		float raySample = 1.0 - shadow2D(shadow, rayPos.xyz).x;
 
-		//if (count < 1)
-		//{
-		//	lightAccumulation += shadowSample;
-		//}
-		//else
-		//{
-			lightAccumulation += shadowSample * increment;
-		//}
-		//mistLight += shadowSample * Get3DNoise(rayWorldPosition.xyz * 0.5f);
-
-	if(lightAccumulation >= MAX_VL_LIMIT * 70.0)
-		lightAccumulation = MAX_VL_LIMIT * 70.0;
-
-		ambientFogAccumulation += 1.0f;
-
-		rayDepth += increment / VL_PRECISION;
-		count++;
-		increment *= 1.0f;
+		lightIncrease += (raySample + prevLight) * raySteps * 0.5;
+		prevLight = raySample;
 	}
 
-	//lightAccumulation -= 1.0f;
-	lightAccumulation /= numSteps * VL_PRECISION;
-	ambientFogAccumulation /= numSteps;
+	lightIncrease += max(rayDistance - shadowDistance, 0.0);
+	//lightIncrease *= (isSky > 0.5) ? 0.1 : 1.0;
 
-	//lightAccumulation *= 0.25;
-	//mistLight /= numSteps;
-
-	float rays = lightAccumulation;
-
-	return rays * 0.1;
-}
+	return lightIncrease;
 }
 
 vec3 NewSkyLight(float p, in SurfaceStruct surface){
