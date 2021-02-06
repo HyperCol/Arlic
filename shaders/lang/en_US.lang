@@ -155,7 +155,7 @@ option.aurora_flash=极光厚度
 option.CREPUSCULAR_RAYS=体积光
 option.VL_STRENGTH=体积光强度
 option.MAX_VL_LIMIT=体积光最大极限
-option.VL_PRECISION=体积光精度(过高会降FPS)
+option.RAYS_SAMPLES=体积光精度(过高会降FPS)
 
 option.ATMOSPHERIC_SCATTERING=大气散射
 option.RAYLEIGH_AMOUNT=大气散射强度
