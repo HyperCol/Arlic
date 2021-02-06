@@ -35,6 +35,8 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
 
+#define SHADOW_MAP_BIAS 0.90
+
 #define VOLUMETRIC_CLOUDS // Volumetric clouds
 	#define CALCULATECLOUDDEPTH 280           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
 	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
@@ -48,6 +50,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 //#define SMOOTH_CLOUDS // Smooth out dither pattern from volumetric clouds. Not necessary if HQ Volumetric Clouds is enabled.
 
 #define CREPUSCULAR_RAYS // Light rays from sunlight
+	#define RAYS_SAMPLES 16.0  // Ray samples. [8.0 16.0 24.0 32.0 48.0 64.0 72.0 100.0 120.0]
 	#define VL_STRENGTH 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 	#define VL_NOON_R 1.0   //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]  
 	#define VL_NOON_G 0.9   //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]
@@ -114,6 +117,9 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define WATER_COLOR_F_B 0.75 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
 /* DRAWBUFFERS:2 */
+const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096]
+const float 	shadowDistance 			= 120.0; // Shadow distance. Set lower if you prefer nicer close shadows. Set higher if you prefer nicer distant shadows. [80.0 120.0 180.0 240.0]
+
 const int 		noiseTextureResolution  = 64;
 
 const bool gcolorMipmapEnabled = true;
@@ -123,7 +129,9 @@ const bool compositeMipmapEnabled = false;
 uniform sampler2D gcolor;
 uniform sampler2D gdepth;
 uniform sampler2D gdepthtex;
+uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
+uniform sampler2DShadow shadow;
 uniform sampler2D gnormal;
 uniform sampler2D composite;
 uniform sampler2D noisetex;
@@ -150,6 +158,8 @@ uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferPreviousProjection;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferPreviousModelView;
+uniform mat4 shadowProjection;
+uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 uniform mat4 gbufferModelView;
 
@@ -2187,19 +2197,68 @@ vec4 textureGatherOffset(sampler2D sampler, vec2 coord, ivec2 offset) {
   );
 }
 
-vec3 AddVolumeLights(inout SurfaceStruct surface)
+vec3 WorldPosToShadowProjPosBias(vec3 worldPos, vec3 worldNormal, out float dist, out float distortFactor)
 {
-	float rays    = dot(textureGather     (gdepth, texcoord.st              ), vec4(1.0));
-		 rays   += dot(textureGatherOffset(gdepth, texcoord.st, ivec2(-1, 0)), vec4(1.0));
-		 rays   += dot(textureGatherOffset(gdepth, texcoord.st, ivec2(-1,-1)), vec4(1.0));
-		 rays   += dot(textureGatherOffset(gdepth, texcoord.st, ivec2( 0,-1)), vec4(1.0));
-	
+
+	vec4 shadowPos = shadowModelView * vec4(worldPos, 1.0);
+		 shadowPos = shadowProjection * shadowPos;
+		 shadowPos /= shadowPos.w;
+
+	dist = length(shadowPos.xy);
+	distortFactor = (1.0f - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
+
+	shadowPos.xy *= 0.95f / distortFactor;
+	shadowPos.z = mix(shadowPos.z, 0.5, 0.8);
+	shadowPos = shadowPos * 0.5f + 0.5f;		//Transform from shadow space to shadow map coordinates
+
+	return shadowPos.xyz;
+}
+
+vec3 CrepuscularRays(inout SurfaceStruct surface)
+{
+	if(rainStrength > 0.99f) return vec3(0.0);
+	vec3 worldPos = surface.worldSpacePosition.xyz;
+	float raySamples = RAYS_SAMPLES;
+
+	float rayDistance = length(worldPos); //Get surface distance in meters
+	float raySteps = min(shadowDistance, rayDistance) / raySamples;
+
+	vec3 camPosCentre = (gbufferModelViewInverse * vec4(vec3(0.0), 1.0)).xyz;
+	vec3 rayDir = normalize(worldPos - camPosCentre) * raySteps;
+
+	float dither = R2_dither();
+
+	float dist, distortFactor;
+	float lightIncrease = 0.0;
+	float prevLight = 0.0;
+	for(int i = 0; i < raySamples; i++){
+		worldPos -= rayDir.xyz;
+
+		vec3 rayPos = rayDir.xyz * dither + worldPos;
+			 rayPos = WorldPosToShadowProjPosBias(rayPos, surface.normal.xyz, dist, distortFactor);
+
+		//Offsets
+		float diffthresh = dist - 0.10f;
+			  diffthresh *= 1.5f / (shadowMapResolution / 2048.0f);
+		rayPos.z -= diffthresh * 0.0008f;
+
+
+
+		float raySample = shadow2D(shadow, rayPos.xyz).x;
+
+		lightIncrease += (raySample + prevLight) * raySteps * 0.5;
+		prevLight = raySample;
+	}
+
+	lightIncrease += max(rayDistance - shadowDistance, 0.0);
+	lightIncrease *= (texture2D(depthtex0, texcoord.st).x > 0.99999) ? 0.1 : 1.0;
+
+
+
+	vec3 rayColor = vec3(lightIncrease * 0.005);
 
 	float sunglow = CalculateSunglow(surface);
 	float antiSunglow = CalculateAntiSunglow(surface);
-
-
-	vec3 rayColor = vec3(rays);
 
 	float anisoHighlight = pow(1.0f / (pow((1.0f - sunglow) * 3.0f, 2.0f) + 1.1f) * 1.5f, 1.5f) + 0.5f;
 		  anisoHighlight *= sunglow + 0.0f;
@@ -2552,7 +2611,7 @@ void main() {
 
 	#ifdef CREPUSCULAR_RAYS
 	if (isEyeInWater < 0.5){
-	surface.color += AddVolumeLights(surface) * (1.0 + sumLight * 0.2);
+	surface.color += CrepuscularRays(surface) * (1.0 + sumLight * 0.2);
 	}
 	#endif
 

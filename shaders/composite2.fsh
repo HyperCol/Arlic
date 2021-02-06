@@ -79,8 +79,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 
 
-#define CREPUSCULAR_RAYS // Light rays from sunlight
-#define RAYS_SAMPLES 16.0  // Ray samples. [8.0 16.0 24.0 32.0 48.0 64.0 72.0 100.0 120.0]
 
 #define ATMOSPHERIC_SCATTERING // Blue tint of distant objects to simulate atmospheric scattering
 #define RAYLEIGH_AMOUNT 1.0 // Strength of atmospheric scattering (atmospheric density). [0.5 1.0 1.5 2.0]
@@ -2786,65 +2784,6 @@ void IceFog(inout vec3 color, in SurfaceStruct surface, in MCLightmapStruct mcLi
 	}
 }
 
-vec3 WorldPosToShadowProjPosBias(vec3 worldPos, vec3 worldNormal, out float dist, out float distortFactor)
-{
-
-	vec4 shadowPos = shadowModelView * vec4(worldPos, 1.0);
-		 shadowPos = shadowProjection * shadowPos;
-		 shadowPos /= shadowPos.w;
-
-	dist = length(shadowPos.xy);
-	distortFactor = (1.0f - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
-
-	shadowPos.xy *= 0.95f / distortFactor;
-	shadowPos.z = mix(shadowPos.z, 0.5, 0.8);
-	shadowPos = shadowPos * 0.5f + 0.5f;		//Transform from shadow space to shadow map coordinates
-
-	return shadowPos.xyz;
-}
-
-float CrepuscularRays(in SurfaceStruct surface)
-{
-	if(rainStrength > 0.99f) return vec3(0.0);
-	vec3 worldPos = surface.worldSpacePosition.xyz;
-	float raySamples = RAYS_SAMPLES;
-
-	float rayDistance = length(worldPos); //Get surface distance in meters
-	float raySteps = min(shadowDistance, rayDistance) / raySamples;
-
-	vec3 camPosCentre = (gbufferModelViewInverse * vec4(vec3(0.0), 1.0)).xyz;
-	vec3 rayDir = normalize(worldPos - camPosCentre) * raySteps;
-
-	float dither = R2_dither();
-
-	float dist, distortFactor;
-	float lightIncrease = 0.0;
-	float prevLight = 0.0;
-	for(int i = 0; i < raySamples; i++){
-		worldPos -= rayDir.xyz;
-
-		vec3 rayPos = rayDir.xyz * dither + worldPos;
-			 rayPos = WorldPosToShadowProjPosBias(rayPos, surface.normal.xyz, dist, distortFactor);
-
-		//Offsets
-		float diffthresh = dist - 0.10f;
-			  diffthresh *= 1.5f / (shadowMapResolution / 2048.0f);
-		rayPos.z -= diffthresh * 0.0008f;
-
-
-
-		float raySample = 1.0 - shadow2D(shadow, rayPos.xyz).x;
-
-		lightIncrease += (raySample + prevLight) * raySteps * 0.5;
-		prevLight = raySample;
-	}
-
-	lightIncrease += max(rayDistance - shadowDistance, 0.0);
-	//lightIncrease *= (isSky > 0.5) ? 0.1 : 1.0;
-
-	return lightIncrease;
-}
-
 vec3 NewSkyLight(float p, in SurfaceStruct surface){
 	float a = -1.;
 	float b = -0.24;
@@ -3276,11 +3215,7 @@ void main() {
 
 	
 	gl_FragData[0] = vec4(finalComposite, 1.0);
-	#ifdef CREPUSCULAR_RAYS
-	gl_FragData[1] = vec4(surface.mask.matIDs, CrepuscularRays(surface), mcLightmap.sky, 1.0f);
-	#else
 	gl_FragData[1] = vec4(surface.mask.matIDs, 1.0, mcLightmap.sky, 1.0f);
-	#endif
 	gl_FragData[2] = vec4(surface.specular.specularity, surface.cloudAlpha, surface.specular.glossiness, 1.0f);
 	gl_FragData[3] = vec4(shading.sunlightVisibility, 1.0f);
 	// gl_FragData[4] = vec4(pow(surface.albedo.rgb, vec3(1.0f / 2.2f)), 1.0f);
