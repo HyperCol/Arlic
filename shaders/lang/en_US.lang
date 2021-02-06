@@ -217,7 +217,7 @@ option.FINAL_ALT_COLOR_SOURCE=调用最终着色器的颜色
 option.NEW_SKY_LIGHT=新的天空光照
 option.OLD_LIGHTING_FIX=旧版本的原版光照修复
 
-option.VERSION=Arlic Shaders:内测版本
+option.VERSION=Arlic Shaders版本
 
 //-------------------------- ScreenGUIs --------------------------//
 profile.NORMAL=默认或自定义
