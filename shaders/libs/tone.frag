@@ -99,8 +99,11 @@ vec3 colorBalance(vec3 rgbColor, vec3 s, vec3 m, vec3 h, bool p) {
 	return colorBalance(rgbColor, getLightness(rgbColor), s, m, h, p);
 }
 
+#define EXPOSURE 1.2 		//[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
+
 vec3 tonemap(in vec3 color) {
-	CalculateExposure(color);
+
+	color *= EXPOSURE * (1.8 - clamp(pow(eyeBrightnessSmooth.y / 240.0, 6.0) * luma(colorSunlight), 0.0, 1.2));
 
 	const float a = 2.51f;
 	const float b = 0.03f;
@@ -123,13 +126,12 @@ vec3 tonemap(in vec3 color) {
 
 #define HUE_ADJUSTMENT
 
-#define TONE 0 //[0 1 2 3 4 5 6 7]
+#define TONE 0 				//[0 1 2 3 4 5 6 7]
 
 #define BRIGHTNESS 	1.0 	//[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
 #define CONTRAST 	1.0   	//[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
 #define SATURATION 	1.0 	//[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.5 2.0 2.5 3.0]
 #define VIBRANCE 	1.0 	//[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.5 2.0 2.5 3.0]
-#define HUE 		0.0		//[-0.5 -0.45 -0.4 -0.35 -0.3 -0.25 -0.2 -0.15 -0.13 -0.1 -0.09 -0.08 -0.07 -0.06 -0.05 -0.04 -0.03 -0.02 -0.01 0.0 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.13 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5]
 
 #define COLOR_BALANCE_S_R 0.0 //[-1.0 -0.9 -0.8 -0.7 -0.6 -0.5 -0.4 -0.3 -0.2 -0.1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define COLOR_BALANCE_S_G 0.0 //[-1.0 -0.9 -0.8 -0.7 -0.6 -0.5 -0.4 -0.3 -0.2 -0.1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
@@ -245,6 +247,12 @@ void Hue_Adjustment(inout Tone t) {
 	//t.color = mix(t.color, t.blur, t.blurIndex);
 	
 	// This will turn it into gamma space
+
+	t.color *= 50.0 * BRIGHTNESS_LEVEL;
+	const float p = TONEMAP_STRENGTH;
+	t.color = (pow(t.color, vec3(p)) - t.color) / (pow(t.color, vec3(p)) - 1.0);
+	//t.color = pow(t.color, vec3(0.95 / 2.2)) * 1.01;
+
 	#ifdef BLACK_AND_WHITE
 	t.saturation = 0.0;
 	#elif MC_VERSION >= 11202

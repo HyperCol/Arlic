@@ -662,6 +662,7 @@ void main() {
 
 	Hue_Adjustment(tone);
 
+	//tone.color = texture2D(gnormal, texcoord.st).rgb*50.0;
 	gl_FragColor = vec4(tone.color, 1.0f);
 
 }
