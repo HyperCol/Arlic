@@ -99,17 +99,6 @@ vec3 colorBalance(vec3 rgbColor, vec3 s, vec3 m, vec3 h, bool p) {
 	return colorBalance(rgbColor, getLightness(rgbColor), s, m, h, p);
 }
 
-void CalculateExposure(inout vec3 color) {
-	float exposureMax = 1.55f;
-		  exposureMax *= mix(1.0f, 0.0f, timeMidnight);
-	float exposureMin = 0.13f;
-	float exposure = pow(eyeBrightnessSmooth.y / 240.0f, 6.0f) * exposureMax + exposureMin;
-
-	//exposure = 1.0f;
-
-	color.rgb /= vec3(exposure);
-}
-
 vec3 tonemap(in vec3 color) {
 	CalculateExposure(color);
 
@@ -153,11 +142,11 @@ vec3 tonemap(in vec3 color) {
 #define COLOR_BALANCE_H_B 0.0 //[-1.0 -0.9 -0.8 -0.7 -0.6 -0.5 -0.4 -0.3 -0.2 -0.1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 //#define KEEP_BROGHTNESS
 
-void init_tone(out Tone t, vec2 texcoord) {
+void init_tone(out Tone t, vec2 tex) {
 	//t.exposure = get_exposure();
 	
-	t.color = texture2D(composite, texcoord).rgb;
-	//t.blur = texture(gaux4, texcoord).rgb;// * (1.0 + t.exposure);
+	t.color = GetColorTexture(tex).rgb;
+	//t.blur = texture(gaux4, tex).rgb;// * (1.0 + t.exposure);
 	
 	t.useAdjustment = 1.0;
 	t.blurIndex = 0.0;

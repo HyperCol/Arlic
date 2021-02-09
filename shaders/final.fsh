@@ -35,6 +35,8 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
  
+#define VERSION 0.9.0      //Arlic Shaders VERSION.
+
 //#define FINAL_ALT_COLOR_SOURCE 
 #define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
 
@@ -63,14 +65,10 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define EdgeBlurAmount 1.75  // [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
 	#define EdgeBlurDecline 3.0  // [0.3 0.6 0.9 1.2 1.5 1.8 1.9 2.0 2.1 2.4 3.0 3.3 3.6 3.9 4.2]
 
+varying vec4 texcoord;
+varying vec3 lightVector;
 
-//#define CUSTOM_TONED
-#define CUSTOM_T_R 100 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255]
-#define CUSTOM_T_G 100 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255]
-#define CUSTOM_T_B 100 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255]
-#define CUSTOM_T_L 25 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 ]
-
-#define VERSION 0.9.0      //Arlic Shaders VERSION.
+uniform float aspectRatio;
 
 uniform sampler2D gcolor;
 uniform sampler2D gdepth;
@@ -78,40 +76,9 @@ uniform sampler2D gdepthtex;
 uniform sampler2D gnormal;
 uniform sampler2D composite;
 
-varying vec4 texcoord;
-varying vec3 lightVector;
-
-uniform int worldTime;
-
-uniform float near;
-uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform float rainStrength;
-uniform float screenBrightness;
-uniform float wetness;
-uniform float aspectRatio;
-uniform float frameTimeCounter;
 uniform sampler2D shadowcolor;
 uniform sampler2D shadowcolor1;
 uniform sampler2D shadowtex1;
-
-uniform float centerDepthSmooth;
-
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferPreviousProjection;
-
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferPreviousModelView;
-
-uniform vec3 cameraPosition;
-uniform vec3 previousCameraPosition;
-
-uniform int   isEyeInWater;
-uniform float eyeAltitude;
-uniform ivec2 eyeBrightness;
-uniform ivec2 eyeBrightnessSmooth;
-uniform int   fogMode;
 
 varying float timeSunriseSunset;
 varying float timeNoon;
@@ -125,6 +92,8 @@ varying vec3 colorSkylight;
 #extension GL_ARB_shader_texture_lod: require
 const bool compositeMipmapEnabled = true;
 const bool gnormalMipmapEnabled = true;
+
+#include "/libs/uniform.glsl"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -486,16 +455,6 @@ void  DOF_Blur(out vec3 color, in float isHand) {
 	color = col / 60.0;
 }
 
-void 	Vignette(inout vec3 color) {
-	float dist = distance(texcoord.st, vec2(0.5f)) * 2.0f;
-		  dist /= 1.5142f;
-
-		  //dist = pow(dist, 1.1f);
-
-	color.rgb *= 1.0f - dist * 0.5;
-
-}
-
 float  	CalculateDitherPattern1() {
 	int[16] ditherPattern = int[16] (0 , 9 , 3 , 11,
 								 	 13, 5 , 15, 7 ,
@@ -674,92 +633,35 @@ void AverageExposure(inout vec3 color)
 	color /= pow(Luminance(texture2DLod(gnormal, vec2(0.5, 0.5), avglod).rgb), 1.1) + 0.0001;
 }
 
+#include "/libs/tone.frag"
+
+Tone tone;
 
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
 
-	vec3 color = GetColorTexture(texcoord.st);	//Sample color texture
+	init_tone(tone, texcoord.st);
 
 	mask.matIDs = GetMaterialIDs(texcoord.st);
 	CalculateMasks(mask);
 
-#ifdef MOTION_BLUR
-	MotionBlur(color);
-#endif
+	#ifdef MOTION_BLUR
+		MotionBlur(tone.color);
+	#endif
 
 	#ifdef DOF
-		DOF_Blur(color, float(mask.hand));
+		DOF_Blur(tone.color, float(mask.hand));
 	#endif
-
-	Vignette(color);
 
 	#ifdef AVERAGE_EXPOSURE
-	AverageExposure(color);
+	AverageExposure(tone.color);
 	#else
-	CalculateExposure(color);
+	CalculateExposure(tone.color);
 	#endif
 
-	//or just disable exposure
-	//color /= 0.001;
+	Hue_Adjustment(tone);
 
-	
-	color *= 250.0 * BRIGHTNESS_LEVEL;
-
-	#ifdef ACES_TONEMAPPING
-		{
-			color.rgb *= 1./(DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.65*timeMidnight));
-			const float A = 2.51f;
-			const float B = 0.03f;
-			const float C = 2.43f;
-			const float D = 0.59f;
-			const float E = 0.14f;
-
-			color = (color * (A * color + B)) / (color * (C * color + D) + E);
-			color.rgb = pow(color.rgb, vec3(1.0f / 2.2f));
-		}
-	#else
-		const float p = TONEMAP_STRENGTH;
-		color = (pow(color, vec3(p)) - color) / (pow(color, vec3(p)) - 1.0);
-		color = pow(color, vec3(0.95 / 2.2));
-		color *= 1.01;
-	#endif
-
-
-	color = clamp(color, vec3(0.0), vec3(1.0));
-
-
-
-
-	//if (texture2D(composite, texcoord.st).g > 0.01f)
-	//	color.g = 1.0f;
-
-	//TonemapReinhardLinearHybrid(color);
-	SaturationBoost(color);
-
-	//color.rgb += highpass * 10000.0f;
-	//LowtoneSaturate(color);
-
-	//ColorGrading(color);
-
-	//color.rgb = texture2DLod(shadowcolor, texcoord.st, 0).rgb * 1.0f;
-	//color.rgb = texture2DLod(shadowcolor1, texcoord.st, 0).aaa * 1.0f;
-	//color.rgb = vec3(texture2DLod(shadowtex1, texcoord.st, 0).x) * 1.0f;
-
-	//color.rgb = texture2D(gdepth, texcoord.st).bbb * 0.8 + 0.2;
-
-	//color.rgb = vec3(fwidth(GetDepthLinear(texcoord.st + vec2(0.5 / viewWidth, 0.5 / viewHeight)) + GetDepthLinear(texcoord.st - vec2(0.5 / viewWidth, 0.5 / viewHeight))));
-
-	// color.rgb += fwidth(color.rgb) * 0.5;
-
-	#ifdef CUSTOM_TONED
-		color.r = (color.r*(CUSTOM_T_R * 0.01))+(color.b+color.g)*(-0.1);
-		color.g = (color.g*(CUSTOM_T_G * 0.01))+(color.r+color.b)*(-0.1);
-		color.b = (color.b*(CUSTOM_T_B * 0.01))+(color.r+color.g)*(-0.1);
-
-		color = color / (color + (5 - (CUSTOM_T_L * 0.1))) * (1.0+2.0);
-    #endif	
-	
-	gl_FragColor = vec4(color.rgb, 1.0f);
+	gl_FragColor = vec4(tone.color, 1.0f);
 
 }
