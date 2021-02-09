@@ -103,8 +103,9 @@ vec3 colorBalance(vec3 rgbColor, vec3 s, vec3 m, vec3 h, bool p) {
 
 vec3 tonemap(in vec3 color) {
 
-	color *= EXPOSURE * (1.8 - clamp(pow(eyeBrightnessSmooth.y / 240.0, 6.0) * luma(colorSunlight), 0.0, 1.2));
-
+	color *= 150.0 * EXPOSURE * (1.8 - clamp(pow(eyeBrightnessSmooth.y / 240.0, 6.0) * luma(colorSunlight), 0.0, 1.2));
+	color /= (DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.65*timeMidnight));
+	
 	const float a = 2.51f;
 	const float b = 0.03f;
 	const float c = 2.43f;
@@ -112,7 +113,7 @@ vec3 tonemap(in vec3 color) {
 	const float e = 0.14f;
 	
 	color = color*(a*color+b)/(color*(c*color+d)+e);
-	return pow(color.rgb, vec3(1.0f / 2.2f));
+	return color;
 }
 
 #define HUE_ADJUSTMENT
@@ -143,7 +144,7 @@ void init_tone(out Tone t, vec2 tex) {
 	
 	t.useAdjustment = 1.0;
 	t.blurIndex = 0.0;
-	//t.useToneMap = 1.0;
+	t.useToneMap = 1.0;
 	
 	#if TONE == 1
 	t.brightness = 1.05;
@@ -209,7 +210,7 @@ void init_tone(out Tone t, vec2 tex) {
 	t.brightness = BRIGHTNESS;
 	t.contrast = CONTRAST;
 	t.saturation = SATURATION;
-	t.vibrance = 1.0 / VIBRANCE;
+	t.vibrance = VIBRANCE;
 	
 	t.s = vec3(COLOR_BALANCE_S_R, COLOR_BALANCE_S_G, COLOR_BALANCE_S_B);
 	t.m = vec3(COLOR_BALANCE_M_R, COLOR_BALANCE_M_G, COLOR_BALANCE_M_B);
@@ -238,12 +239,6 @@ void Hue_Adjustment(inout Tone t) {
 	//t.color = mix(t.color, t.blur, t.blurIndex);
 	
 	// This will turn it into gamma space
-
-	t.color *= 150.0 * BRIGHTNESS_LEVEL;
-	t.color /= (DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.65*timeMidnight));
-	const float p = TONEMAP_STRENGTH;
-	t.color = (pow(t.color, vec3(p)) - t.color) / (pow(t.color, vec3(p)) - 1.0);
-	//t.color = pow(t.color, vec3(0.95 / 2.2)) * 1.01;
 
 	#ifdef BLACK_AND_WHITE
 	t.saturation = 0.0;
@@ -289,7 +284,6 @@ void Hue_Adjustment(inout Tone t) {
 	t.color = pow(t.color, vec3(1.0 - plus(nightVision, SHADER_NIGHT_VISION) * 0.6 + blindness));	
 	
 	t.color = mix(color, t.color, t.useAdjustment);
-	//t.color = vignetteColor;
 	t.color = toGamma(t.color);
 }
 #endif 
