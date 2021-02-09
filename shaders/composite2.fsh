@@ -2843,9 +2843,6 @@ void CalStar(in SurfaceStruct surface, inout vec3 finalComposite) {
 	float position = abs(worldPos.y + cameraPosition.y - 65);
 	float horizonPos= max(exp(1.0 - position / 50.0), 0.0);
 		stars = mix(stars * timeMidnight, 0.0, horizonPos);
-	float calcSun = min(pow(max(dot(normalize(surface.screenSpacePosition).xyz, surface.lightVector), 0.0), 2000.0), 0.2) * 3.0;
-		stars = mix(stars, 1.0, calcSun);
-
 
 	finalComposite.rgb = mix(finalComposite.rgb , vec3(0.8,1.2,1.2) * 0.02 - 0.02 * rainStrength, stars * float(surface.mask.sky));
 

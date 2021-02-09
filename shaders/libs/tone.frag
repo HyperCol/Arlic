@@ -110,18 +110,9 @@ vec3 tonemap(in vec3 color) {
 	const float c = 2.43f;
 	const float d = 0.59f;
 	const float e = 0.14f;
-	const vec3 f = vec3(13.134f);
 	
-	//return (color*(a*color+b))/(color*(c*color+d)+e);
-	
-	color = pow(color, vec3(1.4));
-	color *= (4.0 - rain0 * 3.0);
-	//color = clamp(color, vec3(0.0), vec3(1.0));
-	//color = pow(color, vec3(1.07, 1.04, 1.0));
-	
-	vec3 curr = (color*(a*color+b))/(color*(c*color+d)+e);
-	vec3 whiteScale = 1.0f / ((f*(a*f+b))/(f*(c*f+d)+e));
-	return curr*whiteScale;
+	color = color*(a*color+b)/(color*(c*color+d)+e);
+	return pow(color.rgb, vec3(1.0f / 2.2f));
 }
 
 #define HUE_ADJUSTMENT
@@ -248,7 +239,8 @@ void Hue_Adjustment(inout Tone t) {
 	
 	// This will turn it into gamma space
 
-	t.color *= 50.0 * BRIGHTNESS_LEVEL;
+	t.color *= 150.0 * BRIGHTNESS_LEVEL;
+	t.color /= (DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.65*timeMidnight));
 	const float p = TONEMAP_STRENGTH;
 	t.color = (pow(t.color, vec3(p)) - t.color) / (pow(t.color, vec3(p)) - 1.0);
 	//t.color = pow(t.color, vec3(0.95 / 2.2)) * 1.01;
