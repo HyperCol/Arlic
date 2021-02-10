@@ -35,18 +35,27 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
  
-#define VERSION 0.9.0      //Arlic Shaders VERSION.
-
 //#define FINAL_ALT_COLOR_SOURCE 
-#define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
+//#define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
+
+#define Enabled_TemportalAntiAliasing
+#define TAA_Post_Sharpen 50		//[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
+
+#define Vaule 0
+//#define CurrentEyeLightMap 0
+#define Average 1
+
+#define Exposure_Setting Average	//[Vaule Average]
+#define BRIGHTNESS_LEVEL 1.0 //[0.125 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0]
+#define SATURATION_STRENGTH 0.0 // [-1.0 -0.95 -0.9 -0.85 -0.8 -0.75 -0.7 -0.65 -0.6 -0.55 -0.5 -0.45 -0.4 -0.35 -0.3 -0.25 -0.2 -0.15 -0.1 -0.05 0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
 
 //#define MOTION_BLUR // It's motion blur.
 
+//#define DARKNESS 4.25 //removed  [0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.25 5.0 7.0 9.0 12.0]
+
 #define ACES_TONEMAPPING
-	#define DARKNESS 4.25 // [0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.25 5.0 7.0 9.0 12.0]
-#define TONEMAP_STRENGTH 3.0 // Determines how bright colors are compressed during tonemapping. Lower levels result in more filmic soft look. Higher levels result in more natural vibrant look. [2.0 3.0 4.0]
-#define BRIGHTNESS_LEVEL 1.5 // Pre-tonemapping brightness levels. [1.0 1.25 1.5 1.75 2.0]
-#define SATURATION_STRENGTH 0.0 // [-2.0 -1.95 -1.9 -1.85 -1.8 -1.75 -1.7 -1.65 -1.6 -1.55 -1.5 -1.45 -1.4 -1.35 -1.3 -1.25 -1.2 -1.15 -1.1 -0.05 0.0 0.05 1.0 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.17 1.75 1.8 1.85 1.9 1.95 2.0]
+#define TONEMAP_STRENGTH 1.0 //[0.25 0.33 0.5 1.0 2.0 3.0 4.0]
+
 #define MAX_BLUR_AMOUNT 1.2 // [0.2 0.4 0.6 0.9 1.2 1.5 1.9 2.3 2.7]
 
 #define DOF
@@ -65,20 +74,54 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define EdgeBlurAmount 1.75  // [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
 	#define EdgeBlurDecline 3.0  // [0.3 0.6 0.9 1.2 1.5 1.8 1.9 2.0 2.1 2.4 3.0 3.3 3.6 3.9 4.2]
 
-varying vec4 texcoord;
-varying vec3 lightVector;
 
-uniform float aspectRatio;
+//#define CUSTOM_TONED
+#define CUSTOM_T_R 100 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255]
+#define CUSTOM_T_G 100 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255]
+#define CUSTOM_T_B 100 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255]
+#define CUSTOM_T_L 25 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 ]
+
+#define VERSION 0.9.0      //Arlic Shaders VERSION.
 
 uniform sampler2D gcolor;
 uniform sampler2D gdepth;
 uniform sampler2D gdepthtex;
-uniform sampler2D gnormal;
+uniform sampler2D gaux3;
 uniform sampler2D composite;
 
-uniform sampler2D shadowcolor;
-uniform sampler2D shadowcolor1;
-uniform sampler2D shadowtex1;
+uniform sampler2D depthtex0;
+
+varying vec4 texcoord;
+varying vec3 lightVector;
+
+uniform int worldTime;
+
+uniform float near;
+uniform float far;
+uniform float viewWidth;
+uniform float viewHeight;
+uniform float rainStrength;
+uniform float screenBrightness;
+uniform float wetness;
+uniform float aspectRatio;
+uniform float frameTimeCounter;
+
+uniform float centerDepthSmooth;
+
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferPreviousProjection;
+
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferPreviousModelView;
+
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+
+uniform int   isEyeInWater;
+uniform float eyeAltitude;
+uniform ivec2 eyeBrightness;
+uniform ivec2 eyeBrightnessSmooth;
+uniform int   fogMode;
 
 varying float timeSunriseSunset;
 varying float timeNoon;
@@ -93,24 +136,15 @@ varying vec3 colorSkylight;
 const bool compositeMipmapEnabled = true;
 const bool gnormalMipmapEnabled = true;
 
-#include "/libs/uniform.glsl"
+#include "/lib/materials.glsl"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-vec3 	GetTexture(in sampler2D tex, in vec2 coord) {				//Perform a texture lookup with BANDING_FIX_FACTOR compensation
-	return pow(texture2D(tex, coord).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
-}
-
 vec3 	GetTextureLod(in sampler2D tex, in vec2 coord, in int level) {				//Perform a texture lookup with BANDING_FIX_FACTOR compensation
-	return pow(texture2DLod(tex, coord, level).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
+	return pow(texture2DLod(tex, coord, level).rgb, vec3(2.2));
 }
 
-vec3 	GetTexture(in sampler2D tex, in vec2 coord, in int LOD) {	//Perform a texture lookup with BANDING_FIX_FACTOR compensation and lod offset
-	return pow(texture2D(tex, coord, LOD).rgb, vec3(BANDING_FIX_FACTOR));
-}
-
-float GetSunlightVisibility(in vec2 coord)
-{
+float GetSunlightVisibility(in vec2 coord) {
 	return texture2D(gdepth, coord).g;
 }
 
@@ -123,15 +157,11 @@ float 	GetDepthLinear(in vec2 coord) {					//Function that retrieves the scene d
 }
 
 vec3 	GetColorTexture(in vec2 coord) {
-	#ifdef FINAL_ALT_COLOR_SOURCE
-	return GetTextureLod(gcolor, coord.st, 0).rgb;
-	#else
-	return GetTextureLod(gnormal, coord.st, 0).rgb;
-	#endif
-}
-
-float 	GetMaterialIDs(in vec2 coord) {			//Function that retrieves the texture that has all material IDs stored in it
-	return texture2D(gdepth, coord).r;
+	//#ifdef FINAL_ALT_COLOR_SOURCE
+	//return GetTextureLod(gcolor, coord.st, 0).rgb;
+	//#else
+	return GetTextureLod(gaux3, coord.st, 0).rgb;
+	//#endif
 }
 
 float saturate(float x)
@@ -192,56 +222,6 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
     return mix( mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
 }
 
-bool 	GetMaterialMask(in vec2 coord, in int ID) {
-	float	  matID = floor(GetMaterialIDs(coord) * 255.0f);
-
-	//Catch last part of sky
-	if (matID > 254.0f) {
-		matID = 0.0f;
-	}
-
-	if (matID == ID) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool 	GetMaterialMask(in vec2 coord, in int ID, float matID) {
-	matID = floor(matID * 255.0f);
-
-	//Catch last part of sky
-	if (matID > 254.0f) {
-		matID = 0.0f;
-	}
-
-	if (matID == ID) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool  	GetWaterMask(in vec2 coord) {					//Function that returns "true" if a pixel is water, and "false" if a pixel is not water.
-	float matID = floor(GetMaterialIDs(coord) * 255.0f);
-
-	if (matID >= 35.0f && matID <= 51) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool  	GetSkyMask(in vec2 coord) {					//Function that returns "true" if a pixel is water, and "false" if a pixel is not water.
-	float matID = floor(GetMaterialIDs(coord) * 255.0f);
-
-	if (matID >= 0.1f) {
-		return false;
-	} else {
-		return true;
-	}
-}
-
 float Luminance(in vec3 color)
 {
 	return dot(color.rgb, vec3(0.2125f, 0.7154f, 0.0721f));
@@ -252,15 +232,6 @@ float ld(float depth) {
 }
 
 vec2 fake_refract = vec2(sin(frameTimeCounter*1.7 + texcoord.x*50.0 + texcoord.y*25.0),cos(frameTimeCounter*2.5 + texcoord.y*100.0 + texcoord.x*25.0)) * isEyeInWater;
-/*
-void SaturationBoost(inout vec3 color) {
-	float satBoost = SATURATION_STRENGTH;
-
-	color.r = color.r * (0.97f + satBoost * 1.0f) - (color.g * satBoost) - (color.b * satBoost);
-	color.g = color.g * (0.97f + satBoost * 1.0f) - (color.r * satBoost) - (color.b * satBoost);
-	color.b = color.b * (0.97f + satBoost * 1.0f) - (color.r * satBoost) - (color.g * satBoost);
-}
-*/
 
 void SaturationBoost(inout vec3 color) {
 	float satBoost = (SATURATION_STRENGTH * 0.2);
@@ -293,158 +264,158 @@ void  DOF_Blur(out vec3 color, in float isHand) {
 	float aaa = 1.0;
 	float bbb = 0.0;
 	#endif
-		
-	#ifdef FOCUS_BLUR
-		#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
-			naive += (screenBrightness - depth) * 0.4 * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
-		#else
-			naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
-		#endif
-	#endif
-
-	if (depth <= 0.99999){
-	#ifdef DISTANCE_BLUR
-	#ifdef NOCALCULATECLOUDSNIGHT
-		naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
+	
+#ifdef FOCUS_BLUR
+	#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
+		naive += (screenBrightness - depth) * 0.4 * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
 	#else
-	naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb));
+		naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
 	#endif
-	#endif
-	}
+#endif
 
-	#ifdef EDGE_BLUR
-		naive += pow(distance(texcoord.st, vec2(0.5)),EdgeBlurDecline) * 0.01 * EdgeBlurAmount;
-	#endif
+if (depth <= 0.99999){
+#ifdef DISTANCE_BLUR
+#ifdef NOCALCULATECLOUDSNIGHT
+	naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
+#else
+naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb));
+#endif
+#endif
+}
 
-		vec2 aspectcorrect = vec2(1.0, aspectRatio) * 1.6;
-		vec3 col = vec3(0.0);
-		col += GetColorTexture(texcoord.st);
+#ifdef EDGE_BLUR
+	naive += pow(distance(texcoord.st, vec2(0.5)),EdgeBlurDecline) * 0.01 * EdgeBlurAmount;
+#endif
+
+	vec2 aspectcorrect = vec2(1.0, aspectRatio) * 1.6;
+	vec3 col = vec3(0.0);
+	col += GetColorTexture(texcoord.st);
 
 
 
-	#ifdef HEXAGONAL_BOKEH
-	const vec2 offsets[60] = vec2[60] (	vec2(  0.2165,  0.1250 ),
-										vec2(  0.0000,  0.2500 ),
-										vec2( -0.2165,  0.1250 ),
-										vec2( -0.2165, -0.1250 ),
-										vec2( -0.0000, -0.2500 ),
-										vec2(  0.2165, -0.1250 ),
-										vec2(  0.4330,  0.2500 ),
-										vec2(  0.0000,  0.5000 ),
-										vec2( -0.4330,  0.2500 ),
-										vec2( -0.4330, -0.2500 ),
-										vec2( -0.0000, -0.5000 ),
-										vec2(  0.4330, -0.2500 ),
-										vec2(  0.6495,  0.3750 ),
-										vec2(  0.0000,  0.7500 ),
-										vec2( -0.6495,  0.3750 ),
-										vec2( -0.6495, -0.3750 ),
-										vec2( -0.0000, -0.7500 ),
-										vec2(  0.6495, -0.3750 ),
-										vec2(  0.8660,  0.5000 ),
-										vec2(  0.0000,  1.0000 ),
-										vec2( -0.8660,  0.5000 ),
-										vec2( -0.8660, -0.5000 ),
-										vec2( -0.0000, -1.0000 ),
-										vec2(  0.8660, -0.5000 ),
-										vec2(  0.2163,  0.3754 ),
-										vec2( -0.2170,  0.3750 ),
-										vec2( -0.4333, -0.0004 ),
-										vec2( -0.2163, -0.3754 ),
-										vec2(  0.2170, -0.3750 ),
-										vec2(  0.4333,  0.0004 ),
-										vec2(  0.4328,  0.5004 ),
-										vec2( -0.2170,  0.6250 ),
-										vec2( -0.6498,  0.1246 ),
-										vec2( -0.4328, -0.5004 ),
-										vec2(  0.2170, -0.6250 ),
-										vec2(  0.6498, -0.1246 ),
-										vec2(  0.6493,  0.6254 ),
-										vec2( -0.2170,  0.8750 ),
-										vec2( -0.8663,  0.2496 ),
-										vec2( -0.6493, -0.6254 ),
-										vec2(  0.2170, -0.8750 ),
-										vec2(  0.8663, -0.2496 ),
-										vec2(  0.2160,  0.6259 ),
-										vec2( -0.4340,  0.5000 ),
-										vec2( -0.6500, -0.1259 ),
-										vec2( -0.2160, -0.6259 ),
-										vec2(  0.4340, -0.5000 ),
-										vec2(  0.6500,  0.1259 ),
-										vec2(  0.4325,  0.7509 ),
-										vec2( -0.4340,  0.7500 ),
-										vec2( -0.8665, -0.0009 ),
-										vec2( -0.4325, -0.7509 ),
-										vec2(  0.4340, -0.7500 ),
-										vec2(  0.8665,  0.0009 ),
-										vec2(  0.2158,  0.8763 ),
-										vec2( -0.6510,  0.6250 ),
-										vec2( -0.8668, -0.2513 ),
-										vec2( -0.2158, -0.8763 ),
-										vec2(  0.6510, -0.6250 ),
-										vec2(  0.8668,  0.2513 ));
-	#else
-	const vec2 offsets[60] = vec2[60] ( vec2(  0.0000,  0.2500 ),
-										vec2( -0.2165,  0.1250 ),
-										vec2( -0.2165, -0.1250 ),
-										vec2( -0.0000, -0.2500 ),
-										vec2(  0.2165, -0.1250 ),
-										vec2(  0.2165,  0.1250 ),
-										vec2(  0.0000,  0.5000 ),
-										vec2( -0.2500,  0.4330 ),
-										vec2( -0.4330,  0.2500 ),
-										vec2( -0.5000,  0.0000 ),
-										vec2( -0.4330, -0.2500 ),
-										vec2( -0.2500, -0.4330 ),
-										vec2( -0.0000, -0.5000 ),
-										vec2(  0.2500, -0.4330 ),
-										vec2(  0.4330, -0.2500 ),
-										vec2(  0.5000, -0.0000 ),
-										vec2(  0.4330,  0.2500 ),
-										vec2(  0.2500,  0.4330 ),
-										vec2(  0.0000,  0.7500 ),
-										vec2( -0.2565,  0.7048 ),
-										vec2( -0.4821,  0.5745 ),
-										vec2( -0.6495,  0.3750 ),
-										vec2( -0.7386,  0.1302 ),
-										vec2( -0.7386, -0.1302 ),
-										vec2( -0.6495, -0.3750 ),
-										vec2( -0.4821, -0.5745 ),
-										vec2( -0.2565, -0.7048 ),
-										vec2( -0.0000, -0.7500 ),
-										vec2(  0.2565, -0.7048 ),
-										vec2(  0.4821, -0.5745 ),
-										vec2(  0.6495, -0.3750 ),
-										vec2(  0.7386, -0.1302 ),
-										vec2(  0.7386,  0.1302 ),
-										vec2(  0.6495,  0.3750 ),
-										vec2(  0.4821,  0.5745 ),
-										vec2(  0.2565,  0.7048 ),
-										vec2(  0.0000,  1.0000 ),
-										vec2( -0.2588,  0.9659 ),
-										vec2( -0.5000,  0.8660 ),
-										vec2( -0.7071,  0.7071 ),
-										vec2( -0.8660,  0.5000 ),
-										vec2( -0.9659,  0.2588 ),
-										vec2( -1.0000,  0.0000 ),
-										vec2( -0.9659, -0.2588 ),
-										vec2( -0.8660, -0.5000 ),
-										vec2( -0.7071, -0.7071 ),
-										vec2( -0.5000, -0.8660 ),
-										vec2( -0.2588, -0.9659 ),
-										vec2( -0.0000, -1.0000 ),
-										vec2(  0.2588, -0.9659 ),
-										vec2(  0.5000, -0.8660 ),
-										vec2(  0.7071, -0.7071 ),
-										vec2(  0.8660, -0.5000 ),
-										vec2(  0.9659, -0.2588 ),
-										vec2(  1.0000, -0.0000 ),
-										vec2(  0.9659,  0.2588 ),
-										vec2(  0.8660,  0.5000 ),
-										vec2(  0.7071,  0.7071 ),
-										vec2(  0.5000,  0.8660 ),
-										vec2(  0.2588,  0.9659 ));
-	#endif
+#ifdef HEXAGONAL_BOKEH
+const vec2 offsets[60] = vec2[60] (	vec2(  0.2165,  0.1250 ),
+									vec2(  0.0000,  0.2500 ),
+									vec2( -0.2165,  0.1250 ),
+									vec2( -0.2165, -0.1250 ),
+									vec2( -0.0000, -0.2500 ),
+									vec2(  0.2165, -0.1250 ),
+									vec2(  0.4330,  0.2500 ),
+									vec2(  0.0000,  0.5000 ),
+									vec2( -0.4330,  0.2500 ),
+									vec2( -0.4330, -0.2500 ),
+									vec2( -0.0000, -0.5000 ),
+									vec2(  0.4330, -0.2500 ),
+									vec2(  0.6495,  0.3750 ),
+									vec2(  0.0000,  0.7500 ),
+									vec2( -0.6495,  0.3750 ),
+									vec2( -0.6495, -0.3750 ),
+									vec2( -0.0000, -0.7500 ),
+									vec2(  0.6495, -0.3750 ),
+									vec2(  0.8660,  0.5000 ),
+									vec2(  0.0000,  1.0000 ),
+									vec2( -0.8660,  0.5000 ),
+									vec2( -0.8660, -0.5000 ),
+									vec2( -0.0000, -1.0000 ),
+									vec2(  0.8660, -0.5000 ),
+									vec2(  0.2163,  0.3754 ),
+									vec2( -0.2170,  0.3750 ),
+									vec2( -0.4333, -0.0004 ),
+									vec2( -0.2163, -0.3754 ),
+									vec2(  0.2170, -0.3750 ),
+									vec2(  0.4333,  0.0004 ),
+									vec2(  0.4328,  0.5004 ),
+									vec2( -0.2170,  0.6250 ),
+									vec2( -0.6498,  0.1246 ),
+									vec2( -0.4328, -0.5004 ),
+									vec2(  0.2170, -0.6250 ),
+									vec2(  0.6498, -0.1246 ),
+									vec2(  0.6493,  0.6254 ),
+									vec2( -0.2170,  0.8750 ),
+									vec2( -0.8663,  0.2496 ),
+									vec2( -0.6493, -0.6254 ),
+									vec2(  0.2170, -0.8750 ),
+									vec2(  0.8663, -0.2496 ),
+									vec2(  0.2160,  0.6259 ),
+									vec2( -0.4340,  0.5000 ),
+									vec2( -0.6500, -0.1259 ),
+									vec2( -0.2160, -0.6259 ),
+									vec2(  0.4340, -0.5000 ),
+									vec2(  0.6500,  0.1259 ),
+									vec2(  0.4325,  0.7509 ),
+									vec2( -0.4340,  0.7500 ),
+									vec2( -0.8665, -0.0009 ),
+									vec2( -0.4325, -0.7509 ),
+									vec2(  0.4340, -0.7500 ),
+									vec2(  0.8665,  0.0009 ),
+									vec2(  0.2158,  0.8763 ),
+									vec2( -0.6510,  0.6250 ),
+									vec2( -0.8668, -0.2513 ),
+									vec2( -0.2158, -0.8763 ),
+									vec2(  0.6510, -0.6250 ),
+									vec2(  0.8668,  0.2513 ));
+									#else
+									const vec2 offsets[60] = vec2[60] ( vec2(  0.0000,  0.2500 ),
+									vec2( -0.2165,  0.1250 ),
+									vec2( -0.2165, -0.1250 ),
+									vec2( -0.0000, -0.2500 ),
+									vec2(  0.2165, -0.1250 ),
+									vec2(  0.2165,  0.1250 ),
+									vec2(  0.0000,  0.5000 ),
+									vec2( -0.2500,  0.4330 ),
+									vec2( -0.4330,  0.2500 ),
+									vec2( -0.5000,  0.0000 ),
+									vec2( -0.4330, -0.2500 ),
+									vec2( -0.2500, -0.4330 ),
+									vec2( -0.0000, -0.5000 ),
+									vec2(  0.2500, -0.4330 ),
+									vec2(  0.4330, -0.2500 ),
+									vec2(  0.5000, -0.0000 ),
+									vec2(  0.4330,  0.2500 ),
+									vec2(  0.2500,  0.4330 ),
+									vec2(  0.0000,  0.7500 ),
+									vec2( -0.2565,  0.7048 ),
+									vec2( -0.4821,  0.5745 ),
+									vec2( -0.6495,  0.3750 ),
+									vec2( -0.7386,  0.1302 ),
+									vec2( -0.7386, -0.1302 ),
+									vec2( -0.6495, -0.3750 ),
+									vec2( -0.4821, -0.5745 ),
+									vec2( -0.2565, -0.7048 ),
+									vec2( -0.0000, -0.7500 ),
+									vec2(  0.2565, -0.7048 ),
+									vec2(  0.4821, -0.5745 ),
+									vec2(  0.6495, -0.3750 ),
+									vec2(  0.7386, -0.1302 ),
+									vec2(  0.7386,  0.1302 ),
+									vec2(  0.6495,  0.3750 ),
+									vec2(  0.4821,  0.5745 ),
+									vec2(  0.2565,  0.7048 ),
+									vec2(  0.0000,  1.0000 ),
+									vec2( -0.2588,  0.9659 ),
+									vec2( -0.5000,  0.8660 ),
+									vec2( -0.7071,  0.7071 ),
+									vec2( -0.8660,  0.5000 ),
+									vec2( -0.9659,  0.2588 ),
+									vec2( -1.0000,  0.0000 ),
+									vec2( -0.9659, -0.2588 ),
+									vec2( -0.8660, -0.5000 ),
+									vec2( -0.7071, -0.7071 ),
+									vec2( -0.5000, -0.8660 ),
+									vec2( -0.2588, -0.9659 ),
+									vec2( -0.0000, -1.0000 ),
+									vec2(  0.2588, -0.9659 ),
+									vec2(  0.5000, -0.8660 ),
+									vec2(  0.7071, -0.7071 ),
+									vec2(  0.8660, -0.5000 ),
+									vec2(  0.9659, -0.2588 ),
+									vec2(  1.0000, -0.0000 ),
+									vec2(  0.9659,  0.2588 ),
+									vec2(  0.8660,  0.5000 ),
+									vec2(  0.7071,  0.7071 ),
+									vec2(  0.5000,  0.8660 ),
+									vec2(  0.2588,  0.9659 ));
+#endif
 
 			
 	for ( int i = 0; i < 61; ++i) {
@@ -453,6 +424,16 @@ void  DOF_Blur(out vec3 color, in float isHand) {
 		col.b += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect - vec2(FringeOffset))*naive).b;
 	}
 	color = col / 60.0;
+}
+
+void 	Vignette(inout vec3 color) {
+	float dist = distance(texcoord.st, vec2(0.5f)) * 2.0f;
+		  dist /= 1.5142f;
+
+		  //dist = pow(dist, 1.1f);
+
+	color.rgb *= 1.0f - dist * 0.5;
+
 }
 
 float  	CalculateDitherPattern1() {
@@ -476,7 +457,7 @@ float R2_dither(){
 	return fract(alpha.x * gl_FragCoord.x + alpha.y * gl_FragCoord.y);
 }
 
-void 	MotionBlur(inout vec3 color) {
+void 	MotionBlur(inout vec3 color, float isHand) {
 	float depth = GetDepth(texcoord.st);
 	vec4 currentPosition = vec4(texcoord.x * 2.0f - 1.0f, texcoord.y * 2.0f - 1.0f, 2.0f * depth - 1.0f, 1.0f);
 
@@ -495,8 +476,6 @@ void 	MotionBlur(inout vec3 color) {
 	float maxVelocity = 0.05f;
 		 velocity = clamp(velocity, vec2(-maxVelocity), vec2(maxVelocity));
 
-
-	bool isHand = GetMaterialMask(texcoord.st, 5);
 	velocity *= 1.0f - float(isHand);
 
 	int samples = 0;
@@ -596,6 +575,7 @@ struct MaskStruct {
 /////////////////////////STRUCT FUNCTIONS//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Mask
+/*
 void 	CalculateMasks(inout MaskStruct mask) {
 		mask.sky 			= GetMaterialMask(texcoord.st, 0, mask.matIDs);
 		mask.land	 		= GetMaterialMask(texcoord.st, 1, mask.matIDs);
@@ -626,43 +606,138 @@ void 	CalculateMasks(inout MaskStruct mask) {
 
 		mask.water 			= GetWaterMask(texcoord.st);
 }
-
+*/
 void AverageExposure(inout vec3 color)
 {
 	float avglod = int(log2(min(viewWidth, viewHeight))) - 1;
-	color /= pow(Luminance(texture2DLod(gnormal, vec2(0.5, 0.5), avglod).rgb), 1.1) + 0.0001;
+	color /= pow(Luminance(texture2DLod(gaux3, vec2(0.5, 0.5), avglod).rgb), 1.1) + 0.0001;
 }
 
-#include "/libs/tone.frag"
+vec3 InverseToneMapping(in vec3 color){
+	float a = 0.000033;
+	float b = 0.01;
 
-Tone tone;
+	float lum = max(color.r, max(color.g, color.b));
+
+	if(bool(step(lum, a))) color;
+
+	return color/lum*((a*a-(2.0*a-b)*lum)/(b-lum));
+}
+
+uniform vec2 pixel;
+
+void Sharpen(inout vec3 color){
+	vec3 sharpen = vec3(0.0);
+
+	for(float i = -1.0; i <= 1.0; i += 1.0){
+		for(float j = -1.0; j <= 1.0; j += 1.0){
+			if(i == 0.0 && j == 0.0) continue;
+			sharpen += GetColorTexture(texcoord.st + vec2(i, j) * pixel);
+		}
+	}
+
+	sharpen *= 0.125;
+
+	color += (color - sharpen) * TAA_Post_Sharpen * 0.005;
+	color = clamp(color, vec3(0.0), vec3(1.0));
+}
 
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
 
-	init_tone(tone, texcoord.st);
+	vec3 color = GetColorTexture(texcoord.st);	//Sample color texture
 
-	mask.matIDs = GetMaterialIDs(texcoord.st);
-	CalculateMasks(mask);
+	//color = InverseToneMapping(color) * 0.001;
+
+	float isHand = step(texture2D(depthtex0, texcoord.xy).x, 0.7);
 
 	#ifdef MOTION_BLUR
-		MotionBlur(tone.color);
+		MotionBlur(color, isHand);
 	#endif
 
 	#ifdef DOF
-		DOF_Blur(tone.color, float(mask.hand));
+		DOF_Blur(color, isHand);
 	#endif
 
-	#ifdef AVERAGE_EXPOSURE
-	AverageExposure(tone.color);
+	#ifdef Enabled_TemportalAntiAliasing
+		#if TAA_Post_Sharpen > 0
+		//	Sharpen(color);
+		#endif
+
+		//color = InverseToneMapping(color) * 0.001;
+	#endif
+
+	Vignette(color);
+
+	#if Exposure_Setting == Vaule
+		color /= 0.001;
+	#elif Exposure_Setting == Average
+		//AverageExposure(color);
+
+		color /= texture2D(gaux3, vec2(0.5)).a * 2.0 + 0.0001;
+		color *= 200.0;
+	#endif
+
+	color *= 32.0 * BRIGHTNESS_LEVEL;
+
+	#ifdef ACES_TONEMAPPING
+		{
+			//if(texcoord.x > 0.5) color.rgb = vec3(1.0);
+			//color.rgb = mix(vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 0.0), saturate(Luminance(color * 0.5)));
+
+			//color.rgb *= 1./(DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.65*timeMidnight));
+			const float A = 2.51f;
+			const float B = 0.03f;
+			const float C = 2.43f;
+			const float D = 0.59f;
+			const float E = 0.14f;
+
+			color = pow(color, vec3(sqrt(TONEMAP_STRENGTH)));
+			color = (color * (A * color + B)) / (color * (C * color + D) + E);
+		}
 	#else
-	CalculateExposure(tone.color);
+		const float p = TONEMAP_STRENGTH * 3.0;
+		color = (pow(color, vec3(p)) - color) / (pow(color, vec3(p)) - 1.0);
+		color *= 1.01;
 	#endif
 
-	Hue_Adjustment(tone);
+	SaturationBoost(color);
 
-	//tone.color = texture2D(gnormal, texcoord.st).rgb*50.0;
-	gl_FragColor = vec4(tone.color, 1.0f);
+	color = pow(color, vec3(1.0/ 2.2));
+	color = clamp(color, vec3(0.0), vec3(1.0));
+
+
+
+
+	//if (texture2D(composite, texcoord.st).g > 0.01f)
+	//	color.g = 1.0f;
+
+	//TonemapReinhardLinearHybrid(color);
+
+	//color.rgb += highpass * 10000.0f;
+	//LowtoneSaturate(color);
+
+	//ColorGrading(color);
+
+	//color.rgb = texture2DLod(shadowcolor, texcoord.st, 0).rgb * 1.0f;
+	//color.rgb = texture2DLod(shadowcolor1, texcoord.st, 0).aaa * 1.0f;
+	//color.rgb = vec3(texture2DLod(shadowtex1, texcoord.st, 0).x) * 1.0f;
+
+	//color.rgb = texture2D(gdepth, texcoord.st).bbb * 0.8 + 0.2;
+
+	//color.rgb = vec3(fwidth(GetDepthLinear(texcoord.st + vec2(0.5 / viewWidth, 0.5 / viewHeight)) + GetDepthLinear(texcoord.st - vec2(0.5 / viewWidth, 0.5 / viewHeight))));
+
+	// color.rgb += fwidth(color.rgb) * 0.5;
+
+	#ifdef CUSTOM_TONED
+		//color.r = (color.r*(CUSTOM_T_R * 0.01))+(color.b+color.g)*(-0.1);
+		//color.g = (color.g*(CUSTOM_T_G * 0.01))+(color.r+color.b)*(-0.1);
+		//color.b = (color.b*(CUSTOM_T_B * 0.01))+(color.r+color.g)*(-0.1);
+
+		//color = color / (color + (5 - (CUSTOM_T_L * 0.1))) * (1.0+2.0);
+    #endif	
+	
+	gl_FragColor = vec4(color.rgb, 1.0f);
 
 }

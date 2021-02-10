@@ -23,15 +23,7 @@ void main() {
 
 		 skyColor.rgb = gl_Fog.color.rgb;
 
-	// if (color.a < 0.6f)
-	// {
-	// 	skyColor.rgb = vec3(0.75f);
-	// }
-
+	/* DRAWBUFFERS:03 */
 	gl_FragData[0] = vec4(skyColor.rgb, color.a);
-	gl_FragData[1] = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-	
-	
-	//gl_FragData[2] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	//gl_FragData[3] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	gl_FragData[1] = vec4(0.0, 0.0, 1.0, 1.0);
 }

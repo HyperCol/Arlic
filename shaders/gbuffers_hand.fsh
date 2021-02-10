@@ -10,9 +10,6 @@
 
 ///////////////////////////////////////////////////END OF ADJUSTABLE VARIABLES///////////////////////////////////////////////////
 
-/* DRAWBUFFERS:012356 */
-
-
 uniform sampler2D texture;
 uniform sampler2D lightmap;
 uniform sampler2D normals;
@@ -38,10 +35,7 @@ const int GL_EXP = 2048;
 const float bump_distance = 78.0f;
 const float fademult = 0.1f;
 
-
-
-
-
+#include "/lib/packing.glsl"
 
 void main() {	
 
@@ -88,26 +82,27 @@ if (texture2D(texture, texcoord.st).a == 0.0f){
 			
 	}
 
-	//Diffuse
-		vec4 albedo = texture2D(texture, texcoord.st) * color;
-		
-		gl_FragData[0] = albedo;
-		
+	vec4 albedo = texture2D(texture, texcoord.st) * color;
 
-	float mats_1 = 5.0f;
-		  mats_1 += 0.1f;
-	//Depth  
-	gl_FragData[1] = vec4(mats_1/255.0f, lightmap.r, lightmap.b, 1.0f);
+	vec2 texturedNormal = NormalEncode(frag2.xyz) * 2.0 - 1.0;
+	vec2 flatNormal = NormalEncode(normal);
 
-	//normal
-	gl_FragData[2] = frag2;
-		
-	//specularity
-	gl_FragData[3] = vec4(spec.r + spec.b + spec.g * wetness * wetfactor, 0.0f, 0.0f, 1.0f);	
+	vec4 speculars = texture2D(specular, texcoord.xy);
 
-	gl_FragData[4] = frag2;	
+	float smoothness = speculars.r;
+	float metallic = speculars.g;
+	float material = floor(speculars.b * 255.0);
+	float emissive = speculars.a * step(speculars.a, 0.999);
 
-	gl_FragData[5] = vec4(0.0f, lightmap.b, 5.0 / 255.0f, 1.0f);
-	
+	float packageMaterialData = pack2x8(smoothness, metallic);
+	float encodeTextureMaterialID = material / 65535.0;
+	float encodeBlocksMaterialID = 5.0 / 65535.0;
 
+	float packageLightMap = pack2x8(lightmap.rb);
+
+	/* DRAWBUFFERS:0123 */
+	gl_FragData[0] = albedo;
+	gl_FragData[1] = vec4(packageLightMap, emissive, 0.0, 1.0);
+	gl_FragData[2] = vec4(texturedNormal, flatNormal);
+	gl_FragData[3] = vec4(packageMaterialData, encodeTextureMaterialID, encodeBlocksMaterialID, 1.0);
 }

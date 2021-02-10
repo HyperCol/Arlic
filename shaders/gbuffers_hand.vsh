@@ -19,6 +19,7 @@ varying vec2 waves;
 varying float distance;
 varying float translucent;
 
+#include "/lib/antialiasing/taaProjection.glsl"
 
 void main() {
 
@@ -267,6 +268,10 @@ void main() {
 
 
 	gl_Position = gl_ProjectionMatrix * (gl_ModelViewMatrix * position);
+
+	#ifdef Enabled_TemportalAntiAliasing
+	gl_Position.xy += jitter * 2.0 * gl_Position.w;
+	#endif
 	
 	color = gl_Color;
 	

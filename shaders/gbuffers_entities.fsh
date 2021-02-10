@@ -68,6 +68,7 @@ const int GL_EXP = 2048;
 const float bump_distance = 78.0f;
 const float fademult = 0.1f;
 
+#include "/lib/packing.glsl"
 
 void main() {	
 
@@ -102,23 +103,28 @@ void main() {
 			frag2 = vec4((normal) * 0.5f + 0.5f, 1.0f);
 	}
 
-	//Diffuse
 	vec4 albedo = texture2D(texture, texcoord.st) * color;
 
+	vec2 texturedNormal = NormalEncode(frag2.xyz * 2.0 - 1.0);
+	vec2 flatNormal = NormalEncode(normal);
 
-	albedo.rgb = mix(albedo.rgb, entityColor.rgb, entityColor.aaa);
+	vec4 speculars = texture2D(specular, texcoord.xy);
 
+	float smoothness = speculars.r;
+	float metallic = speculars.g;
+	float material = floor(speculars.b * 255.0);
+	float emissive = speculars.a * step(speculars.a, 0.999);
+
+	float packageMaterialData = pack2x8(smoothness, metallic);
+	float encodeTextureMaterialID = material / 65535.0;
+	float encodeBlocksMaterialID = 1.0 / 65535.0;
+
+	float packageLightMap = pack2x8(lightmap.rb);
+
+	/* DRAWBUFFERS:0123 */
 	gl_FragData[0] = albedo;
-
-	//Depth  
-	gl_FragData[1] = vec4(1.0f/255.0f, lightmap.r, lightmap.b, 1.0f);
-
-	//normal
-	gl_FragData[2] = frag2;
-		
-	//specularity
-	gl_FragData[3] = vec4(0.0f, 0.0f, 0.0f, 1.0f);	
-
-	gl_FragData[4] = frag2;		
+	gl_FragData[1] = vec4(packageLightMap, emissive, 0.0, 1.0);
+	gl_FragData[2] = vec4(texturedNormal, flatNormal);
+	gl_FragData[3] = vec4(packageMaterialData, encodeTextureMaterialID, encodeBlocksMaterialID, 1.0);
 
 }

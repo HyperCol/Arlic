@@ -1,5 +1,6 @@
 #version 120
 
+varying vec2 lmcoord;
 
 varying vec4 color;
 
@@ -8,26 +9,26 @@ const int GL_EXP = 2048;
 
 uniform int fogMode;
 
-/* DRAWBUFFERS:0 */
+/* DRAWBUFFERS:0123 */
 
+#include "/lib/packing.glsl"
 
 void main() {
+
+	vec4 lightmap = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	
-	//albedo
-	gl_FragData[0] = color;
-	//depth
-	gl_FragData[1] = vec4(0.0f, 0.0f, 1.0f, 0.0f);
+	//Separate lightmap types
+	lightmap.r = clamp((lmcoord.s * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
+	lightmap.b = clamp((lmcoord.t * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
 	
-	gl_FragData[2] = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-	
-	//matIDs, lightmap.r, lightmap.b
-	gl_FragData[3] = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-	
-	//specularity.r, specularity.g, iswater
-	//gl_FragData[3] = vec4(0.0f, 0.0f, 0.0f, alphamask);
-	
-	//gl_FragData[5] = vec4(0.0f, 0.0f, 1.0f, alphamask);
-	//gl_FragData[6] = vec4(0.0f, 0.0f, 0.0f, alphamask);
+	lightmap.r = pow(lightmap.r, 3.0f);
+
+	vec4 albedo = color;
+
+	gl_FragData[0] = vec4(albedo.rgb, 1.0);
+	gl_FragData[1] = vec4(pack2x8(lightmap.rb), 0.0, 0.0, 1.0);
+	gl_FragData[2] = vec4(0.0, 0.0, 0.0, 1.0);
+	gl_FragData[3] = vec4(0.0, 0.0, 252.0 / 65535.0, 1.0);
 
 	if (fogMode == GL_EXP) {
 		gl_FragData[0].rgb = mix(gl_FragData[0].rgb, (gl_Fog.color.rgb * 1.0), 1.0 - clamp(exp(-gl_Fog.density * gl_FogFragCoord), 0.0, 1.0));

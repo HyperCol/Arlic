@@ -35,8 +35,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
 
-/* DRAWBUFFERS:2 */
-
 #define LF
 
 const bool gaux2MipmapEnabled = true;
@@ -353,6 +351,8 @@ if (rainStrength > 0.01) {
 		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
 		
 		color += vec4(raindrops*watercolor * 300.0,1.0);				
-}		
+	}
+
+	/* DRAWBUFFERS:2 */
 	gl_FragData[0] = color;
 }

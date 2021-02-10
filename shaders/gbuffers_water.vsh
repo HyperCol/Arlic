@@ -13,6 +13,7 @@ varying vec4 color;
 varying vec4 texcoord;
 varying vec4 lmcoord;
 varying vec3 worldPosition;
+varying vec4 viewPosition;
 varying vec4 vertexPos;
 
 varying vec3 normal;
@@ -28,6 +29,8 @@ attribute vec4 mc_Entity;
 varying float iswater;
 varying float isice;
 varying float isStainedGlass;
+
+#include "/lib/antialiasing/taaProjection.glsl"
 
 void main() {
 
@@ -55,12 +58,14 @@ void main() {
 	{
 		isStainedGlass = 1.0f;
 	}
+
+	if(iswater < 0.5 && isStainedGlass < 0.5) isice = 1.0;
 	
 		
-	vec4 viewPos = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
-	vec4 position = viewPos;
+	viewPosition = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
+	vec4 position = viewPosition;
 
-	worldPosition.xyz = viewPos.xyz + cameraPosition.xyz;
+	worldPosition.xyz = viewPosition.xyz + cameraPosition.xyz;
 
 	vec4 localPosition = gl_ModelViewMatrix * gl_Vertex;
 
@@ -68,6 +73,9 @@ void main() {
 
 	gl_Position = gl_ProjectionMatrix * (gbufferModelView * position);
 
+	#ifdef Enabled_TemportalAntiAliasing
+		gl_Position.xy += jitter * 2.0 * gl_Position.w;
+	#endif
 	
 	color = gl_Color;
 	

@@ -13,6 +13,8 @@ varying float distance;
 
 //attribute vec4 mc_Entity;
 
+#include "/lib/antialiasing/taaProjection.glsl"
+
 void main() {
 
 	//bloommask = vec4(0.0);
@@ -22,6 +24,10 @@ void main() {
 	//}
 
 	gl_Position = ftransform();
+
+	#ifdef Enabled_TemportalAntiAliasing
+		gl_Position.xy += jitter * 2.0 * gl_Position.w;
+	#endif
 	
 	color = gl_Color;
 	

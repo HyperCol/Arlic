@@ -35,8 +35,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
 
-/* DRAWBUFFERS:2 */
-
 #define LF
 
 const float LensFlareDelay = 1.85;
@@ -361,6 +359,8 @@ void main() {
 	}	
 	
 	pow(color, vec3(1.0 / 2.2));
+
+/* DRAWBUFFERS:2 */
 	gl_FragData[0] = vec4(color.rgb, a);
 	//gl_FragData[5] = vec4(a);
 }

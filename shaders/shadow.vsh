@@ -9,9 +9,15 @@ varying vec4 color;
 varying vec4 lmcoord;
 
 varying vec3 normal;
+varying vec3 tangent;
+varying vec3 binormal;
 varying vec3 rawNormal;
+varying vec3 shadowLightVector;
+
+varying vec3 shadowViewPosition;
 
 attribute vec4 mc_Entity;
+attribute vec4 at_tangent;
 
 varying float materialIDs;
 varying float iswater;
@@ -22,6 +28,7 @@ uniform sampler2D noisetex;
 uniform float frameTimeCounter;
 uniform float rainStrength;
 uniform vec3 cameraPosition;
+uniform vec3 shadowLightPosition;
 
 uniform mat4 shadowProjectionInverse;
 uniform mat4 shadowProjection;
@@ -142,11 +149,19 @@ float RepeatingImpulse(in float x, in float scale)
 	return Impulse(time, 3.0f / scale);
 }
 
+vec3 nvec3(vec4 x){
+	return x.xyz / x.w;
+}
+
 void main() {
 	gl_Position = ftransform();
 
 	lmcoord = gl_TextureMatrix[1] * gl_MultiTexCoord1;
 	texcoord = gl_MultiTexCoord0;
+
+	// /shadowLightVector = nvec3(gbufferModelViewInverse * vec4(normalize(shadowLightPosition), 1.0));
+	shadowLightVector = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);
+	shadowViewPosition = vec3(gbufferModelViewInverse * gbufferModelView * gl_Vertex);
 
 	vec4 position = gl_Position;
 
@@ -508,7 +523,7 @@ position.xyz -= cameraPosition.xyz;
 
 	if (iswater > 0.5 || isice > 0.5)
 	{
-		position.xyz += 10000.0;
+		//position.xyz += 10000.0;
 	}
 
 
@@ -518,6 +533,9 @@ position.xyz -= cameraPosition.xyz;
 	position = shadowProjection * position;
 
 	normal = normalize(gl_NormalMatrix * gl_Normal);
+	tangent = normalize(gl_NormalMatrix * at_tangent.xyz);
+  	binormal = cross(tangent, normal);
+
 	vec3 worldNormal = gl_Normal;
 
 	color = gl_Color;

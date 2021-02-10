@@ -34,17 +34,24 @@ VisionLab is part of HyperCol Studios
 Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
-
-/////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #define SHADOW_MAP_BIAS 0.90
 
-//#define ENABLE_SSAO
+/////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+#define ENABLE_SSAO	// Screen space ambient occlusion.
+#define GI	// Indirect lighting from sunlight.
 
+#define GI_QUALITY 0.5 // Number of GI samples. More samples=smoother GI. High performance impact! [0.5 1.0 2.0]
+#define GI_ARTIFACT_REDUCTION // Reduces artifacts on back edges of blocks at the cost of performance.
+#define GI_RENDER_RESOLUTION 0 // Render resolution of GI. 0 = High. 1 = Low. Set to 1 for faster but blurrier GI. [0 1]
+#define GI_RADIUS 0.75 // How far indirect light can spread. Can help to reduce artifacts with low GI samples. [0.5 0.75 1.0]
 
+#define WAVE_HEIGHT 0.75 //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+
+#define WATER_SPEED 1.0    //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.32.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+//#define WATER_SPEED_LIGHT_BAR_LINKER
 
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,42 +59,50 @@ Do not modify this code until you have read the LICENSE contained in the root di
 //of the shaders mod. The shaders mod only reads these lines and doesn't actually know the real value assigned to these variables in GLSL.
 //Some of these variables are critical for proper operation. Change at your own risk.
 
+//Buffer Format
+const int 		RGBA8 					= 1;
+const int 		RGBA16 					= 2;
+const int 		RGBA16F 				= 2;
+const int 		gcolorFormat 			= RGBA8;	//albedo
+const int 		gdepthFormat 			= RGBA8;	//lightmap
+const int 		gnormalFormat 			= RGBA16;	
+const int 		compositeFormat 		= RGBA16;
+const int 		colortex4Format 		= RGBA16;
+const int 		colortex5Format 		= RGBA16;
+const int 		colortex6Format 		= RGBA16;
+const int 		colortex7Format 		= RGBA16;	//temportal anti-aliasing
+
 const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096]
-const float 	shadowDistance 			= 120.0; // Shadow distance [80.0 120.0 180.0 240.0]
-const float 	shadowIntervalSize 		= 4.0f;
+const float 	shadowDistance 			= 120.0; // Shadow distance. Set lower if you prefer nicer close shadows. Set higher if you prefer nicer distant shadows. [80.0 120.0 180.0 240.0]
 const bool 		shadowHardwareFiltering0 = true;
 
+//shadowmap mipmap
 const bool 		shadowtex1Mipmap = true;
-const bool 		shadowtex1Nearest = false;
 const bool 		shadowcolor0Mipmap = true;
-const bool 		shadowcolor0Nearest = false;
 const bool 		shadowcolor1Mipmap = true;
-const bool 		shadowcolor1Nearest = false;
 
-const int 		R8 						= 0;
-const int 		RG8 					= 0;
-const int 		RGB8 					= 1;
-const int 		RGB16 					= 2;
-const int 		gcolorFormat 			= RGB16;
-const int 		gdepthFormat 			= RGB8;
-const int 		gnormalFormat 			= RGB16;
-const int 		compositeFormat 		= RGB8;
+//shadowmap nearest sampleing
+const bool 		shadowtex1Nearest = true;
+const bool 		shadowcolor0Nearest = true;
+const bool 		shadowcolor1Nearest = true;
 
+//eye lightmap smoothness
 const float 	eyeBrightnessHalflife 	= 10.0f;
+
 const float 	wetnessHalflife 		= 300.0f;
 const float 	drynessHalflife 		= 40.0f;
 
-const int 		superSamplingLevel 		= 0;
-
+//skytexture rotate angle
 const float		sunPathRotation 		= -0.0; // [-0.5 -1 -1.5 -2 -2.5 -3 -3.5 -4 -4.5 -5 -5.5 -6 -6.5 -7 -7.5 -8 -8.5 -9 -9.5 -10 -10.5 -11 -11.5 -12 -12.5 -13 -13.5 -14 -14.5 -15 -15.5 -16 -16.5 -17 -17.5 -18 -18.5 -19 -19.5 -20 -20.5 -21 -21.5 -22 -22.5 -23 -23.5 -24 -24.5 -25 -25.5 -26 -26.5 -27 -27.5 -28 -28.5 -29 -29.5 -30 -30.5 -31 -31.5 -32 -32.5 -33 -33.5 -34 -34.5 -35 -35.5 -36 -36.5 -37 -37.5 -38 -38.5 -39 -39.5 -40 -40.5 -41 -41.5 -42 -42.5 -43 -43.5 -44 -44.5 -45 -45.5 -46 -46.5 -47 -47.5 -48 -48.5 -49 -49.5 -50 -50.5 -51 -51.5 -52 -52.5 -53 -53.5 -54 -54.5 -55 -55.5 -56 -56.5 -57 -57.5 -58 -58.5 -59 -59.5 -60 -60.5 -61 -61.5 -62 -62.5 -63 -63.5 -64 -64.5 -65 -65.5 -66 -66.5 -67 -67.5 -68 -68.5 -69 -69.5 -70 -70.5 -71 -71.5 -72 -72.5 -73 -73.5 -74 -74.5 -75 -75.5 -76 -76.5 -77 -77.5 -78 -78.5 -79 -79.5 -80 -80.5 -81 -81.5 -82 -82.5 -83 -83.5 -84 -84.5 -85 -85.5 -86 -86.5 -87 -87.5 -88 -88.5 -89 -89.5 -90]
-const float 	ambientOcclusionLevel 	= 0.01f;
 
+//vannilla lightmap AO
+const float 	ambientOcclusionLevel 	= 0.0;
+
+//noisemap resolition 
 const int 		noiseTextureResolution  = 64;
 
 
 //END OF INTERNAL VARIABLES//
-
-/* DRAWBUFFERS:46 */
 
 uniform sampler2D gnormal;
 uniform sampler2D depthtex1;
@@ -114,6 +129,7 @@ varying float timeSunriseSunset;
 varying float timeNoon;
 varying float timeMidnight;
 varying float timeSkyDark;
+uniform float screenBrightness;
 
 varying vec3 colorSunlight;
 varying vec3 colorSkylight;
@@ -141,7 +157,7 @@ uniform vec3 cameraPosition;
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 vec3  	GetNormals(in vec2 coord) {				//Function that retrieves the screen space surface normals. Used for lighting calculations
-	return texture2DLod(gaux2, coord.st, 0).rgb * 2.0f - 1.0f;
+	return texture2DLod(gnormal, coord.st, 0).rgb * 2.0f - 1.0f;
 }
 
 float 	GetDepth(in vec2 coord) {
@@ -311,6 +327,200 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 		vec4 screenSpacePosition 	= GetScreenSpacePosition(coord.st); 			//Gets the screen-space position
 		vec3 viewVector 			= normalize(screenSpacePosition.xyz);
 
+
+		float distance = sqrt(  screenSpacePosition.x * screenSpacePosition.x 	//Get surface distance in meters
+							  + screenSpacePosition.y * screenSpacePosition.y 
+							  + screenSpacePosition.z * screenSpacePosition.z);
+
+		float materialIDs = texture2D(gdepth, coord).r * 255.0f;
+
+		vec4 upVectorShadowSpace = shadowModelView * vec4(0.0f, 1.0, 0.0, 0.0);
+
+		
+		vec4 worldposition = gbufferModelViewInverse * screenSpacePosition;		//Transform from screen space to world space
+			 worldposition = shadowModelView * worldposition;							//Transform from world space to shadow space
+		float comparedepth = -worldposition.z;											//Surface distance from sun to be compared to the shadow map
+		
+		worldposition = shadowProjection * worldposition;								//Transform from shadow space to shadow projection space					
+		worldposition /= worldposition.w;
+
+		float d = sqrt(worldposition.x * worldposition.x + worldposition.y * worldposition.y);
+		float distortFactor = (1.0f - SHADOW_MAP_BIAS) + d * SHADOW_MAP_BIAS;
+		//worldposition.xy /= distortFactor;
+		//worldposition.z = mix(worldposition.z, 0.5, 0.8);
+		worldposition = worldposition * 0.5f + 0.5f;		//Transform from shadow projection space to shadow map coordinates
+
+		float shadowMult = 0.0f;														//Multiplier used to fade out shadows at distance
+		float shad = 0.0f;
+		vec3 fakeIndirect = vec3(0.0f);
+
+		float fakeLargeAO = 0.0;
+
+
+		float mcSkylight = GetSkylight(coord) * 0.8 + 0.2;
+
+		float fademult = 0.15f;
+
+		shadowMult = clamp((shadowDistance * 41.4f * fademult) - (distance * fademult), 0.0f, 1.0f);	//Calculate shadowMult to fade shadows out
+
+
+		if (	shadowMult > 0.0) 
+		{
+			 
+
+			//big shadow
+			float rad = range;
+
+			int c = 0;
+			float s = 2.0f * rad / 2048;
+
+			vec2 dither = noisePattern.xy - 0.5f;
+			//vec2 dither = vec2(0.0f);
+
+			float step = 1.0f / quality;
+
+			for (float i = -2.0f; i <= 2.0f; i += step) {
+				for (float j = -2.0f; j <= 2.0f; j += step) {
+
+					vec2 offset = (vec2(i, j) + dither * step) * s;
+
+					offset *= length(offset) * 15.0;
+					offset *= GI_RADIUS * 1.0;
+
+					vec2 coord =  worldposition.st + offset;
+					vec2 lookupCoord = DistortShadowSpace(coord);
+
+					#ifdef GI_ARTIFACT_REDUCTION
+					float depthSample = texture2DLod(shadowtex1, lookupCoord, 0).x;
+					#else
+					float depthSample = texture2DLod(shadowtex1, lookupCoord, 2).x;
+					#endif
+
+					/*
+					depthSample = depthSample * 2.0 - 1.0;
+					depthSample -= 0.4;
+					depthSample /= 0.2;
+					depthSample = depthSample * 0.5 + 0.5;
+					*/
+
+					depthSample = -3 + 5.0 * depthSample;
+					vec3 samplePos = vec3(coord.x, coord.y, depthSample);
+
+
+					vec3 lightVector = normalize(samplePos.xyz - worldposition.xyz);
+
+					vec4 normalSample = texture2DLod(shadowcolor1, lookupCoord, 5);
+					vec3 surfaceNormal = normalSample.rgb * 2.0f - 1.0f;
+						 surfaceNormal.x = -surfaceNormal.x;
+						 surfaceNormal.y = -surfaceNormal.y;
+
+					float surfaceSkylight = normalSample.a;
+
+					if (surfaceSkylight < 0.2)
+					{
+						surfaceSkylight = mcSkylight;
+					}
+
+					float NdotL = max(0.0f, dot(shadowSpaceNormal.xyz, lightVector * vec3(1.0, 1.0, -1.0)));
+						  // NdotL = NdotL * 0.9f + 0.1f;
+
+					if (abs(materialIDs - 3.0f) < 0.1f || abs(materialIDs - 2.0f) < 0.1f || abs(materialIDs - 11.0f) < 0.1f)
+					{
+						NdotL = 1.0f;
+					}
+
+					if (NdotL > 0.0)
+					{
+						bool isTranslucent = length(surfaceNormal) < 0.5f;
+
+						if (isTranslucent)
+						{
+							surfaceNormal.xyz = vec3(0.0f, 0.0f, 1.0f);
+						}
+
+						//float leafMix = clamp(-surfaceNormal.b * 10.0f, 0.0f, 1.0f);
+
+
+						float weight = dot(lightVector, surfaceNormal);
+						float rawdot = weight;
+						// float aoWeight = abs(weight);
+							  // aoWeight *= clamp(dot(lightVector, upVectorShadowSpace.xyz), 0.0, 1.0);
+						//weight = mix(weight, 1.0f, leafMix);
+						if (isTranslucent)
+						{
+							weight = abs(weight) * 0.25f;
+						}
+
+						if (normalSample.a < 0.2)
+						{
+							weight = 0.5;
+						}
+
+						weight = max(weight, 0.0f);
+
+						float dist = length(samplePos.xyz - worldposition.xyz - vec3(0.0f, 0.0f, 0.0f));
+						if (dist < 0.0005f)
+						{
+							dist = 10000000.0f;
+						}
+						// float aoDist = length(samplePos.xyz - worldposition.xyz);
+						// aoDist = aoDist < 0.001f ? 10000000.0f : aoDist;
+
+						const float falloffPower = 2.0f;
+						float distanceWeight = (1.0f / (pow(dist * (62260.0f / rad), falloffPower) + 100.1f));
+							  //distanceWeight = max(0.0f, distanceWeight - 0.000009f);
+							  distanceWeight *= pow(length(offset), 2.0) * 50000.0 + 1.01;
+						
+						// float aoDistanceWeight = (1.0f / (pow(aoDist * (13600.0f / rad), falloffPower) + 0.0001f * step));
+							  // aoDistanceWeight = max(0.0f, aoDistanceWeight - 0.00009f);
+
+						//Leaves self-occlusion
+						if (rawdot < 0.0f)
+						{
+							distanceWeight = max(distanceWeight * 30.0f - 0.13f, 0.0f);
+							distanceWeight *= 0.04f;
+						}
+							  
+
+						//float skylightWeight = clamp(1.0 - abs(surfaceSkylight - mcSkylight) * 10.0, 0.0, 1.0);
+						float skylightWeight = 1.0 / (max(0.0, surfaceSkylight - mcSkylight) * 50.0 + 1.0);
+
+
+						vec3 colorSample = pow(texture2DLod(shadowcolor, lookupCoord, 5).rgb, vec3(2.2f));
+						//colorSample 				= pow(colorSample, vec3(1.2f));
+
+						//colorSample = Contrast(colorSample, 0.8f);
+
+						//colorSample = normalize(colorSample) * pow(length(colorSample), 1.2f);
+
+						//colorSample = mix(colorSample, vec3(dot(colorSample, vec3(0.3333f))), vec3(0.035f));
+						//float colorMagnitude = dot(colorSample, vec3(0.3333f));
+						//vec3 normalized = normalize(colorSample);
+						// if (surfaceNormal.b < -0.1f && abs(materialIDs - 3.0f) < 0.1f)
+						// {
+						// 	float crossfade = clamp(1.0f - dist / 5.0f, 0.0f, 1.0f);
+						// 	normalized = pow(normalized, vec3(mix(1.0f, 2.0f, crossfade)));
+						// }
+						//colorSample = normalized * colorMagnitude;
+
+
+						fakeIndirect += colorSample * weight * distanceWeight * NdotL * skylightWeight;
+						//fakeIndirect += skylightWeight * weight * distanceWeight * NdotL;
+					// fakeLargeAO += aoDistanceWeight * NdotL;
+					}
+					c += 1;
+				}
+			}
+
+			fakeIndirect /= c;
+			// fakeLargeAO /= c;
+			// fakeLargeAO = clamp(1.0 - fakeLargeAO * 500.0, 0.0, 1.0);
+			// fakeLargeAO = pow(fakeLargeAO, 2.0);
+		}
+
+		fakeIndirect = mix(vec3(0.0f), fakeIndirect, vec3(shadowMult));
+
+
 		float ao = 1.0f;
 		// ao *= fakeLargeAO;
 		bool isSky = GetSkyMask(coord.st);
@@ -323,7 +533,7 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 
 		//fakeIndirect.rgb = vec3(mcSkylight / 1150.0);
 
-		return vec4(vec3(1.0), ao);
+		return vec4(fakeIndirect.rgb * 1400.0f * GI_RADIUS, ao);
 	}
 	else {
 		return vec4(0.0f);
@@ -724,15 +934,19 @@ float AlmostIdentity(in float x, in float m, in float n)
 
 float GetWaves(vec3 position) {
 	float speed = 0.9f;
-
+	float waveWaterSpeed = WATER_SPEED;
+#ifdef WATER_SPEED_LIGHT_BAR_LINKER
+      waveWaterSpeed *= pow(screenBrightness * 2.0f, 4.0);
+#endif
+#define FRAME_TIME frameTimeCounter * waveWaterSpeed
   vec2 p = position.xz / 20.0f;
 
   p.xy -= position.y / 20.0f;
 
   p.x = -p.x;
 
-  p.x += (frameTimeCounter / 40.0f) * speed;
-  p.y -= (frameTimeCounter / 40.0f) * speed;
+  p.x += (FRAME_TIME / 40.0f) * speed;
+  p.y -= (FRAME_TIME / 40.0f) * speed;
 
   float weight = 1.0f;
   float weights = weight;
@@ -741,31 +955,31 @@ float GetWaves(vec3 position) {
 
   float wave = 0.0;
 	//wave = textureSmooth(noisetex, (p * vec2(2.0f, 1.2f))  + vec2(0.0f,  p.x * 2.1f) ).x;
-	p /= 2.1f; 	/*p *= pow(2.0f, 1.0f);*/ 	p.y -= (frameTimeCounter / 20.0f) * speed; p.x -= (frameTimeCounter / 30.0f) * speed;
+	p /= 2.1f; 	/*p *= pow(2.0f, 1.0f);*/ 	p.y -= (FRAME_TIME / 20.0f) * speed; p.x -= (FRAME_TIME / 30.0f) * speed;
   //allwaves += wave;
 
   weight = 4.1f;
   weights += weight;
       wave = textureSmooth(noisetex, (p * vec2(2.0f, 1.4f))  + vec2(0.0f,  -p.x * 2.1f) ).x;
-			p /= 1.5f;/*p *= pow(2.0f, 2.0f);*/ 	p.x += (frameTimeCounter / 20.0f) * speed;
+			p /= 1.5f;/*p *= pow(2.0f, 2.0f);*/ 	p.x += (FRAME_TIME / 20.0f) * speed;
       wave *= weight;
   allwaves += wave;
 
   weight = 17.25f;
   weights += weight;
-      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  p.x * 1.1f) ).x);		p /= 1.5f; 	p.x -= (frameTimeCounter / 55.0f) * speed;
+      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  p.x * 1.1f) ).x);		p /= 1.5f; 	p.x -= (FRAME_TIME / 55.0f) * speed;
       wave *= weight;
   allwaves += wave;
 
   weight = 15.25f;
   weights += weight;
-      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  -p.x * 1.7f) ).x);		p /= 1.9f; 	p.x += (frameTimeCounter / 155.0f) * speed;
+      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  -p.x * 1.7f) ).x);		p /= 1.9f; 	p.x += (FRAME_TIME / 155.0f) * speed;
       wave *= weight;
   allwaves += wave;
 
   weight = 29.25f;
   weights += weight;
-      wave = abs(textureSmooth(noisetex, (p * vec2(1.0f, 0.8f))  + vec2(0.0f,  -p.x * 1.7f) ).x * 2.0f - 1.0f);		p /= 2.0f; 	p.x += (frameTimeCounter / 155.0f) * speed;
+      wave = abs(textureSmooth(noisetex, (p * vec2(1.0f, 0.8f))  + vec2(0.0f,  -p.x * 1.7f) ).x * 2.0f - 1.0f);		p /= 2.0f; 	p.x += (FRAME_TIME / 155.0f) * speed;
       wave = 1.0f - AlmostIdentity(wave, 0.2f, 0.1f);
       wave *= weight;
   allwaves += wave;
@@ -779,7 +993,7 @@ float GetWaves(vec3 position) {
 
   // weight = 10.0f;
   // weights += weight;
-  // 	wave = sin(length(position.xz * 5.0 + frameTimeCounter));
+  // 	wave = sin(length(position.xz * 5.0 + FRAME_TIME));
   //   wave *= weight;
   // allwaves += wave;
 
@@ -790,8 +1004,6 @@ float GetWaves(vec3 position) {
 
 
 vec3 GetWavesNormal(vec3 position) {
-
-	float WAVE_HEIGHT = 1.5;
 
 	const float sampleDistance = 11.0f;
 
@@ -831,7 +1043,9 @@ void main() {
 	vec3 normal = GetNormals(texcoord.st);
 
 	vec4 light = vec4(0.0, 0.0, 0.0, 1.0);
-		 light = GetLight(1, 		vec2(0.0f			), 16.0f,  2.0f, noisePattern);
+	#ifdef GI
+		 light = GetLight(GI_RENDER_RESOLUTION, 		vec2(0.0f			), 16.0,  GI_QUALITY, noisePattern);
+	#endif
 	//light += GetLight(0, vec2(0.0f), 2.0f, 0.5f);
 
 	if (light.r >= 1.0f)
@@ -849,12 +1063,12 @@ void main() {
 		light.b = 0.0f;
 	}
 
-	light.a = mix(light.a, 1.0, GetMaterialMask(texcoord.st * 2.0, 5));
+	light.a = mix(light.a, 1.0, GetMaterialMask(texcoord.st * (GI_RENDER_RESOLUTION + 1.0), 5));
 
 
-	
+	/* DRAWBUFFERS:46 */
 	gl_FragData[0] = vec4(pow(light.rgb, vec3(1.0 / 2.2)), light.a);
-	gl_FragData[1] = vec4(vec2(0.0), texture2D(gaux3, texcoord.st).gb);
+	gl_FragData[1] = vec4(GetWavesNormal(vec3(texcoord.s * 50.0, 1.0, texcoord.t * 50.0)).xy * 0.5 + 0.5, texture2D(gaux3, texcoord.st).gb);
 	// gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);
 }
 

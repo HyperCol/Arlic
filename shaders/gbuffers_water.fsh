@@ -13,6 +13,7 @@ uniform float screenBrightness;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferPreviousProjection;
 
+uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferPreviousModelView;
 
@@ -34,6 +35,7 @@ varying vec4 color;
 varying vec4 texcoord;
 varying vec4 lmcoord;
 varying vec3 worldPosition;
+varying vec4 viewPosition;
 varying vec4 vertexPos;
 varying float distance;
 
@@ -44,9 +46,7 @@ varying float isStainedGlass;
 #define WATER_SPEED 1.0    //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.32.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 //#define WATER_SPEED_LIGHT_BAR_LINKER
 
-
-/* DRAWBUFFERS:02367 */
-
+#include "/lib/packing.glsl"
 
 vec4 cubic(float x)
 {
@@ -265,7 +265,7 @@ vec3 GetWavesNormal(vec3 position, in float scale, in mat3 tbnMatrix) {
 void main() {
 
 	vec4 tex = texture2D(texture, texcoord.st);
-		 tex.a = 0.85f;
+	//	 tex.a = 0.85f;
 
 	float zero = 1.0f;
 	float transx = 0.0f;
@@ -282,6 +282,13 @@ void main() {
 		backfacing = false;
 	}
 
+
+	vec4 speculars = texture2D(specular, texcoord.xy);
+
+	float smoothness = speculars.r;
+	float metallic = speculars.g;
+	float material = floor(speculars.b * 255.0);
+	float emissive = speculars.a * step(speculars.a, 0.999);
 
 	if (iswater > 0.5f && !backfacing) {
 		vec4 albedo = texture2D(texture, texcoord.st).rgba;
@@ -301,6 +308,8 @@ void main() {
 
 		// tex = vec4(color.r, color.g, color.b, 0.4f);
 		// tex.rgb *= vec3(0.9f, 1.0f, 0.1f) * 0.8f;
+
+		metallic = 0.02;
 
 	} else if (iswater > 0.5f && backfacing) {
 		tex = vec4(0.0, 0.0, 0.0f, 30.0f / 255.0f);
@@ -324,26 +333,29 @@ void main() {
 
 	float matID = 4.0f;
 
-	if (iswater > 0.5f)
-	{
-			matID = 35.0f;
+	if (iswater > 0.5f) {
+		matID = 35.0f;
+
+		metallic = 0.02;
+		smoothness = 0.9;
 	}
 
-	if (isice > 0.5)
-	{
+	if (isice > 0.5) {
 		matID = 4;
+
+		metallic = 0.0179;
 	}
 
-	if (isStainedGlass > 0.5)
-	{
+	if (isStainedGlass > 0.5) {
 		matID = 55.0;
+
+		metallic = 0.04;
 	}
 
 
 	matID += 0.1f;
 
   // gl_FragData[0] = vec4(tex.rgb, 0.2);
-	gl_FragData[0] = vec4(vec3(0.0, 0.0, 0.0), 0.2);
 	//gl_FragData[1] = vec4(matID / 255.0f, lightmap.r, lightmap.b, 1.0);
 
 
@@ -364,23 +376,29 @@ void main() {
 
 	vec3 waterNormal = wavesNormal * tbnMatrix;
 	vec3 texNormal = texture2D(normals, texcoord.st).rgb * 2.0f - 1.0f;
-		 texNormal = texNormal * tbnMatrix;
+		 texNormal = normalize(texNormal * tbnMatrix);
 
+	if(dot(texNormal, -normalize(mat3(gbufferModelView) * viewPosition.xyz)) < 0.2) texNormal = normal;
+	waterNormal = mix(texNormal, waterNormal, iswater);
 
-	waterNormal = mix(waterNormal, texNormal, isice + isStainedGlass);
+	float packageLightMap = pack2x8(lightmap.rb);
 
+	float packageMaterialData = pack2x8(smoothness, metallic);
+	float encodeTextureMaterialID = material / 65535.0;
+	float encodeBlocksMaterialID = matID / 65535.0;
 
-	gl_FragData[1] = vec4(waterNormal.rgb * 0.5 + 0.5, 1.0f);
+	/* DRAWBUFFERS:0123 */
+	gl_FragData[0] = vec4(tex.rgb, 1.0);
+	gl_FragData[1] = vec4(packageLightMap, emissive, 0.0, 1.0);
+	gl_FragData[2] = vec4(NormalEncode(waterNormal.rgb), tex.a, 1.0);
+	gl_FragData[3] = vec4(packageMaterialData, encodeTextureMaterialID, encodeBlocksMaterialID, 1.0);
+	//gl_FragData[4] = vec4(NormalEncode(normal), 0.0, 1.0);
 
-
-	vec4 spec = texture2D(specular, texcoord.st);
-
-	gl_FragData[2] = vec4(spec.r, spec.b, 0.0f, 1.0);
-
-
-	//gl_FragData[5] = vec4(lightmap.rgb, 0.0f);
-	gl_FragData[3] = vec4(0.0f, lightmap.b, matID / 255.0f, 1.0f);
-	gl_FragData[4] = vec4(texture2D(texture, texcoord.st).rgb, 1.0);
+	//gl_FragData[0] = vec4(vec3(0.0), 0.2);
+	//gl_FragData[1] = vec4(waterNormal.rgb * 0.5 + 0.5, 1.0f);
+	//gl_FragData[3] = vec4(texture2D(texture, texcoord.xy).rgb, 1.0);
+	//gl_FragData[4] = vec4(0.0f, lightmap.b, matID / 255.0f, 1.0f);
+	//gl_FragData[4] = vec4(texture2D(texture, texcoord.st).rgb, 1.0);
 
 
 	//gl_FragData[7] = vec4(globalNormal * 0.5f + 0.5f, 1.0);

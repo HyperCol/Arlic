@@ -27,8 +27,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 ///////////////////////////////////////////////////END OF ADJUSTABLE VARIABLES///////////////////////////////////////////////////
 
-/* DRAWBUFFERS:01235 */
-
 uniform sampler2D texture;
 uniform sampler2D lightmap;
 uniform sampler2D normals;
@@ -73,6 +71,8 @@ const int GL_EXP = 2048;
 
 const float bump_distance = 78.0f;
 const float fademult = 0.1f;
+
+#include "/lib/packing.glsl"
 
 vec4 cubic(float x)
 {
@@ -217,7 +217,7 @@ float GetModulatedRainSpecular(in vec3 pos)
 		  n += Get3DNoise(p / 2.0f).x * 2.0f;
 		  n += Get3DNoise(p / 4.0f).x * 4.0f;
 
-		  n /= 7.0f;
+		  n /= 7.0;
 
 	return n;
 }
@@ -366,11 +366,7 @@ void main() {
 	spec.g = 1.0;
 	#endif
 
-	float wet = GetModulatedRainSpecular(worldPosition.xyz);
-
-	float wetAngle = dot(worldNormal, vec3(0.0f, 1.0f, 0.0f)) * 0.5f + 0.5f;
-	wet *= wetAngle;
-
+/*
 	if (abs(materialIDs - 20.0f) < 0.1f || abs(materialIDs - 21.0f) < 0.1f)
 	{
 		spec.g = 0.0f;
@@ -383,7 +379,7 @@ void main() {
 		 // spec.g += wet;
 		 // spec.b += wet;
 	}
-
+*/
 	//store lightmap in auxilliary texture. r = torch light. g = lightning. b = sky light.
 	vec4 lightmap = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	
@@ -414,18 +410,30 @@ void main() {
 
 	 // lightmap.r *= ao * 0.5f + 0.5f;
 
-	 float wetfactor = clamp(lightmap.b * 1.05f - 0.9f, 0.0f, 0.1f) / 0.1f;
-	 	   wetfactor *= w;
+	float wetAngle = dot(worldNormal, vec3(0.0f, 1.0f, 0.0f)) * 0.5f + 0.5f;
 
-	 //spec.g += 0.9f;
-	 spec.g *= wetfactor;
+	float wet = GetModulatedRainSpecular(worldPosition.xyz);
+		  wet = clamp((wet - 0.0) / (0.7 - 0.0), 0.0, 1.0);
+		  wet *= wetAngle;
 
+	float wetFactor = wet * smoothstep(0.8, 0.9, lmcoord.y) * wetness;
+	//	  wetFactor = 1.0;
 
+	vec4 speculars = texture2D(specular, parallaxCoord);
 
+	float smoothness = speculars.r;
+	float metallic = max(0.02, speculars.g);
+	float material = floor(speculars.b * 255.0);
+	float emissive = speculars.a * step(speculars.a, 0.999);
+	float porosity = step(material, 64.5) / 64.0 * material;
 
-	
-	
-	
+	#ifdef FORCE_WET_EFFECT
+		metallic = mix(metallic, 0.02, wetFactor * step(metallic, 0.9));
+		smoothness = mix(smoothness, 0.99, wetFactor);
+	#endif
+
+	smoothness *= 1.0 - porosity * 0.99;
+
 	vec4 frag2;
 	
 	if (distance < bump_distance) {
@@ -439,11 +447,11 @@ void main() {
 
 			//bump += CalculateRainBump(worldPosition.xyz);
 			
-			frag2 = vec4(bump * tbnMatrix * 0.5 + 0.5, 1.0);
+			frag2 = vec4(bump * tbnMatrix * 0.5 + 0.5, 1.0) * 2.0 - 1.0;
 			
 	} else {
 	
-			frag2 = vec4((normal) * 0.5f + 0.5f, 1.0f);					
+			frag2 = vec4((normal) * 0.5f + 0.5f, 1.0f) * 2.0 - 1.0;					
 	}
 
 
@@ -453,7 +461,7 @@ void main() {
 
 	float baseHeight = GetTexture(normals, parallaxCoord.st).a;
 
-	if (dot(normalize(sunPosition), normalize(frag2.xyz * 2.0 - 1.0)) > 0.0 && baseHeight < 1.0 && distance < 20.0f)
+	if (dot(normalize(sunPosition), normalize(frag2.xyz)) > 0.0 && baseHeight < 1.0 && distance < 20.0f)
 	{
 		vec3 lightVector = normalize(sunPosition.xyz);
 		lightVector = normalize(tbnMatrix * lightVector);
@@ -482,85 +490,27 @@ void main() {
 
 	// albedo.rgb = mix(albedo.rgb, vec3(1.0), vec3(clamp(clamp(dot(frag2.xyz * 2.0 - 1.0, upVector) * 1.0 + 0.5, 0.0, 1.0) * clamp(lightmap.b * 10.0 - 9.0, 0.0, 1.0) * 6.0 - 2.0, 0.0, 1.0)));
 
-	float darkFactor = clamp(spec.g, 0.0f, 0.2f) / 0.2f;
+	//float darkFactor = clamp(spec.g, 0.0f, 0.2f) / 0.2f;
 
 	//albedo.rgb *= mix(1.0f, 0.9f, darkFactor);
-	albedo.rgb = pow(albedo.rgb, vec3(mix(1.0f, 1.25f, darkFactor)));
+	//albedo.rgb = pow(albedo.rgb, vec3(mix(1.0f, 1.25f, darkFactor)));
 	//albedo.rgb = vec3(1.0f);
-
-
-
-		float metallicMask = 0.0f;
-		
-		if (   abs(materialIDs - 20.0f) < 0.1f
-			|| abs(materialIDs - 21.0f) < 0.1f
-			|| abs(materialIDs - 22.0f) < 0.1f
-			|| abs(materialIDs - 23.0f) < 0.1f) {
-			metallicMask = 1.0f;
-		}
-		
-
-		
 
 	float mats_1 = materialIDs;
 		  mats_1 += 0.1f;
 
-	// if (abs(materialIDs - 60.0f) < 0.1f)
-	// {
-	// 	mats_1 = 0.0f;
-	// 	albedo.rgb = gl_Fog.color.rgb * 1.0f;
-	// }
+	vec2 texturedNormal = NormalEncode(frag2.xyz);
+	vec2 flatNormal = NormalEncode(normal);
 
-/*
-	vec4 viewSpacePos = gl_ModelViewMatrix * vertexPos;
-	viewSpacePos = gbufferProjection * viewSpacePos;
+	float packageMaterialData = pack2x8(smoothness, metallic);
+	float encodeTextureMaterialID = material / 65535.0;
+	float encodeBlocksMaterialID = mats_1 / 65535.0;
 
-	viewSpacePos.xyz += worldNormal * (height) * 0.11;
+	float packageLightMap = pack2x8(lightmap.rb);
 
-
-	viewSpacePos /= viewSpacePos.w;
-	viewSpacePos = viewSpacePos * 0.5 + 0.5;
-
-	gl_FragDepth = viewSpacePos.z;
-
-	albedo.rgb = viewSpacePos.xyz;
-// */
-
-	// albedo.rgb *= parallaxShadow;
-
-
-	//if (textureSize(texture, 4).y == atlasSize.y / 16)
-	//{
-	//	frag2.x = 0.0;
-	//}
-
-	// float tileSize = 2.0;
-	// for (int i = 4; i < 10; i++)
-	// {
-	// 	//if (textureSize(texture, i).y == atlasSize.y / exp2(i))
-	// 	if (textureSize(texture, i).y == 0)
-	// 	{
-	// 		tileSize = atlasSize.y / textureSize(texture, i-1).y;
-	// 		break;
-	// 	}
-	// }
-
-	// if (tileSize == 16.0)
-	// {
-	// 	frag2.x = 0.0;
-	// }
-
+	/* DRAWBUFFERS:0123 */
 	gl_FragData[0] = albedo;
-
-	//Depth  
-	gl_FragData[1] = vec4(mats_1/255.0f, lightmap.r, lightmap.b, 1.0f);
-
-	//normal
-	gl_FragData[2] = frag2;
-		
-	//specularity
-	gl_FragData[3] = vec4(spec.r + spec.g, spec.b, 1.0 - parallaxShadow, 1.0f);	
-
-	gl_FragData[4] = frag2;
-
+	gl_FragData[1] = vec4(packageLightMap, emissive, 1.0 - parallaxShadow, 1.0);
+	gl_FragData[2] = vec4(texturedNormal, flatNormal);
+	gl_FragData[3] = vec4(packageMaterialData, encodeTextureMaterialID, encodeBlocksMaterialID, 1.0);
 }

@@ -35,10 +35,9 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
 
-const bool		gnormalMipmapEnabled = true;
-/* DRAWBUFFERS:0 */
+const bool		gaux3MipmapEnabled = true;
 
-uniform sampler2D gnormal;
+uniform sampler2D gaux3;
 
 uniform float aspectRatio;
 uniform float viewWidth;
@@ -82,7 +81,7 @@ vec3 CalculateBloom(in int LOD, in vec2 offset) {
 
 				if (weight > 0.0f)
 				{
-					bloom += pow(clamp(texture2D(gnormal, finalCoord, 0).rgb, vec3(0.0f), vec3(1.0f)), vec3(2.2f)) * weight;
+					bloom += pow(clamp(texture2D(gaux3, finalCoord, 0).rgb, vec3(0.0f), vec3(1.0f)), vec3(2.2f)) * weight;
 					allWeights += 1.0f * weight;
 				}
 			}
@@ -98,13 +97,35 @@ vec3 CalculateBloom(in int LOD, in vec2 offset) {
 	
 }
 
+vec3 ToneMapping(in vec3 color){
+	float a = 0.000033;
+	float b = 0.03;
+
+	float lum = max(color.r, max(color.g, color.b));
+
+	if(bool(step(lum, a))) return color;
+
+	return color/lum*((a*a-b*lum)/(2.0*a-b-lum));
+}
+
+#define Enabled_TemportalAntiAliasing
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
-	
+	vec3 color = pow(texture2D(gaux3, texcoord.st).rgb, vec3(2.2));
+
+	#ifdef Enabled_TemportalAntiAliasing
+	color = ToneMapping(color / 0.001);
+	#endif
+
+	color = clamp(color, vec3(0.0), vec3(1.0));
+
+	color = pow(color, vec3(1.0 / 2.2));
+
 	vec3 bloom  = CalculateBloom(2, vec2(0.0f)				+ vec2(0.000f, 0.000f)	);
 		 bloom += CalculateBloom(3, vec2(0.0f, 0.25f)		+ vec2(0.000f, 0.025f)	);
 		 bloom += CalculateBloom(4, vec2(0.125f, 0.25f)		+ vec2(0.025f, 0.025f)	);
@@ -114,6 +135,9 @@ void main() {
 		 bloom += CalculateBloom(8, vec2(0.28f, 0.25f)		+ vec2(0.125f, 0.025f)	);
 		 bloom = pow(bloom, vec3(1.0f / (1.0f + 1.2f)));
 
+	/* DRAWBUFFERS:056 */	
 	gl_FragData[0] = vec4(bloom.rgb, 1.0f);
+	gl_FragData[1] = texture2D(gaux3, texcoord.st);
+	gl_FragData[2] = vec4(color.rgb, 1.0f);
 
 }
