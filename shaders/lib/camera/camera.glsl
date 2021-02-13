@@ -104,7 +104,7 @@ float ComputeEV(float avgLuminance) {
     const float ISO = CAMERA_ISO;
     const float EC = CAMERA_EV;
 
-    #if CAMERA_MODE == CAMERA_MANUAL
+    #ifndef AUTO_CAMERA
         float EV100 = ComputeEV100(aperture2, shutterSpeed, ISO);
     #else
         float EV100 = ComputeTargetEV(avgLuminance);

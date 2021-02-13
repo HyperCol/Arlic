@@ -200,19 +200,14 @@ float Luminance(in vec3 color)
 }
 
 float ld(float depth) {
-    return near / (far + near - depth * (far - near));
+    return (near * far) / (depth * (near - far) + far);
+}
+
+float ild(float ldepth) {
+	return ((near * far) / ldepth - far) / (near - far);
 }
 
 vec2 fake_refract = vec2(sin(frameTimeCounter*1.7 + texcoord.x*50.0 + texcoord.y*25.0),cos(frameTimeCounter*2.5 + texcoord.y*100.0 + texcoord.x*25.0)) * isEyeInWater;
-
-void SaturationBoost(inout vec3 color) {
-	float satBoost = (SATURATION_STRENGTH * 0.2);
-
-	color.r = color.r * (1.0f + satBoost) - (color.g * satBoost) - (color.b * satBoost);
-	color.g = color.g * (1.0f + satBoost) - (color.r * satBoost) - (color.b * satBoost);
-	color.b = color.b * (1.0f + satBoost) - (color.r * satBoost) - (color.g * satBoost);
-}
-
 
 void  DOF_Blur(out vec3 color, in float isHand) {
 
@@ -237,157 +232,157 @@ void  DOF_Blur(out vec3 color, in float isHand) {
 	float bbb = 0.0;
 	#endif
 	
-#ifdef FOCUS_BLUR
-	#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
-		naive += (screenBrightness - depth) * 0.4 * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
-	#else
-		naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
+	#ifdef FOCUS_BLUR
+		#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
+			naive += (screenBrightness - depth) * 0.4 * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
+		#else
+			naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
+		#endif
 	#endif
-#endif
 
-if (depth <= 0.99999){
-#ifdef DISTANCE_BLUR
-#ifdef NOCALCULATECLOUDSNIGHT
-	naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
-#else
-naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb));
-#endif
-#endif
-}
+	if (depth <= 0.99999){
+	#ifdef DISTANCE_BLUR
+	#ifdef NOCALCULATECLOUDSNIGHT
+		naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
+	#else
+	naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb));
+	#endif
+	#endif
+	}
 
-#ifdef EDGE_BLUR
-	naive += pow(distance(texcoord.st, vec2(0.5)),EdgeBlurDecline) * 0.01 * EdgeBlurAmount;
-#endif
+	#ifdef EDGE_BLUR
+		naive += pow(distance(texcoord.st, vec2(0.5)),EdgeBlurDecline) * 0.01 * EdgeBlurAmount;
+	#endif
 
-	vec2 aspectcorrect = vec2(1.0, aspectRatio) * 1.6;
-	vec3 col = vec3(0.0);
-	col += GetColorTexture(texcoord.st);
-
+		vec2 aspectcorrect = vec2(1.0, aspectRatio) * 1.6;
+		vec3 col = vec3(0.0);
+		col += GetColorTexture(texcoord.st);
 
 
-#ifdef HEXAGONAL_BOKEH
-const vec2 offsets[60] = vec2[60] (	vec2(  0.2165,  0.1250 ),
-									vec2(  0.0000,  0.2500 ),
-									vec2( -0.2165,  0.1250 ),
-									vec2( -0.2165, -0.1250 ),
-									vec2( -0.0000, -0.2500 ),
-									vec2(  0.2165, -0.1250 ),
-									vec2(  0.4330,  0.2500 ),
-									vec2(  0.0000,  0.5000 ),
-									vec2( -0.4330,  0.2500 ),
-									vec2( -0.4330, -0.2500 ),
-									vec2( -0.0000, -0.5000 ),
-									vec2(  0.4330, -0.2500 ),
-									vec2(  0.6495,  0.3750 ),
-									vec2(  0.0000,  0.7500 ),
-									vec2( -0.6495,  0.3750 ),
-									vec2( -0.6495, -0.3750 ),
-									vec2( -0.0000, -0.7500 ),
-									vec2(  0.6495, -0.3750 ),
-									vec2(  0.8660,  0.5000 ),
-									vec2(  0.0000,  1.0000 ),
-									vec2( -0.8660,  0.5000 ),
-									vec2( -0.8660, -0.5000 ),
-									vec2( -0.0000, -1.0000 ),
-									vec2(  0.8660, -0.5000 ),
-									vec2(  0.2163,  0.3754 ),
-									vec2( -0.2170,  0.3750 ),
-									vec2( -0.4333, -0.0004 ),
-									vec2( -0.2163, -0.3754 ),
-									vec2(  0.2170, -0.3750 ),
-									vec2(  0.4333,  0.0004 ),
-									vec2(  0.4328,  0.5004 ),
-									vec2( -0.2170,  0.6250 ),
-									vec2( -0.6498,  0.1246 ),
-									vec2( -0.4328, -0.5004 ),
-									vec2(  0.2170, -0.6250 ),
-									vec2(  0.6498, -0.1246 ),
-									vec2(  0.6493,  0.6254 ),
-									vec2( -0.2170,  0.8750 ),
-									vec2( -0.8663,  0.2496 ),
-									vec2( -0.6493, -0.6254 ),
-									vec2(  0.2170, -0.8750 ),
-									vec2(  0.8663, -0.2496 ),
-									vec2(  0.2160,  0.6259 ),
-									vec2( -0.4340,  0.5000 ),
-									vec2( -0.6500, -0.1259 ),
-									vec2( -0.2160, -0.6259 ),
-									vec2(  0.4340, -0.5000 ),
-									vec2(  0.6500,  0.1259 ),
-									vec2(  0.4325,  0.7509 ),
-									vec2( -0.4340,  0.7500 ),
-									vec2( -0.8665, -0.0009 ),
-									vec2( -0.4325, -0.7509 ),
-									vec2(  0.4340, -0.7500 ),
-									vec2(  0.8665,  0.0009 ),
-									vec2(  0.2158,  0.8763 ),
-									vec2( -0.6510,  0.6250 ),
-									vec2( -0.8668, -0.2513 ),
-									vec2( -0.2158, -0.8763 ),
-									vec2(  0.6510, -0.6250 ),
-									vec2(  0.8668,  0.2513 ));
-									#else
-									const vec2 offsets[60] = vec2[60] ( vec2(  0.0000,  0.2500 ),
-									vec2( -0.2165,  0.1250 ),
-									vec2( -0.2165, -0.1250 ),
-									vec2( -0.0000, -0.2500 ),
-									vec2(  0.2165, -0.1250 ),
-									vec2(  0.2165,  0.1250 ),
-									vec2(  0.0000,  0.5000 ),
-									vec2( -0.2500,  0.4330 ),
-									vec2( -0.4330,  0.2500 ),
-									vec2( -0.5000,  0.0000 ),
-									vec2( -0.4330, -0.2500 ),
-									vec2( -0.2500, -0.4330 ),
-									vec2( -0.0000, -0.5000 ),
-									vec2(  0.2500, -0.4330 ),
-									vec2(  0.4330, -0.2500 ),
-									vec2(  0.5000, -0.0000 ),
-									vec2(  0.4330,  0.2500 ),
-									vec2(  0.2500,  0.4330 ),
-									vec2(  0.0000,  0.7500 ),
-									vec2( -0.2565,  0.7048 ),
-									vec2( -0.4821,  0.5745 ),
-									vec2( -0.6495,  0.3750 ),
-									vec2( -0.7386,  0.1302 ),
-									vec2( -0.7386, -0.1302 ),
-									vec2( -0.6495, -0.3750 ),
-									vec2( -0.4821, -0.5745 ),
-									vec2( -0.2565, -0.7048 ),
-									vec2( -0.0000, -0.7500 ),
-									vec2(  0.2565, -0.7048 ),
-									vec2(  0.4821, -0.5745 ),
-									vec2(  0.6495, -0.3750 ),
-									vec2(  0.7386, -0.1302 ),
-									vec2(  0.7386,  0.1302 ),
-									vec2(  0.6495,  0.3750 ),
-									vec2(  0.4821,  0.5745 ),
-									vec2(  0.2565,  0.7048 ),
-									vec2(  0.0000,  1.0000 ),
-									vec2( -0.2588,  0.9659 ),
-									vec2( -0.5000,  0.8660 ),
-									vec2( -0.7071,  0.7071 ),
-									vec2( -0.8660,  0.5000 ),
-									vec2( -0.9659,  0.2588 ),
-									vec2( -1.0000,  0.0000 ),
-									vec2( -0.9659, -0.2588 ),
-									vec2( -0.8660, -0.5000 ),
-									vec2( -0.7071, -0.7071 ),
-									vec2( -0.5000, -0.8660 ),
-									vec2( -0.2588, -0.9659 ),
-									vec2( -0.0000, -1.0000 ),
-									vec2(  0.2588, -0.9659 ),
-									vec2(  0.5000, -0.8660 ),
-									vec2(  0.7071, -0.7071 ),
-									vec2(  0.8660, -0.5000 ),
-									vec2(  0.9659, -0.2588 ),
-									vec2(  1.0000, -0.0000 ),
-									vec2(  0.9659,  0.2588 ),
-									vec2(  0.8660,  0.5000 ),
-									vec2(  0.7071,  0.7071 ),
-									vec2(  0.5000,  0.8660 ),
-									vec2(  0.2588,  0.9659 ));
-#endif
+
+	#ifdef HEXAGONAL_BOKEH
+	const vec2 offsets[60] = vec2[60] (	vec2(  0.2165,  0.1250 ),
+										vec2(  0.0000,  0.2500 ),
+										vec2( -0.2165,  0.1250 ),
+										vec2( -0.2165, -0.1250 ),
+										vec2( -0.0000, -0.2500 ),
+										vec2(  0.2165, -0.1250 ),
+										vec2(  0.4330,  0.2500 ),
+										vec2(  0.0000,  0.5000 ),
+										vec2( -0.4330,  0.2500 ),
+										vec2( -0.4330, -0.2500 ),
+										vec2( -0.0000, -0.5000 ),
+										vec2(  0.4330, -0.2500 ),
+										vec2(  0.6495,  0.3750 ),
+										vec2(  0.0000,  0.7500 ),
+										vec2( -0.6495,  0.3750 ),
+										vec2( -0.6495, -0.3750 ),
+										vec2( -0.0000, -0.7500 ),
+										vec2(  0.6495, -0.3750 ),
+										vec2(  0.8660,  0.5000 ),
+										vec2(  0.0000,  1.0000 ),
+										vec2( -0.8660,  0.5000 ),
+										vec2( -0.8660, -0.5000 ),
+										vec2( -0.0000, -1.0000 ),
+										vec2(  0.8660, -0.5000 ),
+										vec2(  0.2163,  0.3754 ),
+										vec2( -0.2170,  0.3750 ),
+										vec2( -0.4333, -0.0004 ),
+										vec2( -0.2163, -0.3754 ),
+										vec2(  0.2170, -0.3750 ),
+										vec2(  0.4333,  0.0004 ),
+										vec2(  0.4328,  0.5004 ),
+										vec2( -0.2170,  0.6250 ),
+										vec2( -0.6498,  0.1246 ),
+										vec2( -0.4328, -0.5004 ),
+										vec2(  0.2170, -0.6250 ),
+										vec2(  0.6498, -0.1246 ),
+										vec2(  0.6493,  0.6254 ),
+										vec2( -0.2170,  0.8750 ),
+										vec2( -0.8663,  0.2496 ),
+										vec2( -0.6493, -0.6254 ),
+										vec2(  0.2170, -0.8750 ),
+										vec2(  0.8663, -0.2496 ),
+										vec2(  0.2160,  0.6259 ),
+										vec2( -0.4340,  0.5000 ),
+										vec2( -0.6500, -0.1259 ),
+										vec2( -0.2160, -0.6259 ),
+										vec2(  0.4340, -0.5000 ),
+										vec2(  0.6500,  0.1259 ),
+										vec2(  0.4325,  0.7509 ),
+										vec2( -0.4340,  0.7500 ),
+										vec2( -0.8665, -0.0009 ),
+										vec2( -0.4325, -0.7509 ),
+										vec2(  0.4340, -0.7500 ),
+										vec2(  0.8665,  0.0009 ),
+										vec2(  0.2158,  0.8763 ),
+										vec2( -0.6510,  0.6250 ),
+										vec2( -0.8668, -0.2513 ),
+										vec2( -0.2158, -0.8763 ),
+										vec2(  0.6510, -0.6250 ),
+										vec2(  0.8668,  0.2513 ));
+										#else
+	const vec2 offsets[60] = vec2[60] ( vec2(  0.0000,  0.2500 ),
+										vec2( -0.2165,  0.1250 ),
+										vec2( -0.2165, -0.1250 ),
+										vec2( -0.0000, -0.2500 ),
+										vec2(  0.2165, -0.1250 ),
+										vec2(  0.2165,  0.1250 ),
+										vec2(  0.0000,  0.5000 ),
+										vec2( -0.2500,  0.4330 ),
+										vec2( -0.4330,  0.2500 ),
+										vec2( -0.5000,  0.0000 ),
+										vec2( -0.4330, -0.2500 ),
+										vec2( -0.2500, -0.4330 ),
+										vec2( -0.0000, -0.5000 ),
+										vec2(  0.2500, -0.4330 ),
+										vec2(  0.4330, -0.2500 ),
+										vec2(  0.5000, -0.0000 ),
+										vec2(  0.4330,  0.2500 ),
+										vec2(  0.2500,  0.4330 ),
+										vec2(  0.0000,  0.7500 ),
+										vec2( -0.2565,  0.7048 ),
+										vec2( -0.4821,  0.5745 ),
+										vec2( -0.6495,  0.3750 ),
+										vec2( -0.7386,  0.1302 ),
+										vec2( -0.7386, -0.1302 ),
+										vec2( -0.6495, -0.3750 ),
+										vec2( -0.4821, -0.5745 ),
+										vec2( -0.2565, -0.7048 ),
+										vec2( -0.0000, -0.7500 ),
+										vec2(  0.2565, -0.7048 ),
+										vec2(  0.4821, -0.5745 ),
+										vec2(  0.6495, -0.3750 ),
+										vec2(  0.7386, -0.1302 ),
+										vec2(  0.7386,  0.1302 ),
+										vec2(  0.6495,  0.3750 ),
+										vec2(  0.4821,  0.5745 ),
+										vec2(  0.2565,  0.7048 ),
+										vec2(  0.0000,  1.0000 ),
+										vec2( -0.2588,  0.9659 ),
+										vec2( -0.5000,  0.8660 ),
+										vec2( -0.7071,  0.7071 ),
+										vec2( -0.8660,  0.5000 ),
+										vec2( -0.9659,  0.2588 ),
+										vec2( -1.0000,  0.0000 ),
+										vec2( -0.9659, -0.2588 ),
+										vec2( -0.8660, -0.5000 ),
+										vec2( -0.7071, -0.7071 ),
+										vec2( -0.5000, -0.8660 ),
+										vec2( -0.2588, -0.9659 ),
+										vec2( -0.0000, -1.0000 ),
+										vec2(  0.2588, -0.9659 ),
+										vec2(  0.5000, -0.8660 ),
+										vec2(  0.7071, -0.7071 ),
+										vec2(  0.8660, -0.5000 ),
+										vec2(  0.9659, -0.2588 ),
+										vec2(  1.0000, -0.0000 ),
+										vec2(  0.9659,  0.2588 ),
+										vec2(  0.8660,  0.5000 ),
+										vec2(  0.7071,  0.7071 ),
+										vec2(  0.5000,  0.8660 ),
+										vec2(  0.2588,  0.9659 ));
+	#endif
 
 			
 	for ( int i = 0; i < 61; ++i) {
@@ -502,83 +497,6 @@ float   CalculateSunspot() {
 	//return 0.0f;
 }
 
-/////////////////////////STRUCTS///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////STRUCTS///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-struct MaskStruct {
-
-	float matIDs;
-
-	bool sky;
-	bool land;
-	bool grass;
-	bool leaves;
-	bool ice;
-	bool hand;
-	bool translucent;
-	bool glow;
-	bool sunspot;
-	bool goldBlock;
-	bool ironBlock;
-	bool diamondBlock;
-	bool emeraldBlock;
-	bool sand;
-	bool sandstone;
-	bool stone;
-	bool cobblestone;
-	bool wool;
-	bool clouds;
-
-	bool torch;
-	bool lava;
-	bool glowstone;
-	bool fire;
-
-	bool water;
-
-	bool volumeCloud;
-
-} mask;
-
-
-/////////////////////////STRUCT FUNCTIONS//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////STRUCT FUNCTIONS//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//Mask
-/*
-void 	CalculateMasks(inout MaskStruct mask) {
-		mask.sky 			= GetMaterialMask(texcoord.st, 0, mask.matIDs);
-		mask.land	 		= GetMaterialMask(texcoord.st, 1, mask.matIDs);
-		mask.grass 			= GetMaterialMask(texcoord.st, 2, mask.matIDs);
-		mask.leaves	 		= GetMaterialMask(texcoord.st, 3, mask.matIDs);
-		mask.ice		 	= GetMaterialMask(texcoord.st, 4, mask.matIDs);
-		mask.hand	 		= GetMaterialMask(texcoord.st, 5, mask.matIDs);
-		mask.translucent	= GetMaterialMask(texcoord.st, 6, mask.matIDs);
-
-		mask.glow	 		= GetMaterialMask(texcoord.st, 10, mask.matIDs);
-		mask.sunspot 		= GetMaterialMask(texcoord.st, 11, mask.matIDs);
-
-		mask.goldBlock 		= GetMaterialMask(texcoord.st, 20, mask.matIDs);
-		mask.ironBlock 		= GetMaterialMask(texcoord.st, 21, mask.matIDs);
-		mask.diamondBlock	= GetMaterialMask(texcoord.st, 22, mask.matIDs);
-		mask.emeraldBlock	= GetMaterialMask(texcoord.st, 23, mask.matIDs);
-		mask.sand	 		= GetMaterialMask(texcoord.st, 24, mask.matIDs);
-		mask.sandstone 		= GetMaterialMask(texcoord.st, 25, mask.matIDs);
-		mask.stone	 		= GetMaterialMask(texcoord.st, 26, mask.matIDs);
-		mask.cobblestone	= GetMaterialMask(texcoord.st, 27, mask.matIDs);
-		mask.wool			= GetMaterialMask(texcoord.st, 28, mask.matIDs);
-		mask.clouds 		= GetMaterialMask(texcoord.st, 29, mask.matIDs);
-
-		mask.torch 			= GetMaterialMask(texcoord.st, 30, mask.matIDs);
-		mask.lava 			= GetMaterialMask(texcoord.st, 31, mask.matIDs);
-		mask.glowstone 		= GetMaterialMask(texcoord.st, 32, mask.matIDs);
-		mask.fire 			= GetMaterialMask(texcoord.st, 33, mask.matIDs);
-
-		mask.water 			= GetWaterMask(texcoord.st);
-}
-*/
 void AverageExposure(inout vec3 color)
 {
 	float avglod = int(log2(min(viewWidth, viewHeight))) - 1;
@@ -613,17 +531,16 @@ void Sharpen(inout vec3 color){
 }
 
 #include "/lib/tone.frag"
-Tone tone;
 
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
 
-	init_tone(tone, texcoord.st);	//Sample color texture
+	Tone tone = init_tone(texcoord.st);	//Sample color texture
 
 	//color = InverseToneMapping(color) * 0.001;
 
-	float isHand = step(texture2D(depthtex0, texcoord.xy).x, 0.7);
+	float isHand = GetMaterialMask(texcoord.st, 5);
 
 	#ifdef MOTION_BLUR
 		MotionBlur(tone.color, isHand);

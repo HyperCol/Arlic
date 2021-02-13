@@ -136,7 +136,8 @@ vec3 tonemap(in vec3 color) {
 #define COLOR_BALANCE_H_B 0.0 //[-1.0 -0.9 -0.8 -0.7 -0.6 -0.5 -0.4 -0.3 -0.2 -0.1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 //#define KEEP_BROGHTNESS
 
-void init_tone(out Tone t, vec2 tex) {
+Tone init_tone(vec2 tex) {
+    Tone t;
 	//t.exposure = get_exposure();
 	
 	t.color = GetColorTexture(tex).rgb;
@@ -231,6 +232,8 @@ void init_tone(out Tone t, vec2 tex) {
 	t.h = vec3(0.0);
 	t.p = false;
 	#endif
+
+    return t;
 }
 
 void Hue_Adjustment(inout Tone t) {
