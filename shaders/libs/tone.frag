@@ -256,12 +256,16 @@ void Hue_Adjustment(inout Tone t) {
 		#ifdef TONE_DEBUG
 		if (tex.x < 0.5) {
 		#endif
+			//apply brightness
 			t.color *= t.brightness;
+			//apply contract
 			t.color = mix(vec3(0.5), t.color, t.contrast);
 			
-			float lum = dot(t.color, vec3(0.2125, 0.7154, 0.0721));
+			//apply saturation
+			float lum = luma(t.color);
 			t.color = mix(vec3(lum), t.color, t.saturation);
 			
+			//apply vibrance
 			float mn = min(t.color.r, min(t.color.g, t.color.b));
 			float mx = max(t.color.r, max(t.color.g, t.color.b));
 			float sat = (1.0 - (mx - mn)) * (1.0 - mx) * lum * 5.0;
@@ -269,6 +273,7 @@ void Hue_Adjustment(inout Tone t) {
 			
 			t.color = mix(t.color, mix(l, t.color, t.vibrance), sat);
 			
+			//apply color balance
 			t.color = colorBalance(t.color, t.s, t.m, t.h, t.p);
 		#ifdef TONE_DEBUG
 		}
