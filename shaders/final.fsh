@@ -89,39 +89,10 @@ uniform sampler2D gdepthtex;
 uniform sampler2D gaux3;
 uniform sampler2D composite;
 
-uniform sampler2D depthtex0;
-
 varying vec4 texcoord;
 varying vec3 lightVector;
 
-uniform int worldTime;
-
-uniform float near;
-uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform float rainStrength;
-uniform float screenBrightness;
-uniform float wetness;
 uniform float aspectRatio;
-uniform float frameTimeCounter;
-
-uniform float centerDepthSmooth;
-
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferPreviousProjection;
-
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferPreviousModelView;
-
-uniform vec3 cameraPosition;
-uniform vec3 previousCameraPosition;
-
-uniform int   isEyeInWater;
-uniform float eyeAltitude;
-uniform ivec2 eyeBrightness;
-uniform ivec2 eyeBrightnessSmooth;
-uniform int   fogMode;
 
 varying float timeSunriseSunset;
 varying float timeNoon;
@@ -136,6 +107,7 @@ varying vec3 colorSkylight;
 const bool compositeMipmapEnabled = true;
 const bool gnormalMipmapEnabled = true;
 
+#include "/lib/uniform.glsl"
 #include "/lib/materials.glsl"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -624,8 +596,6 @@ vec3 InverseToneMapping(in vec3 color){
 	return color/lum*((a*a-(2.0*a-b)*lum)/(b-lum));
 }
 
-uniform vec2 pixel;
-
 void Sharpen(inout vec3 color){
 	vec3 sharpen = vec3(0.0);
 
@@ -642,22 +612,25 @@ void Sharpen(inout vec3 color){
 	color = clamp(color, vec3(0.0), vec3(1.0));
 }
 
+#include "/lib/tone.frag"
+Tone tone;
+
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
 
-	vec3 color = GetColorTexture(texcoord.st);	//Sample color texture
+	init_tone(tone, texcoord.st);	//Sample color texture
 
 	//color = InverseToneMapping(color) * 0.001;
 
 	float isHand = step(texture2D(depthtex0, texcoord.xy).x, 0.7);
 
 	#ifdef MOTION_BLUR
-		MotionBlur(color, isHand);
+		MotionBlur(tone.color, isHand);
 	#endif
 
 	#ifdef DOF
-		DOF_Blur(color, isHand);
+		DOF_Blur(tone.color, isHand);
 	#endif
 
 	#ifdef Enabled_TemportalAntiAliasing
@@ -668,76 +641,8 @@ void main() {
 		//color = InverseToneMapping(color) * 0.001;
 	#endif
 
-	Vignette(color);
-
-	#if Exposure_Setting == Vaule
-		color /= 0.001;
-	#elif Exposure_Setting == Average
-		//AverageExposure(color);
-
-		color /= texture2D(gaux3, vec2(0.5)).a * 2.0 + 0.0001;
-		color *= 200.0;
-	#endif
-
-	color *= 32.0 * BRIGHTNESS_LEVEL;
-
-	#ifdef ACES_TONEMAPPING
-		{
-			//if(texcoord.x > 0.5) color.rgb = vec3(1.0);
-			//color.rgb = mix(vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 0.0), saturate(Luminance(color * 0.5)));
-
-			//color.rgb *= 1./(DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.65*timeMidnight));
-			const float A = 2.51f;
-			const float B = 0.03f;
-			const float C = 2.43f;
-			const float D = 0.59f;
-			const float E = 0.14f;
-
-			color = pow(color, vec3(sqrt(TONEMAP_STRENGTH)));
-			color = (color * (A * color + B)) / (color * (C * color + D) + E);
-		}
-	#else
-		const float p = TONEMAP_STRENGTH * 3.0;
-		color = (pow(color, vec3(p)) - color) / (pow(color, vec3(p)) - 1.0);
-		color *= 1.01;
-	#endif
-
-	SaturationBoost(color);
-
-	color = pow(color, vec3(1.0/ 2.2));
-	color = clamp(color, vec3(0.0), vec3(1.0));
-
-
-
-
-	//if (texture2D(composite, texcoord.st).g > 0.01f)
-	//	color.g = 1.0f;
-
-	//TonemapReinhardLinearHybrid(color);
-
-	//color.rgb += highpass * 10000.0f;
-	//LowtoneSaturate(color);
-
-	//ColorGrading(color);
-
-	//color.rgb = texture2DLod(shadowcolor, texcoord.st, 0).rgb * 1.0f;
-	//color.rgb = texture2DLod(shadowcolor1, texcoord.st, 0).aaa * 1.0f;
-	//color.rgb = vec3(texture2DLod(shadowtex1, texcoord.st, 0).x) * 1.0f;
-
-	//color.rgb = texture2D(gdepth, texcoord.st).bbb * 0.8 + 0.2;
-
-	//color.rgb = vec3(fwidth(GetDepthLinear(texcoord.st + vec2(0.5 / viewWidth, 0.5 / viewHeight)) + GetDepthLinear(texcoord.st - vec2(0.5 / viewWidth, 0.5 / viewHeight))));
-
-	// color.rgb += fwidth(color.rgb) * 0.5;
-
-	#ifdef CUSTOM_TONED
-		//color.r = (color.r*(CUSTOM_T_R * 0.01))+(color.b+color.g)*(-0.1);
-		//color.g = (color.g*(CUSTOM_T_G * 0.01))+(color.r+color.b)*(-0.1);
-		//color.b = (color.b*(CUSTOM_T_B * 0.01))+(color.r+color.g)*(-0.1);
-
-		//color = color / (color + (5 - (CUSTOM_T_L * 0.1))) * (1.0+2.0);
-    #endif	
+	Hue_Adjustment(tone);
 	
-	gl_FragColor = vec4(color.rgb, 1.0f);
+	gl_FragColor = vec4(tone.color, 1.0f);
 
 }
