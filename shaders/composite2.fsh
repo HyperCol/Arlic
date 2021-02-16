@@ -2918,7 +2918,7 @@ void CalStar(in SurfaceStruct surface, inout vec3 finalComposite) {
 
 }
 
-#include "Auroras.glsl"
+#include "/Units/Auroras.glsl"
 
 void CalculateMaterialData(inout SurfaceStruct surface, in vec2 coord){
 	float packageMaterialData = texture2D(composite, coord).x;
