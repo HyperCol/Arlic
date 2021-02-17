@@ -1,3 +1,7 @@
+#ifndef _TAAPROJECTION_
+#define _TAAPROJECTION_
+#endif
+
 #define Enabled_TemportalAntiAliasing
 
 #ifndef INCLUDE_COMMON

@@ -103,7 +103,9 @@ vec3 colorBalance(vec3 rgbColor, vec3 s, vec3 m, vec3 h, bool p) {
 
 vec3 tonemap(in vec3 color) {
 
-	color *= 3000.0 * EXPOSURE * (1.8 - clamp(pow(eyeBrightnessSmooth.y / 240.0, 6.0) * luma(colorSunlight), 0.0, 1.2));
+	//color /= 0.001;
+
+	//color *= 3000.0 * EXPOSURE * (1.8 - clamp(pow(eyeBrightnessSmooth.y / 240.0, 6.0) * luma(colorSunlight), 0.0, 1.2));
 	//color /= (DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.65*timeMidnight));
 	
 	const float a = 2.51f;
@@ -250,6 +252,7 @@ void Hue_Adjustment(inout Tone t) {
 	#endif
 
 	//tonemap
+	t.color *= 8.0;
 	vec3 color = t.color;
 	if (t.useToneMap > 0) t.color = mix(t.color, tonemap(color), t.useToneMap);
 	

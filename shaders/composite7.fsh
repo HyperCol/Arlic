@@ -35,9 +35,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
 
-#define Enabled_TemportalAntiAliasing
-	#define TAA_Sharpen 50		//[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
-
 #define BANDING_FIX_FACTOR 1.0f
 
 #define BLOOM_EFFECTS
@@ -56,7 +53,6 @@ uniform sampler2D noisetex;
 
 uniform sampler2D colortex7;
 const bool colortex7Clear = false;
-const vec4 colortex7ClearColor = vec4(vec3(0.0), 1.0);
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
@@ -78,21 +74,31 @@ uniform float rainStrength;
 uniform int   isEyeInWater;
 uniform ivec2 eyeBrightnessSmooth;
 
-uniform vec2 jitter;
-uniform vec2 pixel;
-uniform vec2 resolution;
-
 uniform int frameCounter;
 uniform float frameTimeCounter;
 
 const bool gaux2MipmapEnabled = true;
+
+#define TAA_TemportalAntiAliasing
+#define TAA_ToneMapping
+#include "/lib/antialiasing/taaProjection.glsl"
+#include "/lib/antialiasing/taa.glsl"
+
+float 	CalculateLuminance(in vec3 color) {
+	return (color.r * 0.2126f + color.g * 0.7152f + color.b * 0.0722f);
+}
+
 
 vec3 	GetTextureLod(in sampler2D tex, in vec2 coord, in int level) {				//Perform a texture lookup with BANDING_FIX_FACTOR compensation
 	return pow(texture2DLod(tex, coord, level).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
 }
 
 vec3 	GetColorTexture(in vec2 coord) {
-	return GetTextureLod(gaux3, coord.st, 0).rgb;
+	return pow(texture2D(gaux3, coord.st).rgb, vec3(2.2));
+}
+
+vec3 	GetColorTexture(sampler2D tex, in vec2 coord) {
+	return pow(texture2D(tex, coord.st).rgb, vec3(2.2));
 }
 
 float 	GetDepthLinear(in vec2 coord) {					//Function that retrieves the scene depth. 0 - 1, higher values meaning farther away
@@ -266,166 +272,34 @@ void LowlightFuzziness(inout vec3 color, in BloomDataStruct bloomData)
 	color.rgb += snow.rgb * snow2.rgb * snow.rgb * 0.000000002f;
 }
 
-float 	GetDepthLinear(in float depth) {
-	return (near * far) / (depth * (near - far) + far);
-}
-
-vec3 GetClosest(in vec2 coord){
-    vec3 closest = vec3(0.0, 0.0, 1.0);
-
-    for(float i = -1.0; i <= 1.0; i += 1.0){
-      for(float j = -1.0; j <= 1.0; j += 1.0){
-        vec2 neighborhood = vec2(i, j) * pixel;
-        float neighbor = GetDepthLinear(texture2D(depthtex0, coord + neighborhood).x);
-
-        if(neighbor < closest.z){
-          closest.z = neighbor;
-          closest.xy = neighborhood;
-        }
-      }
-    }
-
-    closest.xy += coord;
-	closest.z = texture2D(depthtex0, closest.xy).x;
-
-    return closest;
-  }
-
-vec2 CalculateVector(in vec3 coord){
-    vec4 view = gbufferProjectionInverse * vec4(coord * 2.0 - 1.0, 1.0);
-         view /= view.w;
-         view = gbufferModelViewInverse * view;
-         view.xyz += cameraPosition - previousCameraPosition;
-         view = gbufferPreviousModelView * view;
-         view = gbufferPreviousProjection * view;
-         view /= view.w;
-         view.xy = view.xy * 0.5 + 0.5;
-
-    vec2 velocity = coord.xy - view.xy;
-
-    if(coord.z < 0.7) velocity *= 0.01;
-
-    return velocity;
-}
-
-  vec4 ReprojectSampler(in sampler2D tex, in vec2 pixelPos){
-    vec4 result = vec4(0.0);
-
-    vec2 position = resolution * pixelPos;
-    vec2 centerPosition = floor(position - 0.5) + 0.5;
-
-    vec2 f = position - centerPosition;
-    vec2 f2 = f * f;
-    vec2 f3 = f * f2;
-
-    float c = TAA_Sharpen  * 0.01;
-    vec2 w0 =         -c  *  f3 + 2.0 * c          *  f2 - c  *  f;
-    vec2 w1 =  (2.0 - c)  *  f3 - (3.0 - c)        *  f2            + 1.0;
-    vec2 w2 = -(2.0 - c)  *  f3 + (3.0 - 2.0 * c)  *  f2 + c  *  f;
-    vec2 w3 =          c  *  f3 - c                *  f2;
-    vec2 w12 = w1 + w2;
-
-    vec2 tc12 = pixel * (centerPosition + w2 / w12);
-    vec3 centerColor = texture2D(tex, vec2(tc12.x, tc12.y)).rgb;
-    vec2 tc0 = pixel * (centerPosition - 1.0);
-    vec2 tc3 = pixel * (centerPosition + 2.0);
-
-    result = vec4(texture2D(tex, vec2(tc12.x, tc0.y)).rgb, 1.0) * (w12.x * w0.y) +
-          	 vec4(texture2D(tex, vec2(tc0.x, tc12.y)).rgb, 1.0) * (w0.x * w12.y) +
-          	 vec4(centerColor, 1.0) * (w12.x * w12.y) +
-           	 vec4(texture2D(tex, vec2(tc3.x, tc12.y)).rgb, 1.0) * (w3.x * w12.y) +
-          	 vec4(texture2D(tex, vec2(tc12.x, tc3.y)).rgb, 1.0) * (w12.x * w3.y);
-
-    result /= result.a;
-
-    result.rgb = pow(result.rgb, vec3(2.2));
-
-    return result;
-  }
-
-void CalculateClampColor(inout vec3 minColor, inout vec3 maxColor, in vec2 coord){
-	for(int i = 0; i <= 3; i++){
-		for(int j = 0; j <= 3; j++){
-			vec2 samplePosition = vec2(i, j) - 1.0;
-			vec3 sampleColor = GetColorTexture(coord + samplePosition * pixel);
-
-			minColor = min(minColor, sampleColor);
-			maxColor = max(maxColor, sampleColor);
-		}
-	}
-}
-
-vec3 TemportalAntiAliasing(in vec2 coord){
-	vec2 unjitter = coord + jitter;
-
-	vec3 currentColor = GetColorTexture(unjitter);
-	vec3 maxColor = currentColor;
-	vec3 minColor = currentColor;
-	CalculateClampColor(minColor, maxColor, unjitter);
-
-	vec3 closest = GetClosest(unjitter);	//vec3(unjitter, texture2D(depthtex0, unjitter).x)
-	vec2 velocity = CalculateVector(closest);
-
-	vec2 reprojectCoord = texcoord.st - velocity;
-
-	vec3 previousSample = ReprojectSampler(colortex7, reprojectCoord).rgb;
-
-	vec3 antialiasing = previousSample;
-		 antialiasing = clamp(antialiasing, minColor, maxColor);
-
-	float blend = 0.95;
-		  blend *= float(floor(reprojectCoord) == vec2(0.0));
-		  blend *= mix(1.0, 0.9, min(1.0, length(velocity * resolution)));
-
-	antialiasing = mix(currentColor, antialiasing, blend);
-
-	return antialiasing;
-}
-
-vec3 InverseToneMapping(in vec3 color){
-	float a = 0.000033;
-	float b = 0.03;
-
-	float lum = max(color.r, max(color.g, color.b));
-
-	if(bool(step(lum, a))) color;
-
-	return color/lum*((a*a-(2.0*a-b)*lum)/(b-lum));
-}
-
-float 	CalculateLuminance(in vec3 color) {
-	return (color.r * 0.2126f + color.g * 0.7152f + color.b * 0.0722f);
-}
-
 void main() {
     vec3 color = GetColorTexture(texcoord.st);	//Sample color texture
 
 	vec3 antialiasing = color; 
 	
-	vec3 center = pow(texture2DLod(gaux2, vec2(0.5), viewHeight).rgb, vec3(2.2)) / 0.001;
+	vec3 center = pow(texture2DLod(gaux2, vec2(0.5), viewHeight).rgb, vec3(2.2)) / 0.001 * 16.0;
 		 center = 1.0 - exp(-center * 1.0);
 
 	float maxFPS = 300.0;
 	float minFPS = 2.0;
-	float delay = pow(8.0, 1.0 + Exposure_Delay);
+	float delay = 1.0;//pow(1.0, 1.0 + Exposure_Delay);
 
-	float exposure = mix(CalculateLuminance(center),
-						 pow(texture2D(colortex7, vec2(0.5)).a, 2.2),
-						 1.0 - 1.0 / 60.0);
-
-						 //clamp((1.0 + frameTimeCounter) / float(frameCounter + 1) * delay, 1.0 / minFPS, 1.0 - 1.0 / maxFPS));
+	float exposure = mix(pow(texture2D(colortex7, vec2(0.5)).a, 2.2),
+						 CalculateLuminance(center),
+						 clamp((1.0 + frameTimeCounter) / float(frameCounter + 1) * delay, 1.0 / maxFPS, 1.0 / minFPS));
+						 
 	exposure = pow(exposure, 1.0 / 2.2);					 
 	
 	#ifdef Enabled_TemportalAntiAliasing
 		antialiasing = TemportalAntiAliasing(texcoord.st);
 
-		color = max(vec3(0.0), InverseToneMapping(antialiasing) * 0.001);
+		color = max(vec3(0.0), InverseToneMapping(antialiasing) * 0.001 * 0.0625);
 	#endif
 
     #ifdef BLOOM_EFFECTS
 		CalculateBloom(bloomData); 
 		color = mix(color, bloomData.bloom, vec3(0.0100f * BLOOM_AMOUNT)); 
-		AddRainFogScatter(color, bloomData);
+		//AddRainFogScatter(color, bloomData);
 	#endif
 
 	color = pow(color, vec3(1.0 / 2.2));

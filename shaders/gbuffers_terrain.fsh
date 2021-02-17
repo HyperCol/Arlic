@@ -441,7 +441,7 @@ void main() {
 			vec3 bump = GetTexture(normals, parallaxCoord.st).rgb * 2.0f - 1.0f;
 			
 			float bumpmult = clamp(bump_distance * fademult - distance * fademult, 0.0f, 1.0f);
-	              bumpmult *= 1.0f - (clamp(spec.g * 1.0f - 0.0f, 0.0f, 1.0f) * 0.97f);
+	        //      bumpmult *= 1.0f - (clamp(spec.g * 1.0f - 0.0f, 0.0f, 1.0f) * 0.97f);
 				  
 			bump = bump * vec3(bumpmult, bumpmult, bumpmult) + vec3(0.0f, 0.0f, 1.0f - bumpmult);
 

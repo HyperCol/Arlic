@@ -97,18 +97,8 @@ vec3 CalculateBloom(in int LOD, in vec2 offset) {
 	
 }
 
-vec3 ToneMapping(in vec3 color){
-	float a = 0.000033;
-	float b = 0.03;
-
-	float lum = max(color.r, max(color.g, color.b));
-
-	if(bool(step(lum, a))) return color;
-
-	return color/lum*((a*a-b*lum)/(2.0*a-b-lum));
-}
-
-#define Enabled_TemportalAntiAliasing
+#define TAA_ToneMapping
+#include "/lib/antialiasing/taa.glsl"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,7 +109,8 @@ void main() {
 	vec3 color = pow(texture2D(gaux3, texcoord.st).rgb, vec3(2.2));
 
 	#ifdef Enabled_TemportalAntiAliasing
-	color = ToneMapping(color / 0.001);
+		color = color / 0.001; //if(max(color.r, max(color.g, color.b)) > 0.2) color = vec3(1.0, 0.0, 0.0);
+		color = max(vec3(0.0), ToneMapping(color * 16.0));
 	#endif
 
 	color = clamp(color, vec3(0.0), vec3(1.0));

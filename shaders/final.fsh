@@ -38,9 +38,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 //#define FINAL_ALT_COLOR_SOURCE 
 //#define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
 
-#define Enabled_TemportalAntiAliasing
-#define TAA_Post_Sharpen 50		//[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
-
 #define Vaule 0
 //#define CurrentEyeLightMap 0
 #define Average 1
@@ -89,10 +86,22 @@ uniform sampler2D gdepthtex;
 uniform sampler2D gaux3;
 uniform sampler2D composite;
 
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferPreviousModelView;
+uniform mat4 gbufferPreviousProjection;
+
+uniform vec3 previousCameraPosition;
+uniform vec3 cameraPosition;
+
 varying vec4 texcoord;
 varying vec3 lightVector;
 
 uniform float aspectRatio;
+uniform float frameTimeCounter;
+uniform float centerDepthSmooth;
+uniform float rainStrength;
+uniform int isEyeInWater;
 
 varying float timeSunriseSunset;
 varying float timeNoon;
@@ -107,8 +116,12 @@ varying vec3 colorSkylight;
 const bool compositeMipmapEnabled = true;
 const bool gnormalMipmapEnabled = true;
 
-#include "/lib/uniform.glsl"
+//#define TAA_ToneMapping
+
+#include "/lib/common.glsl"
+//#include "/lib/uniform.glsl"
 #include "/lib/materials.glsl"
+#include "/lib/antialiasing/taa.glsl"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,13 +145,8 @@ vec3 	GetColorTexture(in vec2 coord) {
 	//#ifdef FINAL_ALT_COLOR_SOURCE
 	//return GetTextureLod(gcolor, coord.st, 0).rgb;
 	//#else
-	return GetTextureLod(gaux3, coord.st, 0).rgb;
+	return pow(texture2D(gaux3, coord.st).rgb, vec3(2.2));
 	//#endif
-}
-
-float saturate(float x)
-{
-	return clamp(x, 0.0, 1.0);
 }
 
 vec4  	GetWorldSpacePosition(in vec2 coord) {	//Function that calculates the screen-space position of the objects in the scene using the depth texture and the texture coordinates of the full-screen quad
@@ -164,8 +172,6 @@ vec4 cubic(float x)
 
 vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
 {
-	vec2 resolution = vec2(viewWidth, viewHeight);
-
 	coord *= resolution;
 
 	float fx = fract(coord.x);
@@ -410,8 +416,8 @@ float  	CalculateDitherPattern1() {
 								 	 16, 8 , 14, 6 );
 
 	vec2 count = vec2(0.0f);
-	     count.x = floor(mod(texcoord.s * viewWidth, 4.0f));
-		 count.y = floor(mod(texcoord.t * viewHeight, 4.0f));
+	     count.x = floor(mod(texcoord.s * resolution.x, 4.0f));
+		 count.y = floor(mod(texcoord.t * resolution.y, 4.0f));
 
 	int dither = ditherPattern[int(count.x) + int(count.y) * 4];
 
@@ -468,20 +474,6 @@ void 	MotionBlur(inout vec3 color, float isHand) {
 
 }
 
-void CalculateExposure(inout vec3 color) {
-	float exposureMax = 1.55f;
-		  exposureMax *= mix(1.0f, 0.25f, timeSunriseSunset);
-		  exposureMax *= mix(1.0f, 0.0f, timeMidnight);
-		  exposureMax *= mix(1.0f, 0.25f, rainStrength);
-	float exposureMin = 0.07f;
-	float exposure = pow(eyeBrightnessSmooth.y / 240.0f, 6.0f) * exposureMax + exposureMin;
-
-	//exposure = 1.0f;
-
-	color.rgb /= vec3(exposure);
-	color.rgb *= 350.0;
-}
-
 float   CalculateSunspot() {
 
 	float curve = 1.0f;
@@ -497,24 +489,7 @@ float   CalculateSunspot() {
 	//return 0.0f;
 }
 
-void AverageExposure(inout vec3 color)
-{
-	float avglod = int(log2(min(viewWidth, viewHeight))) - 1;
-	color /= pow(Luminance(texture2DLod(gaux3, vec2(0.5, 0.5), avglod).rgb), 1.1) + 0.0001;
-}
-
-vec3 InverseToneMapping(in vec3 color){
-	float a = 0.000033;
-	float b = 0.01;
-
-	float lum = max(color.r, max(color.g, color.b));
-
-	if(bool(step(lum, a))) color;
-
-	return color/lum*((a*a-(2.0*a-b)*lum)/(b-lum));
-}
-
-void Sharpen(inout vec3 color){
+void Sharpen(inout vec3 color, float shapreness){
 	vec3 sharpen = vec3(0.0);
 
 	for(float i = -1.0; i <= 1.0; i += 1.0){
@@ -526,10 +501,11 @@ void Sharpen(inout vec3 color){
 
 	sharpen *= 0.125;
 
-	color += (color - sharpen) * TAA_Post_Sharpen * 0.005;
+	color += (color - sharpen) * shapreness * 0.0025;
 	color = clamp(color, vec3(0.0), vec3(1.0));
 }
 
+#include "/lib/camera/camera.glsl"
 #include "/lib/tone.frag"
 
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -537,8 +513,6 @@ void Sharpen(inout vec3 color){
 void main() {
 
 	Tone tone = init_tone(texcoord.st);	//Sample color texture
-
-	//color = InverseToneMapping(color) * 0.001;
 
 	float isHand = GetMaterialMask(texcoord.st, 5);
 
@@ -551,14 +525,39 @@ void main() {
 	#endif
 
 	#ifdef Enabled_TemportalAntiAliasing
-		#if TAA_Post_Sharpen > 0
-		//	Sharpen(color);
+		#if TAA_Post_Sharpeness > 0
+			Sharpen(tone.color, TAA_Post_Sharpeness);
 		#endif
 
-		//color = InverseToneMapping(color) * 0.001;
+		//tone.color = max(vec3(0.0), InverseToneMapping(tone.color) * 0.001 * 0.0625);
+		//tone.color *= 0.001 * 0.0625;
+		//tone.color = tone.color / 0.001;
+		//tone.color *= 3.0;
 	#endif
 
+	//float aperture = 4.0; float shutterSpeed = 0.0; float iso = 0.0;
+
+	tone.color *= 1000.0;
+	tone.color *= 8.0;
+	//tone.color /= texture2D(gaux3, vec2(0.5)).a;
+
+	//float EV100 = ComputeTargetEV(texture2D(gaux3, vec2(0.5)).a + 0.0001);
+	//tone.color *= ConvertEV100ToExposure(EV100 - 0.0);
+	//tone.color *= ConvertEV100ToExposure(ComputeEV100(4.0 * 4.0, 0.0045, 100.0));
+	tone.color *= ConvertEV100ToExposure(ComputeEV100(4.0 * 4.0, 0.0045, ComputeISO(4.0, 0.0045, ComputeTargetEV(texture2D(gaux3, vec2(0.5)).a + 0.0001))));
+
+	//tone.color *= comp
+
+	//#if Exposure_Setting == Average
+
+	//#elif Exposure_Setting == vaule
+		//color /= 0.001;
+		//color 
+	//#endif
+
 	Hue_Adjustment(tone);
+
+	//tone.color = pow(tone.color, vec3(1.0 / 2.2));
 	
 	gl_FragColor = vec4(tone.color, 1.0f);
 
