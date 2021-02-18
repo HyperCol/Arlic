@@ -206,11 +206,11 @@ float Luminance(in vec3 color)
 }
 
 float ld(float depth) {
-    return (near * far) / (depth * (near - far) + far);
+    return near / (far + near - depth * (far - near));
 }
 
 float ild(float ldepth) {
-	return ((near * far) / ldepth - far) / (near - far);
+	return (near / ldepth - far - near) / (near - far);
 }
 
 vec2 fake_refract = vec2(sin(frameTimeCounter*1.7 + texcoord.x*50.0 + texcoord.y*25.0),cos(frameTimeCounter*2.5 + texcoord.y*100.0 + texcoord.x*25.0)) * isEyeInWater;

@@ -5,10 +5,12 @@
 #if !defined _CAMERA_
 #define _CAMERA_
 
-#define CAMERA_EV 1.0
-#define CAMERA_ISO 800
-#define CAMERA_SHUTTER_SPEED (1.0/60.0)
-#define CAMERA_APERTURE 1.0
+#ifndef _INCLUDE_CAMERA_
+    #define CAMERA_EV 0.0
+    #define CAMERA_ISO 800
+    #define CAMERA_SHUTTER_SPEED 1600
+    #define CAMERA_APERTURE 2.8
+#endif
  
 #define MIN_SHUTTER 1/4000
 #define MAX_SHUTTER 1/30

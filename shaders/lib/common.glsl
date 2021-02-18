@@ -1,7 +1,5 @@
 #ifndef INCLUDE_COMMON
 #define INCLUDE_COMMON
-#endif
-
 
 uniform float near;
 uniform float far;
@@ -43,3 +41,4 @@ vec3 Linear(vec3 color){
 vec3 Gamma(vec3 color){
 	return pow(color, vec3(2.2));
 }
+#endif
