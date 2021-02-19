@@ -94,7 +94,7 @@ uniform mat4 gbufferPreviousProjection;
 uniform vec3 previousCameraPosition;
 uniform vec3 cameraPosition;
 
-varying vec4 texcoord;
+varying vec2 texcoord;
 varying vec3 lightVector;
 
 uniform float aspectRatio;
