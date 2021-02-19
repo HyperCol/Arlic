@@ -86,8 +86,8 @@ uniform float rainStrength;
 uniform float frameTimeCounter;
 uniform float screenBrightness;
 
-uniform vec3 upPosition;
-uniform vec3 shadowLightPosition;
+uniform vec3 upVector;
+uniform vec3 shadowLightVector;
 
 uniform int isEyeInWater;
 
@@ -242,7 +242,7 @@ void 	AddSunglow(in vec3 L, in vec3 v, inout vec3 color) {
 vec3 	AddSkyGradient(in vec3 position) {
 	float curve = 5.0f;
 	vec3 npos = normalize(position);
-	vec3 halfVector2 = normalize(-normalize(upPosition) + npos);
+	vec3 halfVector2 = normalize(-upVector + npos);
 	float skyGradientFactor = dot(halfVector2, npos);
 	float skyDirectionGradient = skyGradientFactor;
 
@@ -470,9 +470,9 @@ void main()  {
 
   vec3 color = vec3(0.0);
 
-  float water 	= GetMaterialMask(texcoord.sy, 35);
-  float ice 	= GetMaterialMask(texcoord.sy, 4);
-  float glass 	= GetMaterialMask(texcoord.sy, 55);
+  float water 	= GetMaterialMask(texcoord.st, 35);
+  float ice 	= GetMaterialMask(texcoord.st, 4);
+  float glass 	= GetMaterialMask(texcoord.st, 55);
 
   float translucent = water + ice + glass;
 
@@ -494,14 +494,14 @@ void main()  {
   //vec2 refractCoord = vec2(0.0); vec4 blend = vec4(0.0);
   //WaterRefraction(refractCoord, blend, nvec3(gbufferProjectionInverse * nvec4(vec3(texcoord, texture2D(depthtex0, texcoord).x) * 2.0 - 1.0)), normal, IOR);
 
-  //bool refracted = bool(GetMaterialMask(refractCoord.sy, 35) + GetMaterialMask(refractCoord.sy, 4) + GetMaterialMask(refractCoord.sy, 55));
+  //bool refracted = bool(GetMaterialMask(refractCoord.st, 35) + GetMaterialMask(refractCoord.st, 4) + GetMaterialMask(refractCoord.st, 55));
 
   if(bool(step(0.9999, (texture2D(depthtex1, texcoord.xy).x)))){
 	  color = AddSkyGradient(viewPosition) * 6.0;
   }
 
   if(bool(translucent)){
-	vec3 L = normalize(shadowLightPosition);
+	vec3 L = shadowLightVector;
 
 	//vec3 sky = AddSkyGradient(viewPosition) * 6.0;
 
