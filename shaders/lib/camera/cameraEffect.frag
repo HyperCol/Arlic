@@ -1,6 +1,8 @@
 #if !defined _INCLUDE_CAMERA_
 #define _INCLUDE_CAMERA_
 
+uniform float NfocalLength;
+
 #define AUTO_CAMERA
     #define SENSOR_SIZE 11              //[4 6 8 9 11 16 17]
     #define FOCAL_POINT 0               //[0 1 2 4 8 16 24 32 40 48 56 64 72 80 88 96 104 112 120 128 136 144 152 160 168 176 184 192 200 208 216 224 232 240 248 256]
@@ -59,6 +61,7 @@ struct Camera {
 Camera init_camera() {
     Camera c;
     c.avgLuminance = texture2D(gaux3, vec2(0.5)).a + 0.0001;
+    c.focalLength = SENSOR_SIZE * NfocalLength;
     #if DOF == 1
 
     #elif DOF == 2
