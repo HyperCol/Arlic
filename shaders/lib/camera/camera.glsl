@@ -6,6 +6,7 @@
 #define _CAMERA_
 
 #ifndef _INCLUDE_CAMERA_
+    #define AUTO_CAMERA
     #define CAMERA_EV 0.0
     #define CAMERA_ISO 800
     #define CAMERA_SHUTTER_SPEED 1600
@@ -111,13 +112,12 @@ float ComputeEV(float avgLuminance) {
     const float ISO = CAMERA_ISO;
     const float EC = CAMERA_EV;
 
-    //#ifndef AUTO_CAMERA
-    //   float EV100 = ComputeEV100(aperture2, shutterSpeed, ISO);
-    //#else
+    #ifndef AUTO_CAMERA
+        float EV100 = ComputeEV100(aperture2, shutterSpeed, ISO);
+    #else
+        float EV100 = ComputeTargetEV(avgLuminance);
         //ApplyProgramAuto(CAMERA_FOCAL_LENGTH, EV100, aperture, shutterSpeed, ISO); //TODO: Temporal Feedback Camera Settings for DoF, motion blur, and film grain.
-    //#endif
-
-    float EV100 = ComputeTargetEV(avgLuminance);
+    #endif
 
     return ConvertEV100ToExposure(EV100 - EC);
 }

@@ -152,7 +152,7 @@ uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 
 uniform vec3 shadowLightVector;
-uniform vec3 sunVector;
+uniform vec3 sunVectorView;
 uniform vec3 cameraPosition;
 uniform vec3 upVector;
 
@@ -1961,11 +1961,11 @@ vec3 NewSkyLight(float p, in SurfaceStruct surface){
 	
 	float cosT = dot(sVector, upVector); 
 	float absCosT = max(cosT, 0.0);
-	float cosS = dot(sunVector, upVector);		
-	float cosY = dot(sunVector, sVector);
+	float cosS = dot(sunVectorView, upVector);		
+	float cosY = dot(sunVectorView, sVector);
 	float Y = acos(cosY);
 
-	float SdotU = dot(sunVector, upVector);
+	float SdotU = dot(sunVectorView, upVector);
 	float MdotU = dot(moonVector, upVector);
 	float sunVisibility = pow(clamp(SdotU+0.1, 0.0, 0.1) / 0.1, 2.0);	
 	

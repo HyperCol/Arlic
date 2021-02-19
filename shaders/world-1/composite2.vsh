@@ -54,15 +54,15 @@ void main() {
 		lightVector = normalize(moonPosition);
 	}
 
-	vec3 sunVector = normalize(sunPosition);
+	vec3 sunVectorView = normalize(sunPosition);
 
 	upVector = normalize(upPosition);
 
 
 	float timePow = 4.0f;
 
-	float LdotUp = dot(upVector, sunVector);
-	float LdotDown = dot(-upVector, sunVector);
+	float LdotUp = dot(upVector, sunVectorView);
+	float LdotDown = dot(-upVector, sunVectorView);
 
 	timeNoon = 1.0 - pow(1.0 - clamp01(LdotUp), timePow);
 	timeSunriseSunset = 1.0 - timeNoon;

@@ -99,7 +99,11 @@ varying vec3 lightVector;
 
 uniform float aspectRatio;
 uniform float frameTimeCounter;
+
+uniform ivec2 eyeBrightness;
 uniform float centerDepthSmooth;
+uniform ivec2 eyeBrightnessSmooth;
+
 uniform float rainStrength;
 uniform int isEyeInWater;
 
@@ -206,11 +210,11 @@ float Luminance(in vec3 color)
 }
 
 float ld(float depth) {
-    return near / (far + near - depth * (far - near));
+    return (near * far) / (depth * (near - far) + far);
 }
 
 float ild(float ldepth) {
-	return (near / ldepth - far - near) / (near - far);
+	return ((near * far) / ldepth - far) / (near - far);
 }
 
 vec2 fake_refract = vec2(sin(frameTimeCounter*1.7 + texcoord.x*50.0 + texcoord.y*25.0),cos(frameTimeCounter*2.5 + texcoord.y*100.0 + texcoord.x*25.0)) * isEyeInWater;
