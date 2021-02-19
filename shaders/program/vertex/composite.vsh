@@ -37,9 +37,9 @@
 varying vec2 texcoord;
 uniform float screenBrightness;                 //screen brightness (0.0-1.0)
 
-uniform vec3 sunPosition;
-uniform vec3 moonPosition;
-uniform vec3 upPosition;
+uniform vec3 upVector;
+uniform vec3 sunVector;
+uniform vec3 moonVector;
 uniform float rainStrength;
 uniform vec3 skyColor;
 uniform float sunAngle;
@@ -47,7 +47,6 @@ uniform float sunAngle;
 uniform int worldTime;
 
 varying vec3 lightVector;
-varying vec3 upVector;
 
 varying float timeSunriseSunset;
 varying float timeNoon;
@@ -88,17 +87,13 @@ vec3 KelvinToRGB(float k)
 void main() {
 	gl_Position = ftransform();
 	
-	texcoord = (gl_MultiTexCoord0).xy;
+	texcoord = gl_MultiTexCoord0.xy;
 
 	if (sunAngle < 0.5f) {
-		lightVector = normalize(sunPosition);
+		lightVector = sunVector;
 	} else {
-		lightVector = normalize(moonPosition);
+		lightVector = moonVector;
 	}
-
-	vec3 sunVector = normalize(sunPosition);
-
-	upVector = normalize(upPosition);
 	
 	
 	float timePow = 3.2f;
