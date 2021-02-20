@@ -156,6 +156,8 @@ const vec2 offsets[60] = vec2[60] ( vec2(  0.0000,  0.2500 ),
 #endif
 
 struct Dof {
+    float focalDepth;
+
     float FringeOffset;
 
     float BlurAmount;
@@ -270,9 +272,30 @@ Camera init_camera() {
     Camera c;
     c.avgLuminance = texture2D(gaux3, vec2(0.5)).a + 0.0001;
     c.focalLength = SENSOR_SIZE * NfocalLength;
-    ComputeEV(c);
-    #if DOF == 1
 
+    ComputeEV(c);
+
+    #if DOF > 0
+    #if FOCAL_POINT == 0
+        #ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
+        c.dof_cfg.focalDepth = screenBrightness;
+        #else
+        c,dof_cfg.focalDepth = centerDepthSmooth;
+        #endif
+    #else
+        c.dof_cfg.focalDepth = ild(FOCAL_POINT);
+    #endif
+
+    #if DOF == 1
+        c.dof_cfg.FringeOffset = 0.2;
+        
+        c.dof_cfg.BlurAmount = 4.8;
+
+        c.dof_cfg.MaxDistanceBlurAmount = 0.9;
+        c.dof_cfg.DistanceBlurRange = 360;
+
+        c.dof_cfg.EdgeBlurAmount = 1.75;
+        c.dof_cfg.EdgeBlurDecline = 3.0;
     #elif DOF == 2
         c.dof_cfg.FringeOffset = FRINGE_OFFSET;
 
@@ -284,10 +307,12 @@ Camera init_camera() {
         c.dof_cfg.EdgeBlurAmount = EDGE_BLUR_AMOUNT;
         c.dof_cfg.EdgeBlurDecline = EDGE_BLUR_DECLINE;
     #endif
+    #endif
     return c;
 }
 
-void  DOF_Blur(out vec3 color, in float isHand) {
+#if DOF > 0
+void  DOF_Blur(inout vec3 color, in Dof dc, in float isHand) {
 
 	float depth= texture2D(gdepthtex, texcoord.st).x;
 
@@ -311,35 +336,34 @@ void  DOF_Blur(out vec3 color, in float isHand) {
 	
 	#ifdef FOCUS_BLUR
 		#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
-			naive += (screenBrightness - depth) * 0.4 * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
+			naive += (screenBrightness - depth) * 0.4 * 0.01 * dc.BlurAmount * (1.0 - isHand * 0.85);
 		#else
-			naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
+			naive += (depth - centerDepthSmooth) * 0.01 * dc.BlurAmount * (1.0 - isHand * 0.85);
 		#endif
 	#endif
 
 	if (depth <= 0.99999){
 	#ifdef DISTANCE_BLUR
         #ifdef NOCALCULATECLOUDSNIGHT
-            naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
+            naive += clamp(1-(exp(-pow(ld(depth)/dc.DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (dc.MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
         #else
-            naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb));
+            naive += clamp(1-(exp(-pow(ld(depth)/dc.DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (dc.MaxDistanceBlurAmount*aaa+bbb));
         #endif
 	#endif
 	}
 
 	#ifdef EDGE_BLUR
-	naive += pow(distance(texcoord.st, vec2(0.5)),EdgeBlurDecline) * 0.01 * EdgeBlurAmount;
+	naive += pow(distance(texcoord.st, vec2(0.5)),dc.EdgeBlurDecline) * 0.01 * dc.EdgeBlurAmount;
 	#endif
 
     vec2 aspectcorrect = vec2(1.0, aspectRatio) * 1.6;
-    vec3 col = vec3(0.0);
-    col += GetColorTexture(texcoord.st);
 			
 	for ( int i = 0; i < 60; ++i) {
-		col.g += GetColorTexture(texcoord.st + offsets[i]*aspectcorrect*naive).g;
-	    col.r += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect + vec2(FringeOffset))*naive).r;
-		col.b += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect - vec2(FringeOffset))*naive).b;
+		color.g += GetColorTexture(texcoord.st + offsets[i]*aspectcorrect*naive).g;
+	    color.r += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect + vec2(dc.FringeOffset))*naive).r;
+		color.b += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect - vec2(dc.FringeOffset))*naive).b;
 	}
-	color = col / 60.0;
+	color /= 60.0;
 }
+#endif
 #endif
