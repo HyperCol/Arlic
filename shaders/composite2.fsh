@@ -1929,7 +1929,7 @@ vec4 CloudColorT(in vec4 worldPosition, in float sunglow, in vec3 worldLightVect
 	
 	
 	
-	float cloudDepth  = CALCULATECLOUDDEPTH - 3 * CALCULATECLOUDDEPTH * timeMidnight - 0.5 * CALCULATECLOUDDEPTH * timeSunriseSunset * (1-1.5*rainStrength);
+	float cloudDepth  = CALCULATECLOUDDEPTH;
 
 	
 	
