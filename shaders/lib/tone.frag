@@ -135,6 +135,8 @@ vec3 tonemap(in vec3 color, float exposure) {
 #define COLOR_BALANCE_H_B 0.0 //[-1.0 -0.9 -0.8 -0.7 -0.6 -0.5 -0.4 -0.3 -0.2 -0.1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 //#define KEEP_BROGHTNESS
 
+#define TONEMAP_STRENGTH 1.0 //[0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.2 3.4 3.6 3.8 4.0]
+
 Tone init_tone(vec2 tex, float exposure) {
     Tone t;
 	t.exposure = exposure;
@@ -144,7 +146,7 @@ Tone init_tone(vec2 tex, float exposure) {
 	
 	t.useAdjustment = 1.0;
 	t.blurIndex = 0.0;
-	t.useToneMap = 1.0;
+	t.useToneMap = TONEMAP_STRENGTH;
 	
 	#if TONE == 1
 	t.brightness = 1.05;
