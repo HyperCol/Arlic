@@ -101,13 +101,10 @@ vec3 colorBalance(vec3 rgbColor, vec3 s, vec3 m, vec3 h, bool p) {
 
 #define EXPOSURE 1.2 		//[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 
-vec3 tonemap(in vec3 color) {
+vec3 tonemap(in vec3 color, float exposure) {
 
-	//color /= 0.001;
+	color *= exposure;
 
-	//color *= 3000.0 * EXPOSURE * (1.8 - clamp(pow(eyeBrightnessSmooth.y / 240.0, 6.0) * luma(colorSunlight), 0.0, 1.2));
-	//color /= (DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.65*timeMidnight));
-	
 	const float a = 2.51f;
 	const float b = 0.03f;
 	const float c = 2.43f;
@@ -138,9 +135,9 @@ vec3 tonemap(in vec3 color) {
 #define COLOR_BALANCE_H_B 0.0 //[-1.0 -0.9 -0.8 -0.7 -0.6 -0.5 -0.4 -0.3 -0.2 -0.1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 //#define KEEP_BROGHTNESS
 
-Tone init_tone(vec2 tex) {
+Tone init_tone(vec2 tex, float exposure) {
     Tone t;
-	//t.exposure = get_exposure();
+	t.exposure = exposure;
 	
 	t.color = GetColorTexture(tex).rgb;
 	//t.blur = texture(gaux4, tex).rgb;// * (1.0 + t.exposure);
@@ -252,9 +249,8 @@ void Hue_Adjustment(inout Tone t) {
 	#endif
 
 	//tonemap
-	t.color *= 8.0;
 	vec3 color = t.color;
-	if (t.useToneMap > 0) t.color = mix(t.color, tonemap(color), t.useToneMap);
+	if (t.useToneMap > 0) t.color = mix(t.color, tonemap(color, t.exposure), t.useToneMap);
 	
 	//hue
 	#ifdef HUE_ADJUSTMENT

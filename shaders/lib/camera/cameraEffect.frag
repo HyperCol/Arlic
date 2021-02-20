@@ -154,7 +154,7 @@ Camera init_camera() {
 
         c.dof_cfg.BlurAmount = BLUR_AMOUNT;
 
-        c.dof_cfg.MaxDistanceBlurAmount = MAX_BLUR_AMOUNT;
+        c.dof_cfg.MaxDistanceBlurAmount = MAX_DISTANCE_BLUR_AMOUNT;
         c.dof_cfg.DistanceBlurRange = DISTANCE_BLUR_RANGE;
 
         c.dof_cfg.EdgeBlurAmount = EDGE_BLUR_AMOUNT;
