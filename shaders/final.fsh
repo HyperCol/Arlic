@@ -38,8 +38,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 //#define FINAL_ALT_COLOR_SOURCE 
 //#define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
 
-//#define MOTION_BLUR // It's motion blur.
-
 #define VERSION 0.9.0      //Arlic Shaders VERSION.
 
 uniform sampler2D gcolor;
@@ -88,7 +86,6 @@ const bool gnormalMipmapEnabled = true;
 //#include "/lib/uniform.glsl"
 #include "/lib/materials.glsl"
 #include "/lib/antialiasing/taa.glsl"
-#include "/lib/camera/cameraEffect.frag"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,50 +190,6 @@ float R2_dither(){
 	return fract(alpha.x * gl_FragCoord.x + alpha.y * gl_FragCoord.y);
 }
 
-void 	MotionBlur(inout vec3 color, float isHand) {
-	float depth = GetDepth(texcoord.st);
-	vec4 currentPosition = vec4(texcoord.x * 2.0f - 1.0f, texcoord.y * 2.0f - 1.0f, 2.0f * depth - 1.0f, 1.0f);
-
-	vec4 fragposition = gbufferProjectionInverse * currentPosition;
-	fragposition = gbufferModelViewInverse * fragposition;
-	fragposition /= fragposition.w;
-	fragposition.xyz += cameraPosition;
-
-	vec4 previousPosition = fragposition;
-	previousPosition.xyz -= previousCameraPosition;
-	previousPosition = gbufferPreviousModelView * previousPosition;
-	previousPosition = gbufferPreviousProjection * previousPosition;
-	previousPosition /= previousPosition.w;
-
-	vec2 velocity = (currentPosition - previousPosition).st * 0.12f;
-	float maxVelocity = 0.05f;
-		 velocity = clamp(velocity, vec2(-maxVelocity), vec2(maxVelocity));
-
-	velocity *= 1.0f - float(isHand);
-
-	int samples = 0;
-
-	float dither = R2_dither();
-
-	color.rgb = vec3(0.0f);
-
-	for (int i = 0; i < 2; ++i) {
-		vec2 coord = texcoord.st + velocity * (i - 0.5);
-			 coord += vec2(dither) * 0.08f * velocity;
-
-		if (coord.x > 0.0f && coord.x < 1.0f && coord.y > 0.0f || coord.y < 1.0f) {
-
-			color += GetColorTexture(coord).rgb;
-			samples += 1;
-
-		}
-	}
-
-	color.rgb /= samples;
-
-
-}
-
 float   CalculateSunspot() {
 
 	float curve = 1.0f;
@@ -268,6 +221,7 @@ void Sharpen(inout vec3 color, float shapreness){
 	color = clamp(color, vec3(0.0), vec3(1.0));
 }
 
+#include "/lib/camera/cameraEffect.frag"
 #include "/lib/tone.frag"
 
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,8 +252,7 @@ void main() {
 		//tone.color *= 3.0;
 	#endif
 
-	tone.color *= 1000.0;
-	tone.color *= 8.0;
+	tone.color *= 16000.0;
 	//tone.color *= ConvertEV100ToExposure(ComputeEV100(4.0 * 4.0, 0.0045, ComputeISO(4.0, 0.0045, ComputeTargetEV(texture2D(gaux3, vec2(0.5)).a + 0.0001))));
 
 	//tone.color *= comp

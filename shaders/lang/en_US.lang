@@ -225,7 +225,11 @@ option.FORCE_WET_EFFECT=雨天地面积水
 option.MOTION_BLUR=动态模糊
 option.LF=镜头光晕
 
+#=========Camera Option============
+option.AUTO_CAMERA = 自动镜头
+
 option.DOF=景深
+
 option.HEXAGONAL_BOKEH=六边形模式
 option.NOHANDDOF=屏蔽手部景深
 option.MAX_BLUR_AMOUNT=最大模糊度
@@ -237,6 +241,17 @@ option.DISTANCE_BLUR_RANGE=距离模糊半径
 option.EDGE_BLUR=边缘模糊
 option.EDGE_BLUR_AMOUNT=边缘模糊强度
 option.EDGE_BLUR_DECLINE=边缘模糊间变量
+
+value.AUTO_CAMERA.0 = §c关闭§r
+value.AUTO_CAMERA.1 = 全部
+value.AUTO_CAMERA.2 = 仅光圈
+value.AUTO_CAMERA.3 = 仅快门
+
+value.DOF.0 = §c关闭§r
+value.DOF.1 = 自动
+value.DOF.2 = 手动
+
+value.FOCAL_POINT.0 = 自动
 
 option.WAVING_GRASS=晃动的草
 option.WAVING_WHEAT=晃动的小麦

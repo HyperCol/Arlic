@@ -10,6 +10,8 @@
     #define CAMERA_ISO 400              //[50 75 100 200 400 800 1600 3200]
     #define CAMERA_EV 0.0               //[-4.0 -3.9 -3.8 -3.7 -3.6 -3.5 -3.4 -3.3 -3.2 -3.1 -3.0 -2.9 -2.8 -2.7 -2.6 -2.5 -2.4 -2.3 -2.2 -2.1 -2.0 -1.9 -1.8 -1.7 -1.6 -1.5 -1.4 -1.3 -1.2 -1.1 -1.0 -0.9 -0.8 -0.7 -0.6 -0.5 -0.4 -0.3 -0.2 -0.1 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
+//#define MOTION_BLUR // It's motion blur.
+
 #define DOF 1 //[0 1 2]
 //0: Off | 1: Auto | 2: Manuel
 	#define HEXAGONAL_BOKEH
@@ -276,14 +278,14 @@ Camera init_camera() {
     ComputeEV(c);
 
     #if DOF > 0
-    #if FOCAL_POINT == 0
-        #ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
-        c.dof_cfg.focalDepth = screenBrightness;
+    #ifndef LINK_FOCUS_TO_BRIGHTNESS_BAR
+        #if FOCAL_POINT == 0
+        c.dof_cfg.focalDepth = centerDepthSmooth;
         #else
-        c,dof_cfg.focalDepth = centerDepthSmooth;
+        c.dof_cfg.focalDepth = ild(FOCAL_POINT);
         #endif
     #else
-        c.dof_cfg.focalDepth = ild(FOCAL_POINT);
+        c.dof_cfg.focalDepth = screenBrightness;
     #endif
 
     #if DOF == 1
@@ -335,11 +337,7 @@ void  DOF_Blur(inout vec3 color, in Dof dc, in float isHand) {
 	#endif
 	
 	#ifdef FOCUS_BLUR
-		#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
-			naive += (screenBrightness - depth) * 0.4 * 0.01 * dc.BlurAmount * (1.0 - isHand * 0.85);
-		#else
-			naive += (depth - centerDepthSmooth) * 0.01 * dc.BlurAmount * (1.0 - isHand * 0.85);
-		#endif
+		naive += abs(depth - dc.focalDepth) * 0.01 * dc.BlurAmount * (1.0 - isHand * 0.85);
 	#endif
 
 	if (depth <= 0.99999){
@@ -366,4 +364,46 @@ void  DOF_Blur(inout vec3 color, in Dof dc, in float isHand) {
 	color /= 60.0;
 }
 #endif
+
+void MotionBlur(inout vec3 color, float isHand) {
+	float depth = GetDepth(texcoord.st);
+	vec4 currentPosition = vec4(texcoord.x * 2.0f - 1.0f, texcoord.y * 2.0f - 1.0f, 2.0f * depth - 1.0f, 1.0f);
+
+	vec4 fragposition = gbufferProjectionInverse * currentPosition;
+	fragposition = gbufferModelViewInverse * fragposition;
+	fragposition /= fragposition.w;
+	//fragposition.xyz += cameraPosition;
+
+	vec4 previousPosition = fragposition;
+	//previousPosition.xyz -= previousCameraPosition;
+	previousPosition = gbufferPreviousModelView * previousPosition;
+	previousPosition = gbufferPreviousProjection * previousPosition;
+	previousPosition /= previousPosition.w;
+
+	vec2 velocity = (currentPosition - previousPosition).st * 0.12f;
+	float maxVelocity = 0.05f;
+		 velocity = clamp(velocity, vec2(-maxVelocity), vec2(maxVelocity));
+
+	velocity *= 1.0f - float(isHand);
+
+	int samples = 0;
+
+	float dither = R2_dither();
+
+	color.rgb = vec3(0.0f);
+
+	for (int i = 0; i < 2; ++i) {
+		vec2 coord = texcoord.st + velocity * (i - 0.5);
+			 coord += vec2(dither) * 0.08f * velocity;
+
+		if (coord.x > 0.0f && coord.x < 1.0f && coord.y > 0.0f || coord.y < 1.0f) {
+
+			color += GetColorTexture(coord).rgb;
+			samples += 1;
+
+		}
+	}
+
+	color.rgb /= samples;
+}
 #endif
