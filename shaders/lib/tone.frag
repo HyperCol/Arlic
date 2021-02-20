@@ -264,7 +264,7 @@ void Hue_Adjustment(inout Tone t) {
 		#endif
 			//apply brightness
 			t.color *= t.brightness;
-			//apply contract
+			//apply contrast
 			t.color = mix(vec3(0.5), t.color, t.contrast);
 			
 			//apply saturation

@@ -5,14 +5,6 @@
 #if !defined _CAMERA_
 #define _CAMERA_
 
-#ifndef _INCLUDE_CAMERA_
-    #define AUTO_CAMERA
-    #define CAMERA_EV 0.0
-    #define CAMERA_ISO 800
-    #define CAMERA_SHUTTER_SPEED 1600
-    #define CAMERA_APERTURE 2.8
-#endif
- 
 #define MIN_SHUTTER 1/4000
 #define MAX_SHUTTER 1/30
 #define MIN_ISO 100
@@ -112,7 +104,7 @@ float ComputeEV(float avgLuminance) {
     const float ISO = CAMERA_ISO;
     const float EC = CAMERA_EV;
 
-    #ifndef AUTO_CAMERA
+    #if AUTO_CAMERA == 0
         float EV100 = ComputeEV100(aperture2, shutterSpeed, ISO);
     #else
         float EV100 = ComputeTargetEV(avgLuminance);
