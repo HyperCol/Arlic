@@ -179,6 +179,7 @@ uniform vec3 upVector;
 uniform vec3 upPosition;
 uniform vec3 sunVectorView;
 uniform vec3 moonVector;
+uniform vec3 moonPosition;
 
 uniform int worldTime;
 uniform int frameCounter;
@@ -2915,6 +2916,13 @@ void CalStar(in SurfaceStruct surface, inout vec3 finalComposite) {
 
 }
 
+void DrawMoon(in SurfaceStruct surface, inout vec3 finalComposite) {
+	
+	float calcMoon = min(pow(max(dot(normalize(surface.screenSpacePosition).xyz, normalize(moonPosition)), 0.0), 2000.0), 0.2) * 3.0;
+	
+	finalComposite.rgb = mix(finalComposite.rgb, vec3(1.0, 0.9, 0.8) * 0.06, calcMoon * float(surface.mask.sky));
+}
+
 #include "/lib/Auroras.glsl"
 
 void CalculateMaterialData(inout SurfaceStruct surface, in vec2 coord){
@@ -3282,6 +3290,7 @@ void main() {
 	#ifdef STAR
 		if (rainStrength < 0.99) {
 			CalStar(surface,finalComposite);
+			DrawMoon(surface,finalComposite);
 		}
 	#endif
 
