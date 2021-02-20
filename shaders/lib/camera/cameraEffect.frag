@@ -287,13 +287,14 @@ Camera init_camera() {
     #else
         c.dof_cfg.focalDepth = screenBrightness;
     #endif
+    c.dof_cfg.focalDepth = min(c.dof_cfg.focalDepth, 0.9999);
 
     #if DOF == 1
-        c.dof_cfg.FringeOffset = 0.2;
+        c.dof_cfg.FringeOffset = 0.1 * mix(c.focalLength, 1.0, 0.3);
         
-        c.dof_cfg.BlurAmount = 4.8;
+        c.dof_cfg.BlurAmount = 2.5 + c.focalLength * 0.4;
 
-        c.dof_cfg.MaxDistanceBlurAmount = 0.9;
+        c.dof_cfg.MaxDistanceBlurAmount = 0.7 * mix(c.focalLength, 1.0, 0.8);
         c.dof_cfg.DistanceBlurRange = 360;
 
         c.dof_cfg.EdgeBlurAmount = 1.75;
@@ -314,7 +315,7 @@ Camera init_camera() {
 }
 
 #if DOF > 0
-void  DOF_Blur(inout vec3 color, in Dof dc, in float isHand) {
+void  DOF_Blur(inout vec3 color, in Camera c, in float isHand) {
 
 	float depth= texture2D(gdepthtex, texcoord.st).x;
 
@@ -336,19 +337,19 @@ void  DOF_Blur(inout vec3 color, in Dof dc, in float isHand) {
         float bbb = 0.0;
 	#endif
 	
+    Dof dc = c.dof_cfg;
+
 	#ifdef FOCUS_BLUR
-		naive += abs(depth - dc.focalDepth) * 0.01 * dc.BlurAmount * (1.0 - isHand * 0.85);
+		naive += pow(abs(depth - dc.focalDepth), 0.4 / c.focalLength + 0.6) * 0.01 * dc.BlurAmount * (1.0 - isHand * 0.95);
 	#endif
 
-	if (depth <= 0.99999){
 	#ifdef DISTANCE_BLUR
         #ifdef NOCALCULATECLOUDSNIGHT
-            naive += clamp(1-(exp(-pow(ld(depth)/dc.DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (dc.MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
+            naive += clamp(1-(exp(-pow(ld(depth)/dc.DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (dc.MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight) * min(1.0, naive + 0.3));
         #else
-            naive += clamp(1-(exp(-pow(ld(depth)/dc.DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (dc.MaxDistanceBlurAmount*aaa+bbb));
+            naive += clamp(1-(exp(-pow(ld(depth)/dc.DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (dc.MaxDistanceBlurAmount*aaa+bbb) * min(1.0, naive + 0.3));
         #endif
 	#endif
-	}
 
 	#ifdef EDGE_BLUR
 	naive += pow(distance(texcoord.st, vec2(0.5)),dc.EdgeBlurDecline) * 0.01 * dc.EdgeBlurAmount;

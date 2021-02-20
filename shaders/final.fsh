@@ -238,7 +238,7 @@ void main() {
 	#endif
 
 	#ifdef DOF
-		DOF_Blur(tone.color, cam.dof_cfg, isHand);
+		DOF_Blur(tone.color, cam, isHand);
 	#endif
 
 	#ifdef Enabled_TemportalAntiAliasing
