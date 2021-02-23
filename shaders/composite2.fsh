@@ -71,12 +71,12 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define NIGHT_AURORA_G 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 	#define NIGHT_AURORA_B 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 	#define NIGHT_AURORA_L 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define AURORA_COLOR purpleAurora //[blueAurora purpleAurora greenAurora]
+#define AURORA_COLOR blueAurora //[blueAurora purpleAurora greenAurora]
 #define AURORA_STRENGTH 0.7 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.7 2.0 2.5 3.0 4.0 5.0 7.0 10.0 15.0 20.0 30.0 50.0 70.0 100.0]
 #define aurora_power 0.3 //[0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
 #define aurora_speed 3.0 //[0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
 #define aurora_flash 50.0 //[0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0 21.0 22.0 23.0 24.0 25.0 26.0 27.0 28.0 29.0 30.0 31.0 32.0 33.0 34.0 35.0 36.0 37.0 38.0 39.0 40.0 41.0 42.0 43.0 44.0 45.0 46.0 47.0 48.0 49.0 50.0 51.0 52.0 53.0 54.0 55.0 56.0 57.0 58.0 59.0 60.0 61.0 62.0 63.0 64.0 65.0 66.0 67.0 68.0 69.0 70.0 71.0 72.0 73.0 74.0 75.0 76.0 77.0 78.0 79.0 80.0 81.0 82.0 83.0 84.0 85.0 86.0 87.0 88.0 89.0 90.0 91.0 92.0 93.0 94.0 95.0 96.0 97.0 98.0 99.0 100.0]
-#define AURORA_PRESET_COL //Preset color of aurora
+//#define AURORA_PRESET_COL //Preset color of aurora
 
 
 
@@ -99,7 +99,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 #define NEW_SKY_LIGHT
 #define STAR
-
+#define RAINBOW
 
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2852,8 +2852,28 @@ void CalStar(in SurfaceStruct surface, inout vec3 finalComposite) {
 	finalComposite.rgb = mix(finalComposite.rgb , vec3(0.8,1.2,1.2) * 0.02 - 0.02 * rainStrength, stars * float(surface.mask.sky));
 
 }
+void Rainbow(inout vec3 color){
+	vec4 fragposition  = gbufferProjectionInverse * (vec4(texcoord.st, texture2D(depthtex1, texcoord.st).x, 1.0) * 2.0 - 1.0);
+	fragposition /= fragposition.w;
+	vec3 sunPosNorm = normalize(sunPosition);
+	float sunDot = dot(sunPosNorm, normalize(fragposition.xyz)) * 0.5 + 0.5;
+	float RAINBOW_DIAMETER = 8.0f;
+	float RAINBOW_THICKNESS = 5.5f;
+	float RAINBOW_DISTANCE = 155.0f;
+	if(length(fragposition.xyz) > RAINBOW_DISTANCE && (worldTime > 0 && worldTime < 12500) && sunPosition.z > 0.0)
+	{
+		float rainbowStrength = (wetness - rainStrength) * 0.15;
+		float rainbowHue = (sunDot - 0.05 * RAINBOW_DIAMETER) * -50.0 / RAINBOW_THICKNESS;
+		if (rainbowStrength > 0.01 && rainbowHue > 0.0 && rainbowHue < 1.0) {
+			rainbowHue *= 7.0;
+			color.r += clamp(1.5 - abs(rainbowHue - 1.5), 0.0, 1.0) * rainbowStrength;
+			color.g += clamp(2.0 - abs(rainbowHue - 3.0), 0.0, 1.0) * rainbowStrength;
+			color.b += clamp(1.5 - abs(rainbowHue - 4.5), 0.0, 1.0) * rainbowStrength;
+			}
+		}
+}
 
-#include "Auroras.glsl"
+#include "/libs/Auroras.glsl"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3176,6 +3196,10 @@ void main() {
 
 	WaterFog(finalComposite, surface, mcLightmap);
 	IceFog(finalComposite, surface, mcLightmap);
+
+	#ifdef RAINBOW
+	Rainbow(finalComposite);
+	#endif
 
 	
 	if (surface.mask.stainedGlass > 0.5)
