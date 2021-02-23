@@ -3015,10 +3015,6 @@ void main() {
 
 	mcLightmap.lightning    = 0.0f;								//gets the lightmap for light coming from lightning
 
-	//if (surface.mask.water > 0.5 || surface.mask.ice > 0.5)
-	//{
-	//	mcLightmap.sky 		= GetTransparentLightmapSky(texcoord.st);
-	//}
 
 	//Initialize default surface shading attributes
 	surface.diffuse.roughness 			= 0.0f;					//Default surface roughness
