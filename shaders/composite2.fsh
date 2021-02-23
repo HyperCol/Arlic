@@ -84,8 +84,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define AURORA_PRESET_COL //Preset color of aurora
 
 
-
-
 #define ATMOSPHERIC_SCATTERING // Blue tint of distant objects to simulate atmospheric scattering
 #define RAYLEIGH_AMOUNT 1.0 // Strength of atmospheric scattering (atmospheric density). [0.5 1.0 1.5 2.0]
 
