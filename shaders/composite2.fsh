@@ -41,6 +41,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 /////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//#define Disabled_SkyLight_Occlusion
 
 //Only enable one of these.
 //#define ENABLE_SOFT_SHADOWS		// Simple soft shadows
@@ -293,6 +294,9 @@ float 	GetLightmapTorch(in vec2 coord) {			//Function that retrieves the lightma
 }
 
 float 	GetLightmapSky(in vec2 coord) {			//Function that retrieves the lightmap of light emitted by the sky. This is a raw value from 0 (fully dark) to 1 (fully lit) regardless of time of day
+#ifdef Disabled_SkyLight_Occlusion
+	return 1.0;
+#else
 	//return pow(texture2D(gdepth, coord).b, 8.3f);
 
 	float light = texture2D(gdepth, coord).b;
@@ -304,6 +308,7 @@ float 	GetLightmapSky(in vec2 coord) {			//Function that retrieves the lightmap 
 	light = max(0.0, light * 1.05 - 0.05);
 
 	return pow(light, 2.0);
+#endif
 }
 
 float GetTransparentLightmapSky(in vec2 coord)

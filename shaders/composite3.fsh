@@ -35,6 +35,8 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
 
+//#define Disabled_SkyLight_Occlusion
+
 #define SHADOW_MAP_BIAS 0.90
 
 #define VOLUMETRIC_CLOUDS // Volumetric clouds
@@ -349,7 +351,11 @@ bool  	GetWaterMask(in vec2 coord) {					//Function that returns "true" if a pix
 }
 
 float 	GetLightmapSky(in vec2 coord) {
+#ifdef Disabled_SkyLight_Occlusion
+	return 1.0;
+#else
 	return texture2DLod(gdepth, texcoord.st, 0).b;
+#endif
 }
 
 vec3 convertScreenSpaceToWorldSpace(vec2 co) {
