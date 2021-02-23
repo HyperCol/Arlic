@@ -1352,39 +1352,6 @@ void 	CalculateUnderwaterFog(in SurfaceStruct surface, inout vec3 finalComposite
 	//finalComposite.rgb = vec3(0.1f);
 }
 
-void 	TestRaymarch(inout vec3 color, in SurfaceStruct surface)
-{
-
-	//visualize march steps
-	float rayDepth = 0.0f;
-	float rayIncrement = 0.05f;
-	float fogFactor = 0.0f;
-
-	while (rayDepth < 1.0f)
-	{
-		vec4 rayPosition = GetScreenSpacePosition(texcoord.st, pow(rayDepth, 0.002f));
-
-
-
-		if (abs(rayPosition.z - surface.screenSpacePosition.z) < 0.025f)
-		{
-			color.rgb = vec3(0.01f, 0.0f, 0.0f);
-		}
-
-		// if (SphereTestDistance(vec3(surface.screenSpacePosition.x, surface.screenSpacePosition.y, surface.screenSpacePosition.z)) <= 0.001f)
-		// 	fogFactor += 0.001f;
-
-		rayDepth += rayIncrement;
-
-	}
-
-	// color.rgb = mix(color.rgb, vec3(1.0f) * 0.01f, fogFactor);
-
-	// vec4 newPosition = surface.screenSpacePosition;
-
-	// color.rgb = vec3(distance(newPosition.rgb, vec3(0.0f, 0.0f, 0.0f)) * 0.00001f);
-
-}
 
 void InitializeAO(inout SurfaceStruct surface)
 {
