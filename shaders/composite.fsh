@@ -45,6 +45,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 #define SHADOW_MAP_BIAS 0.90
 
+
 const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096]
 const float 	shadowDistance 			= 120.0; // Shadow distance. Set lower if you prefer nicer close shadows. Set higher if you prefer nicer distant shadows. [80.0 120.0 180.0 240.0]
 const float 	shadowIntervalSize 		= 4.0f;
