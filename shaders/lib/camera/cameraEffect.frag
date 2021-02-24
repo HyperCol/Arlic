@@ -1,7 +1,7 @@
-#if !defined _INCLUDE_CAMERA_
+#if !(defined _INCLUDE_CAMERA_)
 #define _INCLUDE_CAMERA_
 
-#define AUTO_CAMERA 1                   //[0 1 2 3]
+#define AUTO_CAMERA
 //0: Off | 1: All | 2: Aperture only | 3: Shutter only
     #define SENSOR_SIZE 11              //[4 6 8 9 11 16 17]
     #define FOCAL_POINT 0               //[0 1 2 4 8 16 24 32 40 48 56 64 72 80 88 96 104 112 120 128 136 144 152 160 168 176 184 192 200 208 216 224 232 240 248 256]
@@ -13,7 +13,7 @@
 //#define MOTION_BLUR // It's motion blur.
 
 #define DOF 1 //[0 1 2]
-//0: Off | 1: Auto | 2: Manuel
+//0: Off | 1: Auto | 2: Manual
 	#define HEXAGONAL_BOKEH
 		#define FRINGE_OFFSET 0.2 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
@@ -174,9 +174,11 @@ struct Dof {
 struct Camera {
     float focalLength;      //焦距
 
+    /*
     float aperture;         //光圈
     float iso;              //感光度
     float shutterSpeed;     //快门速度
+    */
 
     float ev100;            //曝光值
     float avgLuminance;     //平均亮度
@@ -186,7 +188,7 @@ struct Camera {
     #if DOF > 0
         Dof dof_cfg;
     #endif
-};
+} cam;
 
 float ld(float depth) {
     return (near * far) / (depth * (near - far) + far);
@@ -195,7 +197,7 @@ float ld(float depth) {
 float ild(float ldepth) {
 	return ((near * far) / ldepth - far) / (near - far);
 }
-
+/*
 void ApplyAperturePriority(float targetEV, inout Camera c) {
     // Start with the assumption that we want a shutter speed of 1/f
     c.shutterSpeed = 1.0 / (c.focalLength * 1000.0);
@@ -241,7 +243,7 @@ void ApplyProgramAuto(float targetEV, inout Camera c) {
     // Apply the remaining difference to the shutter speed
     evDiff = targetEV - ComputeEV(c.aperture, c.shutterSpeed, c.iso);
     c.shutterSpeed = clamp(c.shutterSpeed * exp2(-evDiff), MIN_SHUTTER, MAX_SHUTTER);
-}
+}*/
 
 void ComputeEV(inout Camera c) {
     const float aperture  = CAMERA_APERTURE;
@@ -250,72 +252,70 @@ void ComputeEV(inout Camera c) {
     const float ISO = CAMERA_ISO;
     const float EC = CAMERA_EV;
 
-    #if AUTO_CAMERA == 0
-        c.aperture = aperture;
+    #ifndef AUTO_CAMERA
+        /*c.aperture = aperture;
         c.shutterSpeed = shutterSpeed;
-        c.iso = ISO;
+        c.iso = ISO;*/
         c.ev100 = ComputeEV100(aperture2, shutterSpeed, ISO);
     #else
         c.ev100 = ComputeTargetEV(c.avgLuminance * 480.0);
-        #if AUTO_CAMERA == 1
+        /*#if AUTO_CAMERA == 1
             ApplyProgramAuto(c.ev100, c);
         #elif AUTO_CAMERA == 2
             ApplyAperturePriority(c.ev100, c);
         #elif AUTO_CAMERA == 3
             ApplyShutterPriority(c.ev100, c);
-        #endif
+        #endif*/
         //ApplyProgramAuto(CAMERA_FOCAL_LENGTH, EV100, aperture, shutterSpeed, ISO); //TODO: Temporal Feedback Camera Settings for DoF, motion blur, and film grain.
     #endif
 
     c.exposure = ConvertEV100ToExposure(c.ev100 - EC);
 }
 
-Camera init_camera() {
-    Camera c;
-    c.avgLuminance = texture2D(gaux3, vec2(0.5)).a + 0.0001;
-    c.focalLength = SENSOR_SIZE * NfocalLength;
+void init_camera() {
+    cam.avgLuminance = texture2D(gaux3, vec2(0.5)).a + 0.0001;
+    cam.focalLength = SENSOR_SIZE * NfocalLength;
 
-    ComputeEV(c);
+    ComputeEV(cam);
 
     #if DOF > 0
     #ifndef LINK_FOCUS_TO_BRIGHTNESS_BAR
         #if FOCAL_POINT == 0
-        c.dof_cfg.focalDepth = centerDepthSmooth;
+        cam.dof_cfg.focalDepth = centerDepthSmooth;
         #else
-        c.dof_cfg.focalDepth = ild(FOCAL_POINT);
+        cam.dof_cfg.focalDepth = ild(float(FOCAL_POINT));
         #endif
     #else
-        c.dof_cfg.focalDepth = screenBrightness;
+        cam.dof_cfg.focalDepth = screenBrightness;
     #endif
-    c.dof_cfg.focalDepth = min(c.dof_cfg.focalDepth, 0.9999);
+    cam.dof_cfg.focalDepth = min(cam.dof_cfg.focalDepth, 0.9999);
 
     #if DOF == 1
-        c.dof_cfg.FringeOffset = 0.1 * mix(c.focalLength, 1.0, 0.3);
+        cam.dof_cfg.FringeOffset = 0.1 * mix(cam.focalLength, 1.0, 0.3);
         
-        c.dof_cfg.BlurAmount = 2.5 + c.focalLength * 0.4;
+        cam.dof_cfg.BlurAmount = 2.5 + cam.focalLength * 0.4;
 
-        c.dof_cfg.MaxDistanceBlurAmount = 0.7 * mix(c.focalLength, 1.0, 0.8);
-        c.dof_cfg.DistanceBlurRange = 360;
+        cam.dof_cfg.MaxDistanceBlurAmount = 0.7 * mix(cam.focalLength, 1.0, 0.8);
+        cam.dof_cfg.DistanceBlurRange = 360;
 
-        c.dof_cfg.EdgeBlurAmount = 1.75;
-        c.dof_cfg.EdgeBlurDecline = 3.0;
+        cam.dof_cfg.EdgeBlurAmount = 2.6 / (cam.focalLength * 0.3 + 0.9);
+        cam.dof_cfg.EdgeBlurDecline = 7.1 / (cam.focalLength * 0.2 + 1.5);
     #elif DOF == 2
-        c.dof_cfg.FringeOffset = FRINGE_OFFSET;
+        cam.dof_cfg.FringeOffset = FRINGE_OFFSET;
 
-        c.dof_cfg.BlurAmount = BLUR_AMOUNT;
+        cam.dof_cfg.BlurAmount = BLUR_AMOUNT;
 
-        c.dof_cfg.MaxDistanceBlurAmount = MAX_DISTANCE_BLUR_AMOUNT;
-        c.dof_cfg.DistanceBlurRange = DISTANCE_BLUR_RANGE;
+        cam.dof_cfg.MaxDistanceBlurAmount = MAX_DISTANCE_BLUR_AMOUNT;
+        cam.dof_cfg.DistanceBlurRange = DISTANCE_BLUR_RANGE;
 
-        c.dof_cfg.EdgeBlurAmount = EDGE_BLUR_AMOUNT;
-        c.dof_cfg.EdgeBlurDecline = EDGE_BLUR_DECLINE;
+        cam.dof_cfg.EdgeBlurAmount = EDGE_BLUR_AMOUNT;
+        cam.dof_cfg.EdgeBlurDecline = EDGE_BLUR_DECLINE;
     #endif
     #endif
-    return c;
 }
 
 #if DOF > 0
-void  DOF_Blur(inout vec3 color, in Camera c, in float isHand) {
+void  DOF_Blur(inout vec3 color, in float isHand) {
 
 	float depth= texture2D(gdepthtex, texcoord.st).x;
 
@@ -337,10 +337,10 @@ void  DOF_Blur(inout vec3 color, in Camera c, in float isHand) {
         float bbb = 0.0;
 	#endif
 	
-    Dof dc = c.dof_cfg;
+    Dof dc = cam.dof_cfg;
 
 	#ifdef FOCUS_BLUR
-		naive += pow(abs(depth - dc.focalDepth), 0.4 / c.focalLength + 0.6) * 0.01 * dc.BlurAmount * (1.0 - isHand * 0.95);
+		naive += pow(abs(depth - dc.focalDepth), 0.4 / cam.focalLength + 0.6) * 0.01 * dc.BlurAmount * (1.0 - isHand * 0.95);
 	#endif
 
 	#ifdef DISTANCE_BLUR
@@ -363,6 +363,7 @@ void  DOF_Blur(inout vec3 color, in Camera c, in float isHand) {
 		color.b += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect - vec2(dc.FringeOffset))*naive).b;
 	}
 	color /= 61.0;
+    //color = vec3(naive * 0.1);
 }
 #endif
 

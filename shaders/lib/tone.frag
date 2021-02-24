@@ -1,8 +1,11 @@
 #if !(defined _INCLUDE_TONE)
 #define _INCLUDE_TONE
 
+#include "/lib/camera/cameraEffect.frag"
+
 struct Tone {
 	float exposure;
+
 	float brightness;
 	float contrast;
 	float saturation;
@@ -28,9 +31,9 @@ uniform vec3 vignetteColor;
 
 vec3 vignette(vec3 color) {
     float dist = distance(texcoord.xy, vec2(0.5f));
-    dist = dist * 1.7 - 0.65;
+    dist = dist * (1.4 + cam.focalLength * 0.08) - 0.65;
     dist = smoothstep(0.0, 1.0, dist);
-    return mix(color, vignetteColor, dist);//vec3(hurt);//
+    return mix(color, vignetteColor, dist);//vec3(dist);//
 }
 #endif
 
@@ -137,9 +140,9 @@ vec3 tonemap(in vec3 color, float exposure) {
 
 #define TONEMAP_STRENGTH 1.0 //[0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.2 3.4 3.6 3.8 4.0]
 
-Tone init_tone(vec2 tex, float exposure) {
+Tone init_tone(vec2 tex) {
     Tone t;
-	t.exposure = exposure;
+	t.exposure = cam.exposure;
 	
 	t.color = GetColorTexture(tex).rgb;
 	//t.blur = texture(gaux4, tex).rgb;// * (1.0 + t.exposure);

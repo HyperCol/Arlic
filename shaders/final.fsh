@@ -228,8 +228,8 @@ void Sharpen(inout vec3 color, float shapreness){
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
 
-	Camera cam = init_camera();
-	Tone tone = init_tone(texcoord.st, cam.exposure);	//Sample color texture
+	init_camera();
+	Tone tone = init_tone(texcoord.st);	//Sample color texture
 
 	float isHand = GetMaterialMask(texcoord.st, 5);
 
@@ -238,7 +238,7 @@ void main() {
 	#endif
 
 	#ifdef DOF
-		DOF_Blur(tone.color, cam, isHand);
+		DOF_Blur(tone.color, isHand);
 	#endif
 
 	#ifdef Enabled_TemportalAntiAliasing
