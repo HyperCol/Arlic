@@ -237,7 +237,7 @@ void main() {
 		MotionBlur(tone.color, isHand);
 	#endif
 
-	#ifdef DOF
+	#if DOF > 0
 		DOF_Blur(tone.color, isHand);
 	#endif
 
