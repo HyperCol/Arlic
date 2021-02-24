@@ -256,7 +256,7 @@ void ComputeEV(inout Camera c) {
         c.iso = ISO;
         c.ev100 = ComputeEV100(aperture2, shutterSpeed, ISO);
     #else
-        c.ev100 = ComputeTargetEV(c.avgLuminance);
+        c.ev100 = ComputeTargetEV(c.avgLuminance * 480.0);
         #if AUTO_CAMERA == 1
             ApplyProgramAuto(c.ev100, c);
         #elif AUTO_CAMERA == 2
@@ -362,7 +362,7 @@ void  DOF_Blur(inout vec3 color, in Camera c, in float isHand) {
 	    color.r += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect + vec2(dc.FringeOffset))*naive).r;
 		color.b += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect - vec2(dc.FringeOffset))*naive).b;
 	}
-	color /= 60.0;
+	color /= 61.0;
 }
 #endif
 

@@ -252,7 +252,7 @@ void main() {
 		//tone.color *= 3.0;
 	#endif
 
-	tone.color *= 16000.0;
+	tone.color *= 1.6e7;
 	//tone.color *= ConvertEV100ToExposure(ComputeEV100(4.0 * 4.0, 0.0045, ComputeISO(4.0, 0.0045, ComputeTargetEV(texture2D(gaux3, vec2(0.5)).a + 0.0001))));
 
 	//tone.color *= comp
