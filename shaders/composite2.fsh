@@ -100,14 +100,9 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define NEW_SKY_LIGHT
 #define STAR
 #define RAINBOW
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 
 #define High_Altitude_Clouds
-=======
->>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
-=======
->>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
 
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2902,8 +2897,7 @@ void Rainbow(inout vec3 color){
 			}
 		}
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 
 #include "/libs/Auroras.glsl"
 
@@ -2958,14 +2952,7 @@ vec4 CalculateNearVolumetric(inout SurfaceStruct surface){
 	float t = frameTimeCounter * 0.1;
 
 	float thickness = float(Fog_Top) - float(Fog_Bottom);
-=======
 
-#include "/libs/Auroras.glsl"
->>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
-=======
-
-#include "/libs/Auroras.glsl"
->>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
 
 	vec4 rayPosition = vec4(rayDirection * start, rayOrigin.w);
 	vec3 rayStep = rayDirection * stepLength;
@@ -3292,25 +3279,16 @@ void main() {
 	vec3 finalComposite;
 		 finalComposite += final.sunlight 			* 0.9f 	* 1.5f * sunlightMult;				//Add direct sunlight
 		 finalComposite += final.skylight 			* 0.03f;				//Add ambient skylight
-<<<<<<< HEAD
-<<<<<<< HEAD
 		//if(timeMidnight >= 0.5){
 		 finalComposite += final.nolight 			* 0.0006f; 			//Add base ambient light
 		//}else{
 		// finalComposite += final.nolight 			* 0.06f; 			//Add base ambient light
 		//}
-=======
-=======
->>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
 		if(timeMidnight >= 0.5){
 		 finalComposite += final.nolight 			* 0.0006f; 			//Add base ambient light
 		}else{
 		 finalComposite += final.nolight 			* 0.06f; 			//Add base ambient light
 		}
-<<<<<<< HEAD
->>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
-=======
->>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
 		 finalComposite += final.scatteredSunlight 	* 0.02f		* (1.0f - sunlightMult);					//Add fake scattered sunlight					
 		 finalComposite += final.torchlight 			* 2.0f 		* TORCHLIGHT_BRIGHTNESS;	//Add light coming from emissive blocks
 		 finalComposite += final.glow.lava			* 1.6f 		* TORCHLIGHT_BRIGHTNESS;
@@ -3363,14 +3341,11 @@ void main() {
 	WaterFog(finalComposite, surface, mcLightmap);
 	IceFog(finalComposite, surface, mcLightmap);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
+
 	#ifdef ATMOSPHERIC_SCATTERING
 	CalculateAtmosphericScattering(finalComposite.rgb, surface);
 	#endif
-=======
-=======
->>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
 	#ifdef RAINBOW
 	Rainbow(finalComposite);
 	#endif
@@ -3380,7 +3355,6 @@ void main() {
 	{
 		finalComposite *= 1.5;
 	}
->>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
 
 	vec4 volumetric = vec4(vec3(0.0), 1.0);
 
