@@ -485,7 +485,7 @@ void main() {
 	float darkFactor = clamp(spec.g, 0.0f, 0.2f) / 0.2f;
 
 	//albedo.rgb *= mix(1.0f, 0.9f, darkFactor);
-	albedo.rgb = pow(albedo.rgb, vec3(mix(1.0f, 1.25f, darkFactor)));
+	//albedo.rgb = pow(albedo.rgb, vec3(mix(1.0f, 1.25f, darkFactor)));
 	//albedo.rgb = vec3(1.0f);
 
 

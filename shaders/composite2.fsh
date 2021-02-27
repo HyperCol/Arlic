@@ -71,12 +71,12 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define NIGHT_AURORA_G 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 	#define NIGHT_AURORA_B 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 	#define NIGHT_AURORA_L 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define AURORA_COLOR purpleAurora //[blueAurora purpleAurora greenAurora]
+#define AURORA_COLOR blueAurora //[blueAurora purpleAurora greenAurora]
 #define AURORA_STRENGTH 0.7 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.7 2.0 2.5 3.0 4.0 5.0 7.0 10.0 15.0 20.0 30.0 50.0 70.0 100.0]
 #define aurora_power 0.3 //[0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
 #define aurora_speed 3.0 //[0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
 #define aurora_flash 50.0 //[0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0 21.0 22.0 23.0 24.0 25.0 26.0 27.0 28.0 29.0 30.0 31.0 32.0 33.0 34.0 35.0 36.0 37.0 38.0 39.0 40.0 41.0 42.0 43.0 44.0 45.0 46.0 47.0 48.0 49.0 50.0 51.0 52.0 53.0 54.0 55.0 56.0 57.0 58.0 59.0 60.0 61.0 62.0 63.0 64.0 65.0 66.0 67.0 68.0 69.0 70.0 71.0 72.0 73.0 74.0 75.0 76.0 77.0 78.0 79.0 80.0 81.0 82.0 83.0 84.0 85.0 86.0 87.0 88.0 89.0 90.0 91.0 92.0 93.0 94.0 95.0 96.0 97.0 98.0 99.0 100.0]
-#define AURORA_PRESET_COL //Preset color of aurora
+//#define AURORA_PRESET_COL //Preset color of aurora
 
 
 
@@ -99,7 +99,12 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 #define NEW_SKY_LIGHT
 #define STAR
+#define RAINBOW
+<<<<<<< HEAD
 
+#define High_Altitude_Clouds
+=======
+>>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
 
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +140,7 @@ const float 	drynessHalflife 		= 40.0f;
 
 const int 		superSamplingLevel 		= 0;
 
-const float		sunPathRotation 		= -0.0; // [-0.5 -1 -1.5 -2 -2.5 -3 -3.5 -4 -4.5 -5 -5.5 -6 -6.5 -7 -7.5 -8 -8.5 -9 -9.5 -10 -10.5 -11 -11.5 -12 -12.5 -13 -13.5 -14 -14.5 -15 -15.5 -16 -16.5 -17 -17.5 -18 -18.5 -19 -19.5 -20 -20.5 -21 -21.5 -22 -22.5 -23 -23.5 -24 -24.5 -25 -25.5 -26 -26.5 -27 -27.5 -28 -28.5 -29 -29.5 -30 -30.5 -31 -31.5 -32 -32.5 -33 -33.5 -34 -34.5 -35 -35.5 -36 -36.5 -37 -37.5 -38 -38.5 -39 -39.5 -40 -40.5 -41 -41.5 -42 -42.5 -43 -43.5 -44 -44.5 -45 -45.5 -46 -46.5 -47 -47.5 -48 -48.5 -49 -49.5 -50 -50.5 -51 -51.5 -52 -52.5 -53 -53.5 -54 -54.5 -55 -55.5 -56 -56.5 -57 -57.5 -58 -58.5 -59 -59.5 -60 -60.5 -61 -61.5 -62 -62.5 -63 -63.5 -64 -64.5 -65 -65.5 -66 -66.5 -67 -67.5 -68 -68.5 -69 -69.5 -70 -70.5 -71 -71.5 -72 -72.5 -73 -73.5 -74 -74.5 -75 -75.5 -76 -76.5 -77 -77.5 -78 -78.5 -79 -79.5 -80 -80.5 -81 -81.5 -82 -82.5 -83 -83.5 -84 -84.5 -85 -85.5 -86 -86.5 -87 -87.5 -88 -88.5 -89 -89.5 -90]
+const float		sunPathRotation 		= -40.0; // [-0.5 -1 -1.5 -2 -2.5 -3 -3.5 -4 -4.5 -5 -5.5 -6 -6.5 -7 -7.5 -8 -8.5 -9 -9.5 -10 -10.5 -11 -11.5 -12 -12.5 -13 -13.5 -14 -14.5 -15 -15.5 -16 -16.5 -17 -17.5 -18 -18.5 -19 -19.5 -20 -20.5 -21 -21.5 -22 -22.5 -23 -23.5 -24 -24.5 -25 -25.5 -26 -26.5 -27 -27.5 -28 -28.5 -29 -29.5 -30 -30.5 -31 -31.5 -32 -32.5 -33 -33.5 -34 -34.5 -35 -35.5 -36 -36.5 -37 -37.5 -38 -38.5 -39 -39.5 -40 -40.5 -41 -41.5 -42 -42.5 -43 -43.5 -44 -44.5 -45 -45.5 -46 -46.5 -47 -47.5 -48 -48.5 -49 -49.5 -50 -50.5 -51 -51.5 -52 -52.5 -53 -53.5 -54 -54.5 -55 -55.5 -56 -56.5 -57 -57.5 -58 -58.5 -59 -59.5 -60 -60.5 -61 -61.5 -62 -62.5 -63 -63.5 -64 -64.5 -65 -65.5 -66 -66.5 -67 -67.5 -68 -68.5 -69 -69.5 -70 -70.5 -71 -71.5 -72 -72.5 -73 -73.5 -74 -74.5 -75 -75.5 -76 -76.5 -77 -77.5 -78 -78.5 -79 -79.5 -80 -80.5 -81 -81.5 -82 -82.5 -83 -83.5 -84 -84.5 -85 -85.5 -86 -86.5 -87 -87.5 -88 -88.5 -89 -89.5 -90]
 const float 	ambientOcclusionLevel 	= 0.01f;
 
 const int 		noiseTextureResolution  = 64;
@@ -219,12 +224,17 @@ varying vec3 colorSkyTint;
 
 uniform int heldBlockLightValue;
 
-
-
-
+const vec3 bM = vec3(21e-6);
+const vec3 bR = vec3(5.8e-6, 13.5e-6, 33.1e-6);
+const float Hr = 7994;
+const float Hm = 1200;
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float HG(in float m, in float g){
+  return (0.25 / 3.141592653) * ((1.0 - g*g) / pow(1.0 + g*g - 2.0 * g * m, 1.5));
+}
 
 float saturate(float x)
 {
@@ -468,7 +478,7 @@ void 	DoNightEye(inout vec3 color) {			//Desaturates any color input at night, s
 	vec3 rodColor = vec3(0.2f, 0.4f, 1.0f); 	//Cyan color that humans percieve when viewing extremely low light levels via rod cells in the eye
 	float colorDesat = dot(color, vec3(1.0f)); 	//Desaturated color
 
-	color = mix(color, vec3(colorDesat) * rodColor, timeMidnight * amount);
+	color = mix(color, colorDesat * rodColor, timeMidnight * amount);
 	//color.rgb = color.rgb;
 }
 
@@ -484,16 +494,6 @@ float 	LinearToExponentialDepth(in float linDepth)
 {
 	float expDepth = (far * (linDepth - near)) / (linDepth * (far - near));
 	return expDepth;
-}
-
-void 	DoLowlightEye(inout vec3 color) {			//Desaturates any color input at night, simulating the rods in the human eye
-
-	float amount = 0.8f; 						//How much will the new desaturated and tinted image be mixed with the original image
-	vec3 rodColor = vec3(0.2f, 0.4f, 1.0f); 	//Cyan color that humans percieve when viewing extremely low light levels via rod cells in the eye
-	float colorDesat = dot(color, vec3(1.0f)); 	//Desaturated color
-
-	color = mix(color, vec3(colorDesat) * rodColor, amount);
-	// color.rgb = color.rgb;
 }
 
 void 	FixLightFalloff(inout float lightmap) { //Fixes the ugly lightmap falloff and creates a nice linear one
@@ -1589,8 +1589,35 @@ void 	CalculateRainFog(inout vec3 color, in SurfaceStruct surface)
 	color = mix(color, fogColor, vec3(fogFactor));
 }
 
-void 	CalculateAtmosphericScattering(inout vec3 color, in SurfaceStruct surface)
-{
+#define AtmospherieDensity 4.0		//[1.0 2.0 4.0 8.0 16.0 32.0 64.0 128.0]
+
+uniform vec3 shadowLightVectorView;
+
+void 	CalculateAtmosphericScattering(inout vec3 color, in SurfaceStruct surface) {
+	if(bool(step(0.5, surface.mask.sky))) return;
+
+	float viewLength = length(surface.screenSpacePosition);
+
+	float altitude = eyeAltitude + surface.worldSpacePosition.y;
+
+	vec3 tR = bR * exp(-altitude / Hr);
+	vec3 tM = bM * exp(-altitude / Hm);
+	vec3 tE = tR + tM;
+
+	vec3 extinction = exp(-tE * viewLength * AtmospherieDensity);
+	color *= extinction;
+
+	float mu = dot(normalize(surface.screenSpacePosition.xyz), shadowLightVectorView);
+	float phaseM = HG(mu, 0.76);
+	float phaseR = (3.0 / 16.0 / 3.141592653) * (1.0 + mu * mu);
+	vec3 scattering = colorSunlight + colorSkylight;
+
+	color += scattering * AtmospherieDensity * (bR * phaseR + bM * phaseM) * viewLength;
+
+	//float fogFactor = 1.0 - exp(-(bR + bM) * length(surface.screenSpacePosition) * 0.000001);
+
+	return;
+
 	// vec3 fogColor = mix(colorSkylight, colorSunlight, vec3(0.05f)) * 0.11f;
 
 	// float sat = 0.1f;
@@ -1598,11 +1625,11 @@ void 	CalculateAtmosphericScattering(inout vec3 color, in SurfaceStruct surface)
 	// 	 fogColor.g = fogColor.g * (1.0f + sat) - (fogColor.r + fogColor.b) * 0.5f * sat;
 	// 	 fogColor.b = fogColor.b * (1.0f + sat) - (fogColor.r + fogColor.g) * 0.5f * sat;
 
-	vec3 fogColor = pow(colorSkylight, vec3(1.55f));
+	//vec3 fogColor = pow(colorSkylight, vec3(1.55f));
 
-	float sunglow = pow(CalculateSunglow(surface), 2.0f);
+	//float sunglow = pow(CalculateSunglow(surface), 2.0f);
 
-	fogColor *= 1.0 + sunglow;
+	//fogColor *= 1.0 + sunglow;
 
 	//vec3 sunColor = colorSunlight;
 
@@ -1614,9 +1641,9 @@ void 	CalculateAtmosphericScattering(inout vec3 color, in SurfaceStruct surface)
 		  //fogFactor = mix(fogFactor, 1.0f, float(surface.mask.sky) * 0.8f * rainStrength);
 		  //fogFactor = mix(fogFactor, 1.0f, float(surface.mask.clouds) * 0.8f * rainStrength);
 
-	fogFactor = mix(fogFactor, 0.0f, min(1.0f, surface.sky.sunSpot.r));
+	//fogFactor = mix(fogFactor, 0.0f, min(1.0f, surface.sky.sunSpot.r));
 	fogFactor *= mix(1.0f, 0.0f, (surface.mask.sky));
-	fogFactor *= mix(1.0f, 0.75f, (surface.mask.clouds));
+	//fogFactor *= mix(1.0f, 0.75f, (surface.mask.clouds));
 
 	fogFactor *= pow(eyeBrightnessSmooth.y / 240.0f, 1.0f);
 
@@ -1629,7 +1656,7 @@ void 	CalculateAtmosphericScattering(inout vec3 color, in SurfaceStruct surface)
 	// color.g *= 1.0f - clamp(fogFactor - 0.26f, 0.0f, 1.0f) * 0.5* redshift;
 
 	//add scattered low frequency light
-	color += fogColor * fogFactor * 0.00015f * RAYLEIGH_AMOUNT;
+	//color += fogColor * fogFactor * RAYLEIGH_AMOUNT;
 
 }
 
@@ -2852,9 +2879,146 @@ void CalStar(in SurfaceStruct surface, inout vec3 finalComposite) {
 	finalComposite.rgb = mix(finalComposite.rgb , vec3(0.8,1.2,1.2) * 0.02 - 0.02 * rainStrength, stars * float(surface.mask.sky));
 
 }
+void Rainbow(inout vec3 color){
+	vec4 fragposition  = gbufferProjectionInverse * (vec4(texcoord.st, texture2D(depthtex1, texcoord.st).x, 1.0) * 2.0 - 1.0);
+	fragposition /= fragposition.w;
+	vec3 sunPosNorm = normalize(sunPosition);
+	float sunDot = dot(sunPosNorm, normalize(fragposition.xyz)) * 0.5 + 0.5;
+	float RAINBOW_DIAMETER = 8.0f;
+	float RAINBOW_THICKNESS = 5.5f;
+	float RAINBOW_DISTANCE = 155.0f;
+	if(length(fragposition.xyz) > RAINBOW_DISTANCE && (worldTime > 0 && worldTime < 12500) && sunPosition.z > 0.0)
+	{
+		float rainbowStrength = (wetness - rainStrength) * 0.15;
+		float rainbowHue = (sunDot - 0.05 * RAINBOW_DIAMETER) * -50.0 / RAINBOW_THICKNESS;
+		if (rainbowStrength > 0.01 && rainbowHue > 0.0 && rainbowHue < 1.0) {
+			rainbowHue *= 7.0;
+			color.r += clamp(1.5 - abs(rainbowHue - 1.5), 0.0, 1.0) * rainbowStrength;
+			color.g += clamp(2.0 - abs(rainbowHue - 3.0), 0.0, 1.0) * rainbowStrength;
+			color.b += clamp(1.5 - abs(rainbowHue - 4.5), 0.0, 1.0) * rainbowStrength;
+			}
+		}
+}
+<<<<<<< HEAD
 
-#include "Auroras.glsl"
+#include "/libs/Auroras.glsl"
 
+#define Enabled_God_Rays
+	#define God_Rays_Phase 5.0				//[1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0]
+	#define God_Rays_Custom_Color			//TODO
+	#define God_Rays_Stained_Glass_Tint		//TODO
+#define Enabled_Volumetric_Fog
+	#define Noon_Density 0.0				//[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 5.0]
+	#define Sunrise_Sunset_Density 1.0		//[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 5.0]
+	#define Night_Density 0.0				//[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 5.0]
+	#define Fog_Coverage 0.2				//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4]
+	#define Fog_Top 98						//[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255]
+	#define Fog_Bottom 60					//[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255]
+
+uniform vec3 shadowLightVector;
+uniform vec3 P;
+
+float rescale(float vmin, float vmax, float v){
+	return clamp((v - vmin) / (vmax - vmin), 0.0, 1.0);
+}
+
+#if defined(Enabled_God_Rays) || defined(Enabled_Volumetric_Fog)
+vec4 CalculateNearVolumetric(inout SurfaceStruct surface){
+	vec4 volumetric = vec4(0.0);
+
+	float dither = R2_dither();
+
+	float skyLightMap = clamp(texture2D(gdepth, texcoord.xy).b * 1.07 - 0.07, 0.0, 1.0);
+
+	#ifdef Disabled_SkyLight_Occlusion
+	skyLightMap = 1.0;
+	#endif
+
+	int steps = 16;
+	float invsteps = 1.0 / float(steps);
+
+	float end = 128.0;
+	float start = 1.0;
+	float stepLength = (end - start) * invsteps;
+
+	vec4 rayOrigin = surface.worldSpacePosition;
+	float viewLength = length(rayOrigin.xyz);
+	vec3 rayDirection = normalize(rayOrigin.xyz);
+
+	float mu = dot(shadowLightVector, rayDirection);
+	float raysPhase = HG(mu, 1.0 - exp(-God_Rays_Phase));
+	float miePhase = HG(mu, 0.9);
+
+	vec3 b = vec3(0.001);
+
+	float t = frameTimeCounter * 0.1;
+
+	float thickness = float(Fog_Top) - float(Fog_Bottom);
+=======
+
+#include "/libs/Auroras.glsl"
+>>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
+
+	vec4 rayPosition = vec4(rayDirection * start, rayOrigin.w);
+	vec3 rayStep = rayDirection * stepLength;
+
+	rayPosition.xyz += rayStep * dither;
+
+	float depth = 0.0;
+	float lastDepth = 0.0;
+
+	float fogDensity = timeNoon * Noon_Density + timeSunriseSunset * Sunrise_Sunset_Density + timeMidnight * Night_Density;
+	b *= fogDensity;
+
+	for(int i = 0; i < steps; i++){
+		float rayLength = length(rayPosition.xyz);
+		if(bool(step(viewLength, rayLength))) break;
+
+		vec4 shadowCoord = shadowProjection *  shadowModelView * rayPosition; shadowCoord /= shadowCoord.w;
+		float distortion = 0.95 / mix(1.0 - SHADOW_MAP_BIAS, 1.0, length(shadowCoord.xy));
+		shadowCoord.xy = shadowCoord.xy * distortion; shadowCoord.z = mix(shadowCoord.z, 0.5, 0.8);
+		shadowCoord.xyz = shadowCoord.xyz * 0.5 + 0.5;
+		shadowCoord.z -= 1.0 / float(shadowMapResolution);
+
+		float visibility = shadow2DLod(shadow, shadowCoord.xyz, 0).x;
+
+		#ifdef Enabled_God_Rays
+		vec3 rays = colorSunlight * visibility * raysPhase;
+		volumetric.rgb += rays * invsteps;
+		#endif
+
+		#ifdef Enabled_Volumetric_Fog
+		float density = 1.0;
+
+		vec3 coord0 = rayPosition.xyz + P;
+
+		vec3 coord1 = coord0 * 0.1; 				coord1.x += t;
+		
+		density = Get3DNoise(coord1); 				coord1.x += t;
+		density += Get3DNoise(coord1 * 2.0) * 0.5; 	coord1.x += t;
+		density += Get3DNoise(coord1 * 4.0) * 0.25;
+		density /= 1.75;
+
+		density = rescale(Fog_Coverage, 1.0, density) * clamp(1.0 - distance(coord0.y, float(Fog_Bottom) + thickness * 0.5) / thickness * 2.0, 0.0, 1.0) * skyLightMap;
+
+		vec3 fogColor = visibility * colorSunlight * (0.15 + miePhase) + colorSkylight;
+
+		vec3 extin = exp(-b * depth);
+
+		volumetric.rgb += fogColor * density * b * rayLength * extin;
+
+		depth += density * stepLength;
+		#endif
+
+		rayPosition.xyz += rayStep;
+	}
+
+	volumetric.a = exp(-length(b) * depth);
+	volumetric.rgb *= 0.15;
+
+	return volumetric;
+}
+#endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////
@@ -3109,7 +3273,7 @@ void main() {
 	DoNightEye(final.underwater);
 	DoNightEye(delta.rgb);
 
-	DoLowlightEye(final.nolight);
+	DoNightEye(final.nolight);
 
 
 
@@ -3117,19 +3281,30 @@ void main() {
 	const float sunlightMult = 0.21f;
 
 	//Apply lightmaps to albedo and generate final shaded surface
-	vec3 finalComposite = final.sunlight 			* 0.9f 	* 1.5f * sunlightMult				//Add direct sunlight
-						+ final.skylight 			* 0.03f				//Add ambient skylight
-						+ final.nolight 			* 0.0006f 			//Add base ambient light
-						//+ final.bouncedSunlight 	* 0.005f 	* sunlightMult				//Add fake bounced sunlight
-						+ final.scatteredSunlight 	* 0.02f		* (1.0f - sunlightMult)					//Add fake scattered sunlight
-						//+ final.scatteredUpLight 	* 0.0015f 	* sunlightMult
-						+ final.torchlight 			* 2.0f 		* TORCHLIGHT_BRIGHTNESS	//Add light coming from emissive blocks
-						+ final.glow.lava			* 1.6f 		* TORCHLIGHT_BRIGHTNESS
-						+ final.glow.glowstone		* 1.1f 		* TORCHLIGHT_BRIGHTNESS
-						+ final.glow.fire			* 0.025f 	* TORCHLIGHT_BRIGHTNESS
-						+ final.glow.torch			* 0.15f 	* TORCHLIGHT_BRIGHTNESS
-						+ final.heldLight 			* 0.05f 	* TORCHLIGHT_BRIGHTNESS
-						;
+	vec3 finalComposite;
+		 finalComposite += final.sunlight 			* 0.9f 	* 1.5f * sunlightMult;				//Add direct sunlight
+		 finalComposite += final.skylight 			* 0.03f;				//Add ambient skylight
+<<<<<<< HEAD
+		//if(timeMidnight >= 0.5){
+		 finalComposite += final.nolight 			* 0.0006f; 			//Add base ambient light
+		//}else{
+		// finalComposite += final.nolight 			* 0.06f; 			//Add base ambient light
+		//}
+=======
+		if(timeMidnight >= 0.5){
+		 finalComposite += final.nolight 			* 0.0006f; 			//Add base ambient light
+		}else{
+		 finalComposite += final.nolight 			* 0.06f; 			//Add base ambient light
+		}
+>>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
+		 finalComposite += final.scatteredSunlight 	* 0.02f		* (1.0f - sunlightMult);					//Add fake scattered sunlight					
+		 finalComposite += final.torchlight 			* 2.0f 		* TORCHLIGHT_BRIGHTNESS;	//Add light coming from emissive blocks
+		 finalComposite += final.glow.lava			* 1.6f 		* TORCHLIGHT_BRIGHTNESS;
+		 finalComposite += final.glow.glowstone		* 1.1f 		* TORCHLIGHT_BRIGHTNESS;
+		 finalComposite += final.glow.fire			* 0.025f 	* TORCHLIGHT_BRIGHTNESS;
+		 finalComposite += final.glow.torch			* 0.15f 	* TORCHLIGHT_BRIGHTNESS;
+		 finalComposite += final.heldLight 			* 0.05f 	* TORCHLIGHT_BRIGHTNESS;
+						
 
 	delta.rgb *= mix(vec3(1.0), vec3(0.1, 0.3, 1.0) * 1.0, surface.mask.water);
 
@@ -3163,34 +3338,47 @@ void main() {
 	NightAurora(finalComposite.rgb, surface.screenSpacePosition.xyz);
 	#endif
 
+	#ifdef High_Altitude_Clouds
 	CloudPlane(surface, finalComposite);
-
-	
-	
+	#endif
 	
 	#ifdef VOLUMETRIC_CLOUDS
 		CalculateClouds(finalComposite, surface);
 	#endif
 
-
-
 	WaterFog(finalComposite, surface, mcLightmap);
 	IceFog(finalComposite, surface, mcLightmap);
+
+<<<<<<< HEAD
+	#ifdef ATMOSPHERIC_SCATTERING
+	CalculateAtmosphericScattering(finalComposite.rgb, surface);
+	#endif
+=======
+	#ifdef RAINBOW
+	Rainbow(finalComposite);
+	#endif
 
 	
 	if (surface.mask.stainedGlass > 0.5)
 	{
 		finalComposite *= 1.5;
 	}
+>>>>>>> 3311027c340c61ff91baa586c60cff7bb2cbdd47
 
+	vec4 volumetric = vec4(vec3(0.0), 1.0);
 
+	#if defined(Enabled_God_Rays) || defined(Enabled_Volumetric_Fog)
+	volumetric = CalculateNearVolumetric(surface);
+	finalComposite.rgb *= volumetric.a;
+	finalComposite.rgb += volumetric.rgb;
+	#endif
+
+	#ifdef RAINBOW
+	Rainbow(finalComposite);
+	#endif
 
 	finalComposite *= 0.001f;												//Scale image down for HDR
 	finalComposite.b *= 1.0f;
-
-	#ifdef ATMOSPHERIC_SCATTERING
-	CalculateAtmosphericScattering(finalComposite.rgb, surface);
-	#endif
 
 	//finalComposite.rgb += crepuscularRays.rgb * 0.0022;
 
