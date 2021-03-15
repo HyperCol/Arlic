@@ -1,15 +1,15 @@
-#version 120
+#version 330 compatibility
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
+out vec4 color;
+out vec4 texcoord;
+out vec4 lmcoord;
 
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying float distance;
+out vec3 normal;
+out vec3 tangent;
+out vec3 binormal;
+out float distance;
 
-//varying vec4 bloommask;
+//out vec4 bloommask;
 
 //attribute vec4 mc_Entity;
 

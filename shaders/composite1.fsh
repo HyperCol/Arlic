@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 
 /*
@@ -38,9 +38,9 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 /* DRAWBUFFERS:6 */
 
-uniform sampler2D gaux3;
+uniform sampler2D colortex6;
 
-varying vec4 texcoord;
+in vec4 texcoord;
 
 uniform float viewWidth;
 uniform float viewHeight;
@@ -52,12 +52,12 @@ uniform float viewHeight;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() 
 {
-	vec4 origColor = texture2D(gaux3, texcoord.st);
+	vec4 origColor = texture(colortex6, texcoord.st);
 
 	vec3 wavesNormal = vec3(origColor.xy * 2.0 - 1.0, 1.0);
-	vec3 wavesNormalr = vec3(texture2D(gaux3, mod(texcoord.st + vec2(0.5, 0.0), vec2(1.0))).xy * 2.0 - 1.0, 1.0);
-	vec3 wavesNormalu = vec3(texture2D(gaux3, mod(texcoord.st + vec2(0.0, 0.5), vec2(1.0))).xy * 2.0 - 1.0, 1.0);
-	vec3 wavesNormalur = vec3(texture2D(gaux3, mod(texcoord.st + vec2(0.5, 0.5), vec2(1.0))).xy * 2.0 - 1.0, 1.0);
+	vec3 wavesNormalr = vec3(texture(colortex6, mod(texcoord.st + vec2(0.5, 0.0), vec2(1.0))).xy * 2.0 - 1.0, 1.0);
+	vec3 wavesNormalu = vec3(texture(colortex6, mod(texcoord.st + vec2(0.0, 0.5), vec2(1.0))).xy * 2.0 - 1.0, 1.0);
+	vec3 wavesNormalur = vec3(texture(colortex6, mod(texcoord.st + vec2(0.5, 0.5), vec2(1.0))).xy * 2.0 - 1.0, 1.0);
 
 
 	float lerpx = clamp((abs(texcoord.x - 0.5) * 2.0) * 3.0 - 2.0, 0.0, 1.0);

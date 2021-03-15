@@ -1,20 +1,20 @@
-#version 120
+#version 330 compatibility
 
 uniform sampler2D tex;
 
-varying vec4 texcoord;
-varying vec4 color;
-varying vec3 normal;
-varying vec3 rawNormal;
+in vec4 texcoord;
+in vec4 color;
+in vec3 normal;
+in vec3 rawNormal;
 
-varying float materialIDs;
-varying float isStainedGlass;
+in float materialIDs;
+in float isStainedGlass;
 
-varying vec4 lmcoord;
+in vec4 lmcoord;
 
 void main() {
 
-	vec4 tex = texture2D(tex, texcoord.st, 0) * color;
+	vec4 tex = texture(tex, texcoord.st, 0) * color;
 
 	//tex.rgb = vec3(1.1f);
 

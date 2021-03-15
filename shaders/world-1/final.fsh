@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 /*
                                                                 
@@ -38,15 +38,15 @@ Do not modify this code until you have read the LICENSE contained in the root di
 //#define MOTION_BLUR // It's motion blur.
 
 
-uniform sampler2D gcolor;
-uniform sampler2D gdepth;
+uniform sampler2D colortex0;
+uniform sampler2D colortex1;
 uniform sampler2D gdepthtex;
-uniform sampler2D gnormal;
-uniform sampler2D composite;
+uniform sampler2D colortex2;
+uniform sampler2D colortex3;
 uniform sampler2D noisetex;
 
-varying vec4 texcoord;
-varying vec3 lightVector;
+in vec4 texcoord;
+in vec3 lightVector;
 
 uniform int worldTime;
 
@@ -77,12 +77,12 @@ uniform ivec2 eyeBrightness;
 uniform ivec2 eyeBrightnessSmooth;
 uniform int   fogMode;
 
-varying float timeSunriseSunset;
-varying float timeNoon;
-varying float timeMidnight;
+in float timeSunriseSunset;
+in float timeNoon;
+in float timeMidnight;
 
-varying vec3 colorSunlight;
-varying vec3 colorSkylight;
+in vec3 colorSunlight;
+in vec3 colorSkylight;
 
 #define BANDING_FIX_FACTOR 1.0f
 
@@ -92,36 +92,36 @@ varying vec3 colorSkylight;
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 vec3 	GetTexture(in sampler2D tex, in vec2 coord) {				//Perform a texture lookup with BANDING_FIX_FACTOR compensation
-	return pow(texture2D(tex, coord).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
+	return pow(texture(tex, coord).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
 }
 
 vec3 	GetTextureLod(in sampler2D tex, in vec2 coord, in int level) {				//Perform a texture lookup with BANDING_FIX_FACTOR compensation
-	return pow(texture2DLod(tex, coord, level).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
+	return pow(textureLod(tex, coord, level).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
 }
 
 vec3 	GetTexture(in sampler2D tex, in vec2 coord, in int LOD) {	//Perform a texture lookup with BANDING_FIX_FACTOR compensation and lod offset
-	return pow(texture2D(tex, coord, LOD).rgb, vec3(BANDING_FIX_FACTOR));
+	return pow(texture(tex, coord, LOD).rgb, vec3(BANDING_FIX_FACTOR));
 }
 
 float GetSunlightVisibility(in vec2 coord)
 {
-	return texture2D(gdepth, coord).g;
+	return texture(colortex1, coord).g;
 }
 
 float 	GetDepth(in vec2 coord) {
-	return texture2D(gdepthtex, coord).x;
+	return texture(gdepthtex, coord).x;
 }
 
 float 	GetDepthLinear(in vec2 coord) {					//Function that retrieves the scene depth. 0 - 1, higher values meaning farther away
-	return 2.0f * near * far / (far + near - (2.0f * texture2D(gdepthtex, coord).x - 1.0f) * (far - near));
+	return 2.0f * near * far / (far + near - (2.0f * texture(gdepthtex, coord).x - 1.0f) * (far - near));
 }
 
 vec3 	GetColorTexture(in vec2 coord) {
-	return GetTextureLod(gnormal, coord.st, 0).rgb;
+	return GetTextureLod(colortex2, coord.st, 0).rgb;
 }
 
 float 	GetMaterialIDs(in vec2 coord) {			//Function that retrieves the texture that has all material IDs stored in it
-	return texture2D(gdepth, coord).r;
+	return texture(colortex1, coord).r;
 }
 
 float saturate(float x)
@@ -171,10 +171,10 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
     vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
     vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
 
-    vec4 sample0 = texture2D(tex, vec2(offset.x, offset.z) / resolution);
-    vec4 sample1 = texture2D(tex, vec2(offset.y, offset.z) / resolution);
-    vec4 sample2 = texture2D(tex, vec2(offset.x, offset.w) / resolution);
-    vec4 sample3 = texture2D(tex, vec2(offset.y, offset.w) / resolution);
+    vec4 sample0 = texture(tex, vec2(offset.x, offset.z) / resolution);
+    vec4 sample1 = texture(tex, vec2(offset.y, offset.z) / resolution);
+    vec4 sample2 = texture(tex, vec2(offset.x, offset.w) / resolution);
+    vec4 sample3 = texture(tex, vec2(offset.y, offset.w) / resolution);
 
     float sx = s.x / (s.x + s.y);
     float sy = s.z / (s.z + s.w);
@@ -252,7 +252,7 @@ void 	DepthOfField(inout vec3 color)
 
 	vec2 aspectcorrect = vec2(1.0, aspectRatio) * 1.5;
 
-	float depth = texture2D(gdepthtex, texcoord.st).x;
+	float depth = texture(gdepthtex, texcoord.st).x;
 		  depth += float(isHand) * 0.36f;
 
 	float factor = (depth - cursorDepth);
@@ -518,13 +518,13 @@ void 	CalculateBloom(inout BloomDataStruct bloomData) {		//Retrieve previously c
 
 	vec2 recipres = vec2(1.0f / viewWidth, 1.0f / viewHeight);
 
-	bloomData.blur0  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(2.0f 	)) + 	vec2(0.0f, 0.0f)		+ vec2(0.000f, 0.000f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur1  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(3.0f 	)) + 	vec2(0.0f, 0.25f)		+ vec2(0.000f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur2  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(4.0f 	)) + 	vec2(0.125f, 0.25f)		+ vec2(0.025f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur3  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(5.0f 	)) + 	vec2(0.1875f, 0.25f)	+ vec2(0.050f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur4  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(6.0f 	)) + 	vec2(0.21875f, 0.25f)	+ vec2(0.075f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur5  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(7.0f 	)) + 	vec2(0.25f, 0.25f)		+ vec2(0.100f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
-	bloomData.blur6  =  pow(BicubicTexture(gcolor, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(8.0f 	)) + 	vec2(0.28f, 0.25f)		+ vec2(0.125f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur0  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(2.0f 	)) + 	vec2(0.0f, 0.0f)		+ vec2(0.000f, 0.000f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur1  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(3.0f 	)) + 	vec2(0.0f, 0.25f)		+ vec2(0.000f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur2  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(4.0f 	)) + 	vec2(0.125f, 0.25f)		+ vec2(0.025f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur3  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(5.0f 	)) + 	vec2(0.1875f, 0.25f)	+ vec2(0.050f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur4  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(6.0f 	)) + 	vec2(0.21875f, 0.25f)	+ vec2(0.075f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur5  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(7.0f 	)) + 	vec2(0.25f, 0.25f)		+ vec2(0.100f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur6  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(8.0f 	)) + 	vec2(0.28f, 0.25f)		+ vec2(0.125f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
 
 	// bloomData.blur2 *= vec3(0.5, 0.5, 2.0);
 	bloomData.blur4 *= vec3(1.0, 0.85, 0.85);
@@ -578,7 +578,7 @@ void 	AddRainFogScatter(inout vec3 color, in BloomDataStruct bloomData)
 	if (isEyeInWater > 0)
 		fogDensity = 0.4;
 
-		  //fogDensity += texture2D(composite, texcoord.st).g * 0.1f;
+		  //fogDensity += texture(colortex3, texcoord.st).g * 0.1f;
 	float visibility = 1.0f / (pow(exp(linearDepth * fogDensity), 1.0f));
 	float fogFactor = 1.0f - visibility;
 		  fogFactor = clamp(fogFactor, 0.0f, 1.0f);
@@ -600,7 +600,7 @@ void LowlightFuzziness(inout vec3 color, in BloomDataStruct bloomData)
 
 
 	float time = frameTimeCounter * 4.0f;
-	vec2 coord = texture2D(noisetex, vec2(time, time / 64.0f)).xy;
+	vec2 coord = texture(noisetex, vec2(time, time / 64.0f)).xy;
 	vec3 snow = BicubicTexture(noisetex, (texcoord.st + coord) / (512.0f / vec2(viewWidth, viewHeight))).rgb;	//visual snow
 	vec3 snow2 = BicubicTexture(noisetex, (texcoord.st + coord) / (128.0f / vec2(viewWidth, viewHeight))).rgb;	//visual snow
 
@@ -618,7 +618,7 @@ void LowlightFuzziness(inout vec3 color, in BloomDataStruct bloomData)
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
 
-	vec3 color = GetColorTexture(texcoord.st);	//Sample gcolor texture
+	vec3 color = GetColorTexture(texcoord.st);	//Sample colortex0 texture
 
 	mask.matIDs = GetMaterialIDs(texcoord.st);
 	CalculateMasks(mask);
@@ -660,7 +660,7 @@ void main() {
 	//filmic
 	
 	/*
-	color /= dot(texture2DLod(gnormal, vec2(0.5, 0.5), 9).rgb, vec3(1.0 / 3.0));
+	color /= dot(textureLod(colortex2, vec2(0.5, 0.5), 9).rgb, vec3(1.0 / 3.0));
 	color *= 300.0;
 
 	color = pow(color, vec3(0.3));
@@ -683,7 +683,7 @@ void main() {
 	//natural
 
 	float avglod = int(log2(min(viewWidth, viewHeight))) - 1;
-	color /= pow(Luminance(texture2DLod(gnormal, vec2(0.5, 0.5), avglod).rgb), 1.1) * 0.15 + 0.0001;
+	color /= pow(Luminance(textureLod(colortex2, vec2(0.5, 0.5), avglod).rgb), 1.1) * 0.15 + 0.0001;
 
 	
 	//TonemapReinhard05(color, bloomData);
@@ -723,7 +723,7 @@ void main() {
 	//color = mix(color, color * color * (3.0 - 2.0 * color), vec3(0.2));
 
 
-	//if (texture2D(composite, texcoord.st).g > 0.01f)
+	//if (texture(colortex3, texcoord.st).g > 0.01f)
 	//	color.g = 1.0f;
 
 	//TonemapReinhardLinearHybrid(color);
@@ -736,11 +736,11 @@ void main() {
 
 	//ColorGrading(color);
 
-	//color.rgb = texture2DLod(shadowcolor, texcoord.st, 0).rgb * 1.0f;
-	//color.rgb = texture2DLod(shadowcolor1, texcoord.st, 0).aaa * 1.0f;
-	//color.rgb = vec3(texture2DLod(shadowtex1, texcoord.st, 0).x) * 1.0f;
+	//color.rgb = textureLod(shadowcolor, texcoord.st, 0).rgb * 1.0f;
+	//color.rgb = textureLod(shadowcolor1, texcoord.st, 0).aaa * 1.0f;
+	//color.rgb = vec3(textureLod(shadowtex1, texcoord.st, 0).x) * 1.0f;
 
-	//color.rgb = texture2D(gdepth, texcoord.st).bbb * 0.8 + 0.2;
+	//color.rgb = texture(colortex1, texcoord.st).bbb * 0.8 + 0.2;
 
 	//color.rgb = vec3(fwidth(GetDepthLinear(texcoord.st + vec2(0.5 / viewWidth, 0.5 / viewHeight)) + GetDepthLinear(texcoord.st - vec2(0.5 / viewWidth, 0.5 / viewHeight))));
 

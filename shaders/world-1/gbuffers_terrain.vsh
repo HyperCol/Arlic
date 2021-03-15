@@ -1,13 +1,13 @@
-#version 120
+#version 330 compatibility
 
 
 #define OLD_LIGHTING_FIX		//In newest versions of the shaders mod/optifine, old lighting isn't removed properly. If OldLighting is On and this is enabled, you'll get proper results in any shaders mod/minecraft version.
 
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
-varying vec3 worldPosition;
+out vec4 color;
+out vec4 texcoord;
+out vec4 lmcoord;
+out vec3 worldPosition;
 
 
 attribute vec4 mc_Entity;
@@ -27,20 +27,20 @@ uniform float aspectRatio;
 
 uniform sampler2D noisetex;
 
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying vec2 waves;
-varying vec3 worldNormal;
+out vec3 normal;
+out vec3 tangent;
+out vec3 binormal;
+out vec2 waves;
+out vec3 worldNormal;
 
-varying float distance;
-//varying float idCheck;
+out float distance;
+//out float idCheck;
 
-varying float materialIDs;
+out float materialIDs;
 
-varying mat3 tbnMatrix;
-varying vec4 vertexPos;
-varying vec3 vertexViewVector;
+out mat3 tbnMatrix;
+out vec4 vertexPos;
+out vec3 vertexViewVector;
 
 
 
@@ -87,10 +87,10 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
     vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
     vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
 
-    vec4 sample0 = texture2D(tex, vec2(offset.x, offset.z) / resolution);
-    vec4 sample1 = texture2D(tex, vec2(offset.y, offset.z) / resolution);
-    vec4 sample2 = texture2D(tex, vec2(offset.x, offset.w) / resolution);
-    vec4 sample3 = texture2D(tex, vec2(offset.y, offset.w) / resolution);
+    vec4 sample0 = texture(tex, vec2(offset.x, offset.z) / resolution);
+    vec4 sample1 = texture(tex, vec2(offset.y, offset.z) / resolution);
+    vec4 sample2 = texture(tex, vec2(offset.x, offset.w) / resolution);
+    vec4 sample3 = texture(tex, vec2(offset.y, offset.w) / resolution);
 
     float sx = s.x / (s.x + s.y);
     float sy = s.z / (s.z + s.w);
@@ -124,10 +124,10 @@ vec4 TextureSmooth(in sampler2D tex, in vec2 coord)
 	vec2 icoordUpRight	 	= (i + vec2(1.0f, 1.0f)) / res;
 
 
-	vec4 texCenter 	= texture2DLod(tex, icoordCenter, 	level);
-	vec4 texRight 	= texture2DLod(tex, icoordRight, 	level);
-	vec4 texUp 		= texture2DLod(tex, icoordUp, 		level);
-	vec4 texUpRight	= texture2DLod(tex, icoordUpRight,  level);
+	vec4 texCenter 	= textureLod(tex, icoordCenter, 	level);
+	vec4 texRight 	= textureLod(tex, icoordRight, 	level);
+	vec4 texUp 		= textureLod(tex, icoordUp, 		level);
+	vec4 texUpRight	= textureLod(tex, icoordUpRight,  level);
 
 	texCenter = mix(texCenter, texUp, vec4(f.y));
 	texRight  = mix(texRight, texUpRight, vec4(f.y));

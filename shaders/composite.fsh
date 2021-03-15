@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 /*
                                                                 
@@ -75,10 +75,10 @@ const int 		R8 						= 0;
 const int 		RG8 					= 0;
 const int 		RGB8 					= 1;
 const int 		RGB16 					= 2;
-const int 		gcolorFormat 			= RGB16;
-const int 		gdepthFormat 			= RGB8;
-const int 		gnormalFormat 			= RGB16;
-const int 		compositeFormat 		= RGB8;
+const int 		colortex0Format 			= RGB16;
+const int 		colortex1Format 			= RGB8;
+const int 		colortex2Format 			= RGB16;
+const int 		colortex3Format 		= RGB8;
 
 const float 	eyeBrightnessHalflife 	= 10.0f;
 const float 	wetnessHalflife 		= 300.0f;
@@ -96,15 +96,15 @@ const int 		noiseTextureResolution  = 64;
 
 /* DRAWBUFFERS:46 */
 
-uniform sampler2D gnormal;
+uniform sampler2D colortex2;
 uniform sampler2D depthtex1;
-uniform sampler2D gdepth;
+uniform sampler2D colortex1;
 uniform sampler2D shadowcolor1;
 uniform sampler2D shadowcolor;
 uniform sampler2D shadowtex1;
 uniform sampler2D noisetex;
-uniform sampler2D gaux2;
-uniform sampler2D gaux3;
+uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -114,24 +114,24 @@ uniform mat4 shadowProjection;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferProjection;
 
-varying vec4 texcoord;
-varying vec3 lightVector;
+in vec4 texcoord;
+in vec3 lightVector;
 
-varying float timeSunriseSunset;
-varying float timeNoon;
-varying float timeMidnight;
-varying float timeSkyDark;
+in float timeSunriseSunset;
+in float timeNoon;
+in float timeMidnight;
+in float timeSkyDark;
 uniform float screenBrightness;
 
-varying vec3 colorSunlight;
-varying vec3 colorSkylight;
-varying vec3 colorSunglow;
-varying vec3 colorBouncedSunlight;
-varying vec3 colorScatteredSunlight;
-varying vec3 colorTorchlight;
-varying vec3 colorWaterMurk;
-varying vec3 colorWaterBlue;
-varying vec3 colorSkyTint;
+in vec3 colorSunlight;
+in vec3 colorSkylight;
+in vec3 colorSunglow;
+in vec3 colorBouncedSunlight;
+in vec3 colorScatteredSunlight;
+in vec3 colorTorchlight;
+in vec3 colorWaterMurk;
+in vec3 colorWaterBlue;
+in vec3 colorSkyTint;
 
 uniform float near;
 uniform float far;
@@ -149,11 +149,11 @@ uniform vec3 cameraPosition;
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 vec3  	GetNormals(in vec2 coord) {				//Function that retrieves the screen space surface normals. Used for lighting calculations
-	return texture2DLod(gaux2, coord.st, 0).rgb * 2.0f - 1.0f;
+	return textureLod(colortex5, coord.st, 0).rgb * 2.0f - 1.0f;
 }
 
 float 	GetDepth(in vec2 coord) {
-	return texture2D(depthtex1, coord.st).x;
+	return texture(depthtex1, coord.st).x;
 }
 
 vec4  	GetScreenSpacePosition(in vec2 coord) {	//Function that calculates the screen-space position of the objects in the scene using the depth texture and the texture coordinates of the full-screen quad
@@ -171,7 +171,7 @@ vec3 	CalculateNoisePattern1(vec2 offset, float size) {
 	coord = mod(coord + offset, vec2(size));
 	coord /= noiseTextureResolution;
 
-	return texture2D(noisetex, coord).xyz;
+	return texture(noisetex, coord).xyz;
 }
 
 vec2 DistortShadowSpace(in vec2 pos)
@@ -198,12 +198,12 @@ vec3 Contrast(in vec3 color, in float contrast)
 }
 
 float 	GetMaterialIDs(in vec2 coord) {			//Function that retrieves the texture that has all material IDs stored in it
-	return texture2D(gdepth, coord).r;
+	return texture(colortex1, coord).r;
 }
 
 float GetSkylight(in vec2 coord)
 {
-	return texture2DLod(gdepth, coord, 0).b;
+	return textureLod(colortex1, coord, 0).b;
 }
 
 float 	GetMaterialMask(in vec2 coord, const in int ID) {
@@ -263,9 +263,9 @@ float GetAO(in vec4 screenSpacePosition, in vec3 normal, in vec2 coord, in vec3 
 
 	for (int i = 0; i < 4; i++)
 	{
-		vec3 kernel = vec3(texture2D(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).r * 2.0f - 1.0f, 
-					     texture2D(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).g * 2.0f - 1.0f,
-					     texture2D(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).b * 1.0f);
+		vec3 kernel = vec3(texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).r * 2.0f - 1.0f, 
+					     texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).g * 2.0f - 1.0f,
+					     texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).b * 1.0f);
 			 kernel = normalize(kernel);
 			 kernel *= pow(dither.x + 0.01f, 1.0f);
 
@@ -324,7 +324,7 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 							  + screenSpacePosition.y * screenSpacePosition.y 
 							  + screenSpacePosition.z * screenSpacePosition.z);
 
-		float materialIDs = texture2D(gdepth, coord).r * 255.0f;
+		float materialIDs = texture(colortex1, coord).r * 255.0f;
 
 		vec4 upVectorShadowSpace = shadowModelView * vec4(0.0f, 1.0, 0.0, 0.0);
 
@@ -383,9 +383,9 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 					vec2 lookupCoord = DistortShadowSpace(coord);
 
 					#ifdef GI_ARTIFACT_REDUCTION
-					float depthSample = texture2DLod(shadowtex1, lookupCoord, 0).x;
+					float depthSample = textureLod(shadowtex1, lookupCoord, 0).x;
 					#else
-					float depthSample = texture2DLod(shadowtex1, lookupCoord, 2).x;
+					float depthSample = textureLod(shadowtex1, lookupCoord, 2).x;
 					#endif
 
 					/*
@@ -401,7 +401,7 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 
 					vec3 lightVector = normalize(samplePos.xyz - worldposition.xyz);
 
-					vec4 normalSample = texture2DLod(shadowcolor1, lookupCoord, 5);
+					vec4 normalSample = textureLod(shadowcolor1, lookupCoord, 5);
 					vec3 surfaceNormal = normalSample.rgb * 2.0f - 1.0f;
 						 surfaceNormal.x = -surfaceNormal.x;
 						 surfaceNormal.y = -surfaceNormal.y;
@@ -478,7 +478,7 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 						float skylightWeight = 1.0 / (max(0.0, surfaceSkylight - mcSkylight) * 50.0 + 1.0);
 
 
-						vec3 colorSample = pow(texture2DLod(shadowcolor, lookupCoord, 5).rgb, vec3(2.2f));
+						vec3 colorSample = pow(textureLod(shadowcolor, lookupCoord, 5).rgb, vec3(2.2f));
 						//colorSample 				= pow(colorSample, vec3(1.2f));
 
 						//colorSample = Contrast(colorSample, 0.8f);
@@ -613,8 +613,8 @@ float Get3DNoise(in vec3 pos)
 
 	vec2 coord =  (uv  + 0.5f) / noiseTextureResolution;
 	vec2 coord2 = (uv2 + 0.5f) / noiseTextureResolution;
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord2).x;
+	float xy1 = texture(noisetex, coord).x;
+	float xy2 = texture(noisetex, coord2).x;
 	return mix(xy1, xy2, f.z);
 }
 
@@ -808,7 +808,7 @@ void 	CalculateClouds2 (inout vec4 color, vec4 screenSpacePosition, vec4 worldSp
 
 		float rayDepth = startingRayDepth;
 			  //rayDepth += CalculateDitherPattern1() * 0.85f;
-			  //rayDepth += texture2D(noisetex, texcoord.st * (viewWidth / noiseTextureResolution, viewHeight / noiseTextureResolution)).x * 0.1f;
+			  //rayDepth += texture(noisetex, texcoord.st * (viewWidth / noiseTextureResolution, viewHeight / noiseTextureResolution)).x * 0.1f;
 			  //rayDepth += CalculateDitherPattern2() * 0.1f;
 		float rayIncrement = far / 10.0f;
 
@@ -909,7 +909,7 @@ vec4 textureSmooth(in sampler2D tex, in vec2 coord)
 	coord -= 0.5f;
 	coord /= res;
 
-	return texture2D(tex, coord);
+	return texture(tex, coord);
 }
 
 float AlmostIdentity(in float x, in float m, in float n)
@@ -1060,7 +1060,7 @@ void main() {
 
 	
 	gl_FragData[0] = vec4(pow(light.rgb, vec3(1.0 / 2.2)), light.a);
-	gl_FragData[1] = vec4(GetWavesNormal(vec3(texcoord.s * 50.0, 1.0, texcoord.t * 50.0)).xy * 0.5 + 0.5, texture2D(gaux3, texcoord.st).gb);
+	gl_FragData[1] = vec4(GetWavesNormal(vec3(texcoord.s * 50.0, 1.0, texcoord.t * 50.0)).xy * 0.5 + 0.5, texture(colortex6, texcoord.st).gb);
 	// gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);
 }
 

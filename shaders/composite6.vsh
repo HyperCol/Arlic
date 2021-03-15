@@ -1,6 +1,6 @@
-#version 120
+#version 330 compatibility
 
-varying vec4 texcoord;
+out vec4 texcoord;
 
 uniform float sunAngle;
 
@@ -9,10 +9,10 @@ uniform vec3 moonPosition;
 
 uniform int worldTime;
 
-varying float timeSunrise;
-varying float timeNoon;
-varying float timeSunset;
-varying float timeMidnight;
+out float timeSunrise;
+out float timeNoon;
+out float timeSunset;
+out float timeMidnight;
 
 float cubeSmooth(in float x)
 {

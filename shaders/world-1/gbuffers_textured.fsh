@@ -1,16 +1,16 @@
-#version 120
+#version 330 compatibility
 
 /* DRAWBUFFERS:0123 */
 
 //clouds
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
+in vec4 color;
+in vec4 texcoord;
+in vec4 lmcoord;
 
-varying vec3 normal;
+in vec3 normal;
 
 const int GL_LINEAR = 9729;
 const int GL_EXP = 2048;
@@ -19,7 +19,7 @@ uniform int fogMode;
 
 void main() {
 
-	float fullalpha = (texture2D(texture, texcoord.st).a * color.a);
+	float fullalpha = (texture(tex, texcoord.st).a * color.a);
 
 	fullalpha = 1.0 - step(fullalpha, 0.1);
 
@@ -37,7 +37,7 @@ void main() {
 		lightmap.b = 1.0f;
 	}
 
-	gl_FragData[0] = vec4(texture2D(texture, texcoord.st).rgb * color.rgb, fullalpha*1.0f);
+	gl_FragData[0] = vec4(texture(tex, texcoord.st).rgb * color.rgb, fullalpha*1.0f);
 	gl_FragData[1] = vec4((29.0f + 0.1f) / 255.0f, lightmap.r, lightmap.b, 1.0f);
 	
 

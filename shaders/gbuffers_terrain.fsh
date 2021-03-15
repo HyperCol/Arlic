@@ -1,4 +1,4 @@
-#version 130
+#version 330 compatibility
 
 /*
  _______ _________ _______  _______  _ 
@@ -29,7 +29,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 /* DRAWBUFFERS:01235 */
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D lightmap;
 uniform sampler2D normals;
 uniform sampler2D specular;
@@ -47,22 +47,22 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform float aspectRatio;
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
-varying vec3 worldPosition;
-varying vec4 vertexPos;
-varying mat3 tbnMatrix;
+in vec4 color;
+in vec4 texcoord;
+in vec4 lmcoord;
+in vec3 worldPosition;
+in vec4 vertexPos;
+in mat3 tbnMatrix;
 
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying vec3 worldNormal;
+in vec3 normal;
+in vec3 tangent;
+in vec3 binormal;
+in vec3 worldNormal;
 
-varying float materialIDs;
+in float materialIDs;
 
-varying float distance;
-varying float idCheck;
+in float distance;
+in float idCheck;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
@@ -104,10 +104,10 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
     vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
     vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
 
-    vec4 sample0 = texture2D(tex, vec2(offset.x, offset.z) / resolution);
-    vec4 sample1 = texture2D(tex, vec2(offset.y, offset.z) / resolution);
-    vec4 sample2 = texture2D(tex, vec2(offset.x, offset.w) / resolution);
-    vec4 sample3 = texture2D(tex, vec2(offset.y, offset.w) / resolution);
+    vec4 sample0 = texture(tex, vec2(offset.x, offset.z) / resolution);
+    vec4 sample1 = texture(tex, vec2(offset.y, offset.z) / resolution);
+    vec4 sample2 = texture(tex, vec2(offset.x, offset.w) / resolution);
+    vec4 sample3 = texture(tex, vec2(offset.y, offset.w) / resolution);
 
     float sx = s.x / (s.x + s.y);
     float sy = s.z / (s.z + s.w);
@@ -119,7 +119,7 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
 vec2 OffsetCoord(in vec2 coord, in vec2 offset, in int level)
 {
 	int tileResolution = TEXTURE_RESOLUTION;
-	ivec2 atlasTiles = textureSize(texture, 0) / TEXTURE_RESOLUTION;
+	ivec2 atlasTiles = textureSize(tex, 0) / TEXTURE_RESOLUTION;
 	ivec2 atlasResolution = tileResolution * atlasTiles;
 
 	coord *= atlasResolution;
@@ -157,8 +157,8 @@ vec3 Get3DNoise(in vec3 pos)
 	vec2 uv2 = (p.xy + (p.z + 1.0f) * vec2(17.0f, 37.0f)) + f.xy;
 	vec2 coord =  (uv  + 0.5f) / 64.0f;
 	vec2 coord2 = (uv2 + 0.5f) / 64.0f;
-	vec3 xy1 = texture2D(noisetex, coord).xyz;
-	vec3 xy2 = texture2D(noisetex, coord2).xyz;
+	vec3 xy1 = texture(noisetex, coord).xyz;
+	vec3 xy2 = texture(noisetex, coord2).xyz;
 	return mix(xy1, xy2, vec3(f.z));
 }
 
@@ -229,15 +229,15 @@ vec4 GetTexture(in sampler2D tex, in vec2 coord)
 		vec4 t = vec4(0.0f);
 		if (distance < 20.0f)
 		{
-			t = texture2DLod(tex, coord, 0);
+			t = textureLod(tex, coord, 0);
 		}
 		else
 		{
-			t = texture2D(tex, coord);
+			t = texture(tex, coord);
 		}
 		return t;
 	#else
-		return texture2D(tex, coord);
+		return texture(tex, coord);
 	#endif
 }
 
@@ -465,14 +465,14 @@ void main() {
 	#endif
 
 	//Diffuse
-	vec4 albedo = GetTexture(texture, parallaxCoord.st) * color;
+	vec4 albedo = GetTexture(tex, parallaxCoord.st) * color;
 
 
 		//sunlightVisibility *= clamp(dot(frag2.rgb * 2.0f - 1.0f, normalize(sunPosition.xyz)), 0.0f, 1.0f);
 
 		//albedo.rgb *= sunlightVisibility * 0.8f + 0.2f;
 
-		 //albedo.rgb *= texture2D(normals, parallaxCoord.st, int(mipLevel), false).a;
+		 //albedo.rgb *= texture(normals, parallaxCoord.st, int(mipLevel), false).a;
 
 		// vec3 noise = Get3DNoise(worldPosition.xyz);
 

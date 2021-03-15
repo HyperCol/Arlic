@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 /*
                                                                 
@@ -35,16 +35,16 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
 
-const bool		gnormalMipmapEnabled = true;
+const bool		colortex2MipmapEnabled = true;
 /* DRAWBUFFERS:0 */
 
-uniform sampler2D gnormal;
+uniform sampler2D colortex2;
 
 uniform float aspectRatio;
 uniform float viewWidth;
 uniform float viewHeight;
 
-varying vec4 texcoord;
+in vec4 texcoord;
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ vec3 CalculateBloom(in int LOD, in vec2 offset) {
 
 				if (weight > 0.0f)
 				{
-					bloom += pow(clamp(texture2D(gnormal, finalCoord, 0).rgb, vec3(0.0f), vec3(1.0f)), vec3(2.2f)) * weight;
+					bloom += pow(clamp(texture(colortex2, finalCoord, 0).rgb, vec3(0.0f), vec3(1.0f)), vec3(2.2f)) * weight;
 					allWeights += 1.0f * weight;
 				}
 			}

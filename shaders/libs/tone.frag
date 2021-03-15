@@ -140,7 +140,7 @@ void init_tone(out Tone t, vec2 tex) {
 	//t.exposure = get_exposure();
 	
 	t.color = GetColorTexture(tex).rgb;
-	//t.blur = texture(gaux4, tex).rgb;// * (1.0 + t.exposure);
+	//t.blur = texture(colortex7, tex).rgb;// * (1.0 + t.exposure);
 	
 	t.useAdjustment = 1.0;
 	t.blurIndex = 0.0;

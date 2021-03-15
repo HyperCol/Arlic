@@ -1,6 +1,6 @@
-#version 120
+#version 330 compatibility
 
-varying vec4 color;
+out vec4 color;
 
 void main() {
 	gl_Position = ftransform();

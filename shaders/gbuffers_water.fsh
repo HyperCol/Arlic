@@ -1,10 +1,10 @@
-#version 120
+#version 330 compatibility
 
 #define WAVE_HEIGHT 0.75 //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
 
 #define WATER_PARALLAX
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D specular;
 uniform sampler2D normals;
 uniform sampler2D noisetex;
@@ -24,22 +24,22 @@ uniform int worldTime;
 
 uniform float rainStrength;
 
-varying vec3 normal;
-varying vec3 globalNormal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying vec3 viewVector;
+in vec3 normal;
+in vec3 globalNormal;
+in vec3 tangent;
+in vec3 binormal;
+in vec3 viewVector;
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
-varying vec3 worldPosition;
-varying vec4 vertexPos;
-varying float distance;
+in vec4 color;
+in vec4 texcoord;
+in vec4 lmcoord;
+in vec3 worldPosition;
+in vec4 vertexPos;
+in float distance;
 
-varying float iswater;
-varying float isice;
-varying float isStainedGlass;
+in float iswater;
+in float isice;
+in float isStainedGlass;
 
 #define WATER_SPEED 1.0    //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.32.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 //#define WATER_SPEED_LIGHT_BAR_LINKER
@@ -78,10 +78,10 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
     vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
     vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
 
-    vec4 sample0 = texture2D(tex, vec2(offset.x, offset.z) / resolution);
-    vec4 sample1 = texture2D(tex, vec2(offset.y, offset.z) / resolution);
-    vec4 sample2 = texture2D(tex, vec2(offset.x, offset.w) / resolution);
-    vec4 sample3 = texture2D(tex, vec2(offset.y, offset.w) / resolution);
+    vec4 sample0 = texture(tex, vec2(offset.x, offset.z) / resolution);
+    vec4 sample1 = texture(tex, vec2(offset.y, offset.z) / resolution);
+    vec4 sample2 = texture(tex, vec2(offset.x, offset.w) / resolution);
+    vec4 sample3 = texture(tex, vec2(offset.y, offset.w) / resolution);
 
     float sx = s.x / (s.x + s.y);
     float sy = s.z / (s.z + s.w);
@@ -109,7 +109,7 @@ vec4 textureSmooth(in sampler2D tex, in vec2 coord)
 	coord -= 0.5f;
 	coord /= res;
 
-	return texture2D(tex, coord);
+	return texture(tex, coord);
 }
 
 float Parabola(in float x, in float k)
@@ -264,8 +264,8 @@ vec3 GetWavesNormal(vec3 position, in float scale, in mat3 tbnMatrix) {
 
 void main() {
 
-	vec4 tex = texture2D(texture, texcoord.st);
-		 tex.a = 0.85f;
+	vec4 texs = texture(tex, texcoord.st);
+		 texs.a = 0.85f;
 
 	float zero = 1.0f;
 	float transx = 0.0f;
@@ -284,7 +284,7 @@ void main() {
 
 
 	if (iswater > 0.5f && !backfacing) {
-		vec4 albedo = texture2D(texture, texcoord.st).rgba;
+		vec4 albedo = texture(tex, texcoord.st).rgba;
 		float lum = albedo.r + albedo.g + albedo.b;
 			  lum /= 3.0f;
 
@@ -295,15 +295,15 @@ void main() {
 
 		waterColor = normalize(waterColor);
 
-		tex = vec4(0.1f, 0.7f, 1.0f, 210.0f/255.0f);
-		tex.rgb *= 0.4f * waterColor.rgb;
+		texs = vec4(0.1f, 0.7f, 1.0f, 210.0f/255.0f);
+		texs.rgb *= 0.4f * waterColor.rgb;
 		// tex.rgb *= vec3(lum * 2.0);
 
 		// tex = vec4(color.r, color.g, color.b, 0.4f);
 		// tex.rgb *= vec3(0.9f, 1.0f, 0.1f) * 0.8f;
 
 	} else if (iswater > 0.5f && backfacing) {
-		tex = vec4(0.0, 0.0, 0.0f, 30.0f / 255.0f);
+		texs = vec4(0.0, 0.0, 0.0f, 30.0f / 255.0f);
 	}
 
 	//store lightmap in auxilliary texture. r = torch light. g = lightning. b = sky light.
@@ -342,7 +342,7 @@ void main() {
 
 	matID += 0.1f;
 
-  // gl_FragData[0] = vec4(tex.rgb, 0.2);
+  // gl_FragData[0] = vec4(texs.rgb, 0.2);
 	gl_FragData[0] = vec4(vec3(0.0, 0.0, 0.0), 0.2);
 	//gl_FragData[1] = vec4(matID / 255.0f, lightmap.r, lightmap.b, 1.0);
 
@@ -363,7 +363,7 @@ void main() {
 
 
 	vec3 waterNormal = wavesNormal * tbnMatrix;
-	vec3 texNormal = texture2D(normals, texcoord.st).rgb * 2.0f - 1.0f;
+	vec3 texNormal = texture(normals, texcoord.st).rgb * 2.0f - 1.0f;
 		 texNormal = texNormal * tbnMatrix;
 
 
@@ -373,14 +373,14 @@ void main() {
 	gl_FragData[1] = vec4(waterNormal.rgb * 0.5 + 0.5, 1.0f);
 
 
-	vec4 spec = texture2D(specular, texcoord.st);
+	vec4 spec = texture(specular, texcoord.st);
 
 	gl_FragData[2] = vec4(spec.r, spec.b, 0.0f, 1.0);
 
 
 	//gl_FragData[5] = vec4(lightmap.rgb, 0.0f);
 	gl_FragData[3] = vec4(0.0f, lightmap.b, matID / 255.0f, 1.0f);
-	gl_FragData[4] = vec4(texture2D(texture, texcoord.st).rgb, 1.0);
+	gl_FragData[4] = vec4(texture(tex, texcoord.st).rgb, 1.0);
 
 
 	//gl_FragData[7] = vec4(globalNormal * 0.5f + 0.5f, 1.0);

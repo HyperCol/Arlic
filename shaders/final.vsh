@@ -1,8 +1,8 @@
-#version 120
+#version 330 compatibility
 
 #define SKY_DESATURATION 0.0f
 
-varying vec4 texcoord;
+out vec4 texcoord;
 
 uniform vec3 sunPosition;
 uniform vec3 moonPosition;
@@ -13,23 +13,23 @@ uniform float sunAngle;
 
 uniform int worldTime;
 
-varying vec3 lightVector;
-varying vec3 upVector;
+out vec3 lightVector;
+out vec3 upVector;
 
-varying float timeSunriseSunset;
-varying float timeNoon;
-varying float timeMidnight;
-varying float timeSkyDark;
+out float timeSunriseSunset;
+out float timeNoon;
+out float timeMidnight;
+out float timeSkyDark;
 
-varying vec3 colorSunlight;
-varying vec3 colorSkylight;
-varying vec3 colorSunglow;
-varying vec3 colorBouncedSunlight;
-varying vec3 colorScatteredSunlight;
-varying vec3 colorTorchlight;
-varying vec3 colorWaterMurk;
-varying vec3 colorWaterBlue;
-varying vec3 colorSkyTint;
+out vec3 colorSunlight;
+out vec3 colorSkylight;
+out vec3 colorSunglow;
+out vec3 colorBouncedSunlight;
+out vec3 colorScatteredSunlight;
+out vec3 colorTorchlight;
+out vec3 colorWaterMurk;
+out vec3 colorWaterBlue;
+out vec3 colorSkyTint;
 
 
 float CubicSmooth(in float x)

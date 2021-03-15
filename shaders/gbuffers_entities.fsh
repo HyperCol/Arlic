@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 /*
  _______ _________ _______  _______  _ 
@@ -27,7 +27,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 /* DRAWBUFFERS:01235 */
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D lightmap;
 uniform sampler2D normals;
 uniform sampler2D specular;
@@ -44,21 +44,21 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform float aspectRatio;
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
-varying vec3 worldPosition;
-varying vec4 vertexPos;
-varying mat3 tbnMatrix;
+in vec4 color;
+in vec4 texcoord;
+in vec4 lmcoord;
+in vec3 worldPosition;
+in vec4 vertexPos;
+in mat3 tbnMatrix;
 
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 binormal;
+in vec3 normal;
+in vec3 tangent;
+in vec3 binormal;
 
-varying float materialIDs;
+in float materialIDs;
 
-varying float distance;
-varying float idCheck;
+in float distance;
+in float idCheck;
 
 uniform vec4 entityColor;
 
@@ -87,7 +87,7 @@ void main() {
 	
 	if (distance < bump_distance) {
 	
-			vec3 bump = texture2D(normals, texcoord.st).rgb * 2.0f - 1.0f;
+			vec3 bump = texture(normals, texcoord.st).rgb * 2.0f - 1.0f;
 			
 			float bumpmult = clamp(bump_distance * fademult - distance * fademult, 0.0f, 1.0f) * NORMAL_MAP_MAX_ANGLE;
 				  
@@ -103,7 +103,7 @@ void main() {
 	}
 
 	//Diffuse
-	vec4 albedo = texture2D(texture, texcoord.st) * color;
+	vec4 albedo = texture(tex, texcoord.st) * color;
 
 
 	albedo.rgb = mix(albedo.rgb, entityColor.rgb, entityColor.aaa);

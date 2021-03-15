@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 /*
                                                                 
@@ -65,73 +65,73 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define EdgeBlurAmount 1.75  // [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
 	#define EdgeBlurDecline 3.0  // [0.3 0.6 0.9 1.2 1.5 1.8 1.9 2.0 2.1 2.4 3.0 3.3 3.6 3.9 4.2]
 
-varying vec4 texcoord;
-varying vec3 lightVector;
+in vec4 texcoord;
+in vec3 lightVector;
 
 uniform float aspectRatio;
 
-uniform sampler2D gcolor;
-uniform sampler2D gdepth;
+uniform sampler2D colortex0;
+uniform sampler2D colortex1;
 uniform sampler2D gdepthtex;
-uniform sampler2D gnormal;
-uniform sampler2D composite;
+uniform sampler2D colortex2;
+uniform sampler2D colortex3;
 
 uniform sampler2D shadowcolor;
 uniform sampler2D shadowcolor1;
 uniform sampler2D shadowtex1;
 
-varying float timeSunriseSunset;
-varying float timeNoon;
-varying float timeMidnight;
+in float timeSunriseSunset;
+in float timeNoon;
+in float timeMidnight;
 
-varying vec3 colorSunlight;
-varying vec3 colorSkylight;
+in vec3 colorSunlight;
+in vec3 colorSkylight;
 
 #define BANDING_FIX_FACTOR 1.0f
 
 #extension GL_ARB_shader_texture_lod: require
-const bool compositeMipmapEnabled = true;
-const bool gnormalMipmapEnabled = true;
+const bool colortex3MipmapEnabled = true;
+const bool colortex2MipmapEnabled = true;
 
 #include "/libs/uniform.glsl"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 vec3 	GetTexture(in sampler2D tex, in vec2 coord) {				//Perform a texture lookup with BANDING_FIX_FACTOR compensation
-	return pow(texture2D(tex, coord).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
+	return pow(texture(tex, coord).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
 }
 
 vec3 	GetTextureLod(in sampler2D tex, in vec2 coord, in int level) {				//Perform a texture lookup with BANDING_FIX_FACTOR compensation
-	return pow(texture2DLod(tex, coord, level).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
+	return pow(textureLod(tex, coord, level).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
 }
 
 vec3 	GetTexture(in sampler2D tex, in vec2 coord, in int LOD) {	//Perform a texture lookup with BANDING_FIX_FACTOR compensation and lod offset
-	return pow(texture2D(tex, coord, LOD).rgb, vec3(BANDING_FIX_FACTOR));
+	return pow(texture(tex, coord, LOD).rgb, vec3(BANDING_FIX_FACTOR));
 }
 
 float GetSunlightVisibility(in vec2 coord)
 {
-	return texture2D(gdepth, coord).g;
+	return texture(colortex1, coord).g;
 }
 
 float 	GetDepth(in vec2 coord) {
-	return texture2D(gdepthtex, coord).x;
+	return texture(gdepthtex, coord).x;
 }
 
 float 	GetDepthLinear(in vec2 coord) {					//Function that retrieves the scene depth. 0 - 1, higher values meaning farther away
-	return 2.0f * near * far / (far + near - (2.0f * texture2D(gdepthtex, coord).x - 1.0f) * (far - near));
+	return 2.0f * near * far / (far + near - (2.0f * texture(gdepthtex, coord).x - 1.0f) * (far - near));
 }
 
 vec3 	GetColorTexture(in vec2 coord) {
 	#ifdef FINAL_ALT_COLOR_SOURCE
-	return GetTextureLod(gcolor, coord.st, 0).rgb;
+	return GetTextureLod(colortex0, coord.st, 0).rgb;
 	#else
-	return GetTextureLod(gnormal, coord.st, 0).rgb;
+	return GetTextureLod(colortex2, coord.st, 0).rgb;
 	#endif
 }
 
 float 	GetMaterialIDs(in vec2 coord) {			//Function that retrieves the texture that has all material IDs stored in it
-	return texture2D(gdepth, coord).r;
+	return texture(colortex1, coord).r;
 }
 
 float saturate(float x)
@@ -181,10 +181,10 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
     vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
     vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
 
-    vec4 sample0 = texture2D(tex, vec2(offset.x, offset.z) / resolution);
-    vec4 sample1 = texture2D(tex, vec2(offset.y, offset.z) / resolution);
-    vec4 sample2 = texture2D(tex, vec2(offset.x, offset.w) / resolution);
-    vec4 sample3 = texture2D(tex, vec2(offset.y, offset.w) / resolution);
+    vec4 sample0 = texture(tex, vec2(offset.x, offset.z) / resolution);
+    vec4 sample1 = texture(tex, vec2(offset.y, offset.z) / resolution);
+    vec4 sample2 = texture(tex, vec2(offset.x, offset.w) / resolution);
+    vec4 sample3 = texture(tex, vec2(offset.y, offset.w) / resolution);
 
     float sx = s.x / (s.x + s.y);
     float sy = s.z / (s.z + s.w);
@@ -273,7 +273,7 @@ void SaturationBoost(inout vec3 color) {
 
 void  DOF_Blur(out vec3 color, in float isHand) {
 
-	float depth= texture2D(gdepthtex, texcoord.st).x;
+	float depth= texture(gdepthtex, texcoord.st).x;
 		//depth += float(GetMaterialMask(texcoord.st, 5)) * 0.36f;
 
 	float naive = 0.0;
@@ -630,7 +630,7 @@ void 	CalculateMasks(inout MaskStruct mask) {
 void AverageExposure(inout vec3 color)
 {
 	float avglod = int(log2(min(viewWidth, viewHeight))) - 1;
-	color /= pow(Luminance(texture2DLod(gnormal, vec2(0.5, 0.5), avglod).rgb), 1.1) + 0.0001;
+	color /= pow(Luminance(textureLod(colortex2, vec2(0.5, 0.5), avglod).rgb), 1.1) + 0.0001;
 }
 
 #include "/libs/tone.frag"
@@ -662,7 +662,7 @@ void main() {
 
 	Hue_Adjustment(tone);
 
-	//tone.color = texture2D(gnormal, texcoord.st).rgb*50.0;
+	//tone.color = texture(colortex2, texcoord.st).rgb*50.0;
 	gl_FragColor = vec4(tone.color, 1.0f);
 
 }

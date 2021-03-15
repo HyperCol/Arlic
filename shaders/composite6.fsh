@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 /*
                                                                 
@@ -44,9 +44,9 @@ const float LensFlareNight = 0.425;
 const float LensFlareSunRS = 0.325;
 const float LensFlareDark  = 0.125;
 
-const bool gaux2MipmapEnabled = true;
+const bool colortex5MipmapEnabled = true;
 
-uniform sampler2D gaux2, gdepth, gcolor, gnormal, gaux1;
+uniform sampler2D colortex5, colortex1, colortex0, colortex2, colortex4;
 
 uniform float aspectRatio;
 uniform float viewWidth;
@@ -60,12 +60,12 @@ uniform int   isEyeInWater;
 
 uniform mat4 gbufferProjection;
 
-varying float timeSunrise;
-varying float timeNoon;
-varying float timeSunset;
-varying float timeMidnight;
+in float timeSunrise;
+in float timeNoon;
+in float timeSunset;
+in float timeMidnight;
 
-varying vec4 texcoord;
+in vec4 texcoord;
 
 float timeDay = 1.0 - timeMidnight;
 float timeNoonNight = timeMidnight + timeNoon;
@@ -187,10 +187,10 @@ void LensFlare(inout vec3 color){
 	
     if (isEyeInWater < 0.9) {
 		if (checkcoord.x < 1.0f && checkcoord.x > 0.0f && checkcoord.y < 1.0f && checkcoord.y > 0.0f){          		   
-			//sunmask = texture2D(gaux2, lPos).a;
+			//sunmask = texture(colortex5, lPos).a;
 			//sunmask = 1.0 - sunmask;
-			//sunmask *= float(GetMaterialMask(texcoord.st, 0, texture2D(gdepth, lPos).r));
-			sunmask = float(GetMaterialMask(texcoord.st, 0, texture2D(gdepth, lPos).r));
+			//sunmask *= float(GetMaterialMask(texcoord.st, 0, texture(colortex1, lPos).r));
+			sunmask = float(GetMaterialMask(texcoord.st, 0, texture(colortex1, lPos).r));
 			sunmask = clamp(sunmask, 0.0, 0.025 - 0.022 * timeMidnight);
 		}
 		sunmask *= fading;
@@ -337,7 +337,7 @@ void LensFlare(inout vec3 color){
 }
 
 void main() {
-	vec3 color = texture2D(gnormal, texcoord.xy).rgb;
+	vec3 color = texture(colortex2, texcoord.xy).rgb;
 	pow(color, vec3(2.2));
 	
 	vec3 sP = sunPosition * timeDay + -sunPosition * timeMidnight;   
@@ -356,7 +356,7 @@ void main() {
 	float a = 0.0;
 	
 	if (checkcoord.x < 1.0f && checkcoord.x > 0.0f && checkcoord.y < 1.0f && checkcoord.y > 0.0f){          		   
-		a = texture2D(gaux2, lPos).a;	
+		a = texture(colortex5, lPos).a;	
 		a = clamp(a, 0.0, 1.0);
 	}	
 	

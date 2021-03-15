@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 //#define WAVING_WATER
 
@@ -9,25 +9,25 @@ uniform vec3 cameraPosition;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
-varying vec3 worldPosition;
-varying vec4 vertexPos;
+out vec4 color;
+out vec4 texcoord;
+out vec4 lmcoord;
+out vec3 worldPosition;
+out vec4 vertexPos;
 
-varying vec3 normal;
-varying vec3 globalNormal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying vec3 viewVector;
-varying vec3 viewVector2;
-varying float distance;
+out vec3 normal;
+out vec3 globalNormal;
+out vec3 tangent;
+out vec3 binormal;
+out vec3 viewVector;
+out vec3 viewVector2;
+out float distance;
 
 attribute vec4 mc_Entity;
 
-varying float iswater;
-varying float isice;
-varying float isStainedGlass;
+out float iswater;
+out float isice;
+out float isStainedGlass;
 
 void main() {
 

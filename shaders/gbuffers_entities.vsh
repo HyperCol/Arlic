@@ -1,9 +1,9 @@
-#version 120
+#version 330 compatibility
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
-varying vec3 worldPosition;
+out vec4 color;
+out vec4 texcoord;
+out vec4 lmcoord;
+out vec3 worldPosition;
 
 
 attribute vec4 mc_Entity;
@@ -23,19 +23,19 @@ uniform float aspectRatio;
 
 uniform sampler2D noisetex;
 
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying vec2 waves;
+out vec3 normal;
+out vec3 tangent;
+out vec3 binormal;
+out vec2 waves;
 
-varying float distance;
-//varying float idCheck;
+out float distance;
+//out float idCheck;
 
-varying float materialIDs;
+out float materialIDs;
 
-varying mat3 tbnMatrix;
-varying vec4 vertexPos;
-varying vec3 vertexViewVector;
+out mat3 tbnMatrix;
+out vec4 vertexPos;
+out vec3 vertexViewVector;
 
 uniform int entityId;
 

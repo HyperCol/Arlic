@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 /*
                                                                 
@@ -39,13 +39,13 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 #define LF
 
-const bool gaux2MipmapEnabled = true;
+const bool colortex5MipmapEnabled = true;
 
-uniform sampler2D gcolor;
-uniform sampler2D gdepth;
+uniform sampler2D colortex0;
+uniform sampler2D colortex1;
 uniform sampler2D gdepthtex;
-uniform sampler2D gnormal;
-uniform sampler2D composite;
+uniform sampler2D colortex2;
+uniform sampler2D colortex3;
 uniform sampler2D noisetex;
 
 uniform float aspectRatio;
@@ -61,12 +61,12 @@ uniform int worldTime;
 
 uniform mat4 gbufferProjection;
 uniform float frameTimeCounter;
-varying float timeSunrise;
-varying float timeNoon;
-varying float timeSunset;
-varying float timeMidnight;
+in float timeSunrise;
+in float timeNoon;
+in float timeSunset;
+in float timeMidnight;
 
-varying vec4 texcoord;
+in vec4 texcoord;
 
 float timeDay = 1.0 - timeMidnight;
 float timeNoonNight = timeMidnight + timeNoon;
@@ -198,7 +198,7 @@ float Rectangle(float lensDist, float size) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
-	vec4 color = texture2D(gnormal, texcoord.xy);
+	vec4 color = texture(colortex2, texcoord.xy);
 		 color.a = 1.0;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ void main() {
 	float time = float(worldTime);
 	float transition_fading = 1.0-(clamp((time-12000.0)/500.0,0.0,1.0)-clamp((time-13000.0)/500.0,0.0,1.0) + clamp((time-22500.0)/100.0,0.0,1.0)-clamp((time-23300.0)/200.0,0.0,1.0));	 
 	
-    float sunvisibility = min(float(texture2D(gdepth, lightPos).r == 0), 1.0) * fading * transition_fading;
+    float sunvisibility = min(float(texture(colortex1, lightPos).r == 0), 1.0) * fading * transition_fading;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
@@ -317,7 +317,7 @@ if (rainStrength > 0.01) {
 		float raindrops = 0.0;
 		float time2 = frameTimeCounter * 0.2;
 		float fake_refract  = sin(texcoord.x*30.0 + texcoord.y*50.0);
-        vec3 watercolor = texture2DLod(gnormal, texcoord.st + fake_refract * 0.0075, 2).rgb;
+        vec3 watercolor = textureLod(colortex2, texcoord.st + fake_refract * 0.0075, 2).rgb;
 			 watercolor = pow(watercolor, vec3(2.2));
 			 
 		float gen = cos(time2*pi)*0.5+0.5;
