@@ -234,6 +234,12 @@ bool 	GetSkyMask(in vec2 coord)
 	}
 }
 
+#define OFF 0
+#define Entities 1
+#define Blocks 2
+
+#define Disabled_AO_On OFF	//[OFF Entities Blocks]
+
 float GetAO(in vec4 screenSpacePosition, in vec3 normal, in vec2 coord, in vec3 dither)
 {
 	//Determine origin position
@@ -276,11 +282,22 @@ float GetAO(in vec4 screenSpacePosition, in vec3 normal, in vec2 coord, in vec3 
 			sampleScreenSpace.xyz /= sampleScreenSpace.w;
 			sampleScreenSpace.xyz = sampleScreenSpace.xyz * 0.5f + 0.5f;
 
+			//float isentities = GetMaterialMask(sampleScreenSpace.st, 7);
+			//float iscube = 1.0 - isentities;
+
+			#if Disabled_AO_On == OFF
+			float disableAO = 0.0;
+			#elif Disabled_AO_On == Entities
+			float disableAO = GetMaterialMask(sampleScreenSpace.st, 7);
+			#elif Disabled_AO_On == Blocks
+			float disableAO = 1.0 - GetMaterialMask(sampleScreenSpace.st, 7);
+			#endif
+
 			//Check depth at sample point
 			sampleDepth = GetScreenSpacePosition(sampleScreenSpace.xy).z;
 
 			//If point is behind geometry, buildup AO
-			if (sampleDepth >= samplePosition.z && sampleDepth - samplePosition.z < zThickness)
+			if (sampleDepth >= samplePosition.z && sampleDepth - samplePosition.z < zThickness && disableAO < 0.5)
 			{	
 				ao += 1.0f;
 			} else {

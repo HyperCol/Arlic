@@ -111,7 +111,7 @@ void main() {
 	gl_FragData[0] = albedo;
 
 	//Depth  
-	gl_FragData[1] = vec4(1.0f/255.0f, lightmap.r, lightmap.b, 1.0f);
+	gl_FragData[1] = vec4(7.0f/255.0f, lightmap.r, lightmap.b, 1.0f);
 
 	//normal
 	gl_FragData[2] = frag2;

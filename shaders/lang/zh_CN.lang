@@ -330,6 +330,7 @@ screen.MISC=其他
 option.Enabled_God_Rays=体积光
 option.God_Rays_Phase=体积光散射
 
+option.Fog_SunLight_Strength=体积雾阳光强度
 option.Enabled_Volumetric_Fog=体积雾
 option.Fog_Coverage=雾减弱
 option.Fog_Top=雾最高点
@@ -345,6 +346,8 @@ option.Disabled_SkyLight_Occlusion=关闭天空光阴影
 option.High_Altitude_Clouds=高海拔云
 
 option.RAINBOW=彩虹
+
+option.Disabled_AO_On=不产生环境光遮蔽
 
 
 

@@ -1594,27 +1594,8 @@ uniform vec3 shadowLightVectorView;
 void 	CalculateAtmosphericScattering(inout vec3 color, in SurfaceStruct surface) {
 	if(bool(step(0.5, surface.mask.sky))) return;
 
-	float viewLength = length(surface.screenSpacePosition);
-
-	float altitude = eyeAltitude + surface.worldSpacePosition.y;
-
-	vec3 tR = bR * exp(-altitude / Hr);
-	vec3 tM = bM * exp(-altitude / Hm);
-	vec3 tE = tR + tM;
-
-	vec3 extinction = exp(-tE * viewLength * AtmospherieDensity);
-	color *= extinction;
-
 	float mu = dot(normalize(surface.screenSpacePosition.xyz), shadowLightVectorView);
-	float phaseM = HG(mu, 0.76);
-	float phaseR = (3.0 / 16.0 / 3.141592653) * (1.0 + mu * mu);
-	vec3 scattering = colorSunlight + colorSkylight;
-
-	color += scattering * AtmospherieDensity * (bR * phaseR + bM * phaseM) * viewLength;
-
-	//float fogFactor = 1.0 - exp(-(bR + bM) * length(surface.screenSpacePosition) * 0.000001);
-
-	return;
+	vec3 fogColor = colorSkylight + HG(mu, 0.76) * colorSunlight;
 
 	// vec3 fogColor = mix(colorSkylight, colorSunlight, vec3(0.05f)) * 0.11f;
 
@@ -1654,7 +1635,7 @@ void 	CalculateAtmosphericScattering(inout vec3 color, in SurfaceStruct surface)
 	// color.g *= 1.0f - clamp(fogFactor - 0.26f, 0.0f, 1.0f) * 0.5* redshift;
 
 	//add scattered low frequency light
-	//color += fogColor * fogFactor * RAYLEIGH_AMOUNT;
+	color += fogColor * fogFactor * RAYLEIGH_AMOUNT;
 
 }
 
@@ -2901,11 +2882,12 @@ void Rainbow(inout vec3 color){
 
 #include "/libs/Auroras.glsl"
 
-#define Enabled_God_Rays
+//#define Enabled_God_Rays
 	#define God_Rays_Phase 5.0				//[1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0]
 	#define God_Rays_Custom_Color			//TODO
 	#define God_Rays_Stained_Glass_Tint		//TODO
 #define Enabled_Volumetric_Fog
+	#define Fog_SunLight_Strength 0.9		//[0.2 0.3 0.4 0.5 0.6 0.7 0.75 0.8 0.85 0.9 0.95 0.99]
 	#define Noon_Density 0.0				//[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 5.0]
 	#define Sunrise_Sunset_Density 1.0		//[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 5.0]
 	#define Night_Density 0.0				//[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 5.0]
@@ -2945,14 +2927,16 @@ vec4 CalculateNearVolumetric(inout SurfaceStruct surface){
 
 	float mu = dot(shadowLightVector, rayDirection);
 	float raysPhase = HG(mu, 1.0 - exp(-God_Rays_Phase));
-	float miePhase = HG(mu, 0.9);
+
+	float frontPhase = HG(mu, 0.9);
+	float backPhase = 0.33;
+	float phase = (frontPhase + backPhase) * HG(0.9999, Fog_SunLight_Strength);
 
 	vec3 b = vec3(0.001);
 
 	float t = frameTimeCounter * 0.1;
 
 	float thickness = float(Fog_Top) - float(Fog_Bottom);
-
 
 	vec4 rayPosition = vec4(rayDirection * start, rayOrigin.w);
 	vec3 rayStep = rayDirection * stepLength;
@@ -2964,6 +2948,9 @@ vec4 CalculateNearVolumetric(inout SurfaceStruct surface){
 
 	float fogDensity = timeNoon * Noon_Density + timeSunriseSunset * Sunrise_Sunset_Density + timeMidnight * Night_Density;
 	b *= fogDensity;
+
+	vec3 godrays = vec3(0.0);
+	vec3 fog = vec3(0.0);
 
 	for(int i = 0; i < steps; i++){
 		float rayLength = length(rayPosition.xyz);
@@ -2978,8 +2965,7 @@ vec4 CalculateNearVolumetric(inout SurfaceStruct surface){
 		float visibility = shadow2DLod(shadow, shadowCoord.xyz, 0).x;
 
 		#ifdef Enabled_God_Rays
-		vec3 rays = colorSunlight * visibility * raysPhase;
-		volumetric.rgb += rays * invsteps;
+		godrays += visibility;
 		#endif
 
 		#ifdef Enabled_Volumetric_Fog
@@ -2994,13 +2980,13 @@ vec4 CalculateNearVolumetric(inout SurfaceStruct surface){
 		density += Get3DNoise(coord1 * 4.0) * 0.25;
 		density /= 1.75;
 
-		density = rescale(Fog_Coverage, 1.0, density) * clamp(1.0 - distance(coord0.y, float(Fog_Bottom) + thickness * 0.5) / thickness * 2.0, 0.0, 1.0) * skyLightMap;
+		density = rescale(Fog_Coverage, 1.0, density) * clamp(1.0 - distance(coord0.y, float(Fog_Bottom) + thickness * 0.5) / thickness * 2.0, 0.0, 1.0);
 
-		vec3 fogColor = visibility * colorSunlight * (0.15 + miePhase) + colorSkylight;
+		vec3 fogColor = visibility * colorSunlight * phase + colorSkylight;
 
 		vec3 extin = exp(-b * depth);
 
-		volumetric.rgb += fogColor * density * b * rayLength * extin;
+		volumetric.rgb += fogColor * density * b * stepLength * extin;
 
 		depth += density * stepLength;
 		#endif
@@ -3008,8 +2994,14 @@ vec4 CalculateNearVolumetric(inout SurfaceStruct surface){
 		rayPosition.xyz += rayStep;
 	}
 
+	volumetric.rgb += colorSunlight * vec3(godrays * raysPhase * stepLength);
+
+	float underground = max(float(eyeBrightness.y) / 240.0, skyLightMap);
+	volumetric.rgb *= underground;
+	depth *= underground;
+
 	volumetric.a = exp(-length(b) * depth);
-	volumetric.rgb *= 0.15;
+	volumetric.rgb *= 1.0 / 3.14159265;
 
 	return volumetric;
 }
@@ -3279,16 +3271,8 @@ void main() {
 	vec3 finalComposite;
 		 finalComposite += final.sunlight 			* 0.9f 	* 1.5f * sunlightMult;				//Add direct sunlight
 		 finalComposite += final.skylight 			* 0.03f;				//Add ambient skylight
-		//if(timeMidnight >= 0.5){
 		 finalComposite += final.nolight 			* 0.0006f; 			//Add base ambient light
-		//}else{
-		// finalComposite += final.nolight 			* 0.06f; 			//Add base ambient light
-		//}
-		if(timeMidnight >= 0.5){
 		 finalComposite += final.nolight 			* 0.0006f; 			//Add base ambient light
-		}else{
-		 finalComposite += final.nolight 			* 0.06f; 			//Add base ambient light
-		}
 		 finalComposite += final.scatteredSunlight 	* 0.02f		* (1.0f - sunlightMult);					//Add fake scattered sunlight					
 		 finalComposite += final.torchlight 			* 2.0f 		* TORCHLIGHT_BRIGHTNESS;	//Add light coming from emissive blocks
 		 finalComposite += final.glow.lava			* 1.6f 		* TORCHLIGHT_BRIGHTNESS;
