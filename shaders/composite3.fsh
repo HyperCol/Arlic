@@ -39,7 +39,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 #define SHADOW_MAP_BIAS 0.90
 
-#define VOLUMETRIC_CLOUDS // Volumetric clouds
+//#define VOLUMETRIC_CLOUDS // Volumetric clouds
 	#define CALCULATECLOUDDEPTH 280           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
 	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
 	#define CALCULATECLOUDSCONCENTRATION 2.5  // [0.5 1.0 1.5 2.0 2.5 3.0 4.0 5.0 7.0 9.0]
@@ -2620,9 +2620,7 @@ void main() {
 	#endif	
 
 	#ifdef CREPUSCULAR_RAYS
-	if (isEyeInWater < 0.5){
-	//surface.color += CrepuscularRays(surface) * (1.0 + sumLight * 0.2);
-	}
+		surface.color += CrepuscularRays(surface) * (1.0 + sumLight * 0.2);
 	#endif
 
 
