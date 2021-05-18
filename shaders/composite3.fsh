@@ -1575,49 +1575,6 @@ vec4 aurora(vec3 ro, vec3 rd)
     return col*aurora_power * aurora_power;   
 }
 
-void NightAurora(inout vec3 color, in SurfaceStruct surface)
-{
-	if (rainStrength < 0.9) {
-		vec3 viewPos = reflect(surface.viewSpacePosition.xyz, surface.normal.xyz);
-		vec3 upPos = upPosition;
-
-		vec3 sVector = normalize(viewPos);
-	
-		float cosT = dot(sVector,upVector);
-		vec3 upVec = normalize(upPos);
-		vec3 tpos = vec3(gbufferModelViewInverse * vec4(viewPos,1.0));
-
-		vec3 wVector = normalize(tpos);
-		vec3 intersection = wVector * (50.0 / (wVector.y));
-			 intersection *= mix(1.0, cosT, 0.70 - cosT);
-			 intersection.xz = intersection.xz*40.0 + 5.0 * cosT * intersection.xz;
-			 
-		vec3 iSpos = (gbufferModelView * vec4(intersection, 1.0)).rgb;
-		float cosT2 = max(dot(normalize(iSpos), upVec), 0.0);
-
-		float position = dot(normalize(viewPos.xyz), upPos);
-		float horizonPos = max(1.0 - abs(position)*0.03, 0.0);
-
-		float horizonBorder = min((1.0 - clamp(position + length(position), 0.0, 1.0)) + horizonPos, 1.0);
-	
-		vec3 col = vec3(0.0);
-		vec3 ro = vec3(0.0);
-		vec3 rd = intersection/12392.0f/2.0;
-		vec3 brd = rd;
-		float fade = smoothstep(0.0, 0.01, abs(brd.y))*0.1 + 0.9;
-	
-		vec4 aur = smoothstep(0.0, 1.5, aurora(ro, rd)) * fade;
-	
-			col = col * (1.0 - aur.a) + aur.rgb * pow(cosT2, 0.18) * (1.0 - horizonBorder);
-		 
-			col = pow(col, vec3(1.5));
-   
-		color += col * AURORA_STRENGTH * 2.0 * (1-rainStrength) * timeMidnight * (1 - wetness*0.75)*vec3(NIGHT_AURORA_R, NIGHT_AURORA_G, NIGHT_AURORA_B)*NIGHT_AURORA_L;
-	}else{
-		color += vec3(0.0);	
-	}
-}
-
 vec4 	ComputeFakeSkyReflection(in SurfaceStruct surface) {
 
 	vec3 cameraSpacePosition = convertScreenSpaceToWorldSpace(texcoord.st);
@@ -1643,26 +1600,9 @@ vec4 	ComputeFakeSkyReflection(in SurfaceStruct surface) {
 	DoNightEye(color.rgb);
 
 	color.rgb *= mix(1.0f, 0.125f, timeMidnight);
-#ifdef NEW_SKY_LIGHT
+	#ifdef NEW_SKY_LIGHT
 	color.rgb += (NewSkyLight(0.045, surface) / 6.0) * 0.006f;
-#endif
-
-#ifdef STAR
-	if (rainStrength < 0.99) CalStar(surface, color.rgb);
-#endif
-
-#ifdef AURORA
-	NightAurora(color.rgb, surface);
-#endif
-
-	#ifdef High_Altitude_Clouds
-	CloudPlane(surface, color.rgb);
 	#endif
-
-#ifdef VOLUMETRIC_CLOUDS
-	//ReflectedVolumeClouds(surface, color.rgb);
-	CalculateClouds(color.rgb, surface);
-#endif
 
 	return color;
 }
