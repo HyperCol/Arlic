@@ -111,6 +111,7 @@ option.BLOOM_AMOUNT=泛光强度
 option.AVERAGE_EXPOSURE=切换为平均曝光算法
 
 option.ENABLE_SSAO=屏幕空间环境光遮蔽
+option.Disabled_AO_On=不产生环境光遮蔽
 option.GI=全局光照
 option.GI_QUALITY=全局光照质量
 option.GI_ARTIFACT_REDUCTION=全局光照伪影去除
@@ -127,6 +128,8 @@ option.SHADOW_MAP_BIAS=阴影贴图大小
 
 option.sunPathRotation=太阳倾角
 option.STAR=夜晚星星
+option.RAINBOW=彩虹
+option.Disabled_SkyLight_Occlusion=关闭天空光阴影
 
 option.TRUE_VOLUMETRIC_CLOUDS2=体积雾
 option.Volumetric_Cloud_Type2=更好的体积雾分布类型
@@ -157,8 +160,21 @@ option.VL_STRENGTH=体积光强度
 option.MAX_VL_LIMIT=体积光最大极限
 option.RAYS_SAMPLES=体积光精度(过高会降FPS)
 
+option.Enabled_God_Rays=体积光
+option.God_Rays_Phase=体积光散射
+option.Fog_SunLight_Strength=体积雾阳光强度
+option.Enabled_Volumetric_Fog=体积雾
+option.Fog_Coverage=雾减弱
+option.Fog_Top=雾最高点
+option.Fog_Bottom=雾最低点
+option.Sunrise_Sunset_Density=日出日落雾密度
+option.Noon_Density=中午雾密度
+option.Night_Density=夜晚雾密度
+
+
 option.ATMOSPHERIC_SCATTERING=大气散射
 option.RAYLEIGH_AMOUNT=大气散射强度
+option.AtmospherieDensity=大气雾密度
 option.ATMOSPHERIC_HAZE=大气浓度
 
 option.VOLUMETRIC_CLOUDS=体积云
@@ -171,6 +187,7 @@ option.Vol_Cloud_Coverage=云的覆盖面积
 option.CALCLOUD_SPEED=云的速度
 option.CALCLOUDHEIGHT=云的高度
 option.WHITECLOUDS=云的白度
+option.High_Altitude_Clouds=高海拔云
 
 option.WATER_SPEED=水波速度
 option.WATER_WAVE_HEIGHT=水波高度
@@ -262,9 +279,8 @@ option.OLD_LIGHTING_FIX=旧版本的原版光照修复
 option.VERSION=Arlic Shaders版本
 
 //-------------------------- ScreenGUIs --------------------------//
-profile.NORMAL=默认或自定义
+profile.NORMAL=默认或自定义模式
 
-screen.COMMON=常用
 screen.LIGHT_BAR=亮度滑块绑定
 
 screen.SURFACE=画面设置
@@ -299,64 +315,12 @@ screen.CLOUD=体积云
 
 screen.WATER=水
 
-screen.POM=材质设置
+screen.POM=材质
 
-screen.EFFECTS=特效
+screen.EFFECTS=一些特效
 screen.DOF=景深
 screen.PLANT_WAVE=植物晃动
 
 screen.MISC=其他
-
-option.Enabled_God_Rays=体积光
-option.God_Rays_Phase=体积光散射
-
-option.Fog_SunLight_Strength=体积雾阳光强度
-option.Enabled_Volumetric_Fog=体积雾
-option.Fog_Coverage=雾减弱
-option.Fog_Top=雾最高点
-option.Fog_Bottom=雾最低点
-option.Sunrise_Sunset_Density=日出日落雾密度
-option.Noon_Density=中午雾密度
-option.Night_Density=夜晚雾密度
-
-option.AtmospherieDensity=大气雾密度
-
-option.Disabled_SkyLight_Occlusion=关闭天空光阴影
-
-option.High_Altitude_Clouds=高海拔云
-
-option.RAINBOW=彩虹
-
-option.Disabled_AO_On=不产生环境光遮蔽
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
