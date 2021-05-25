@@ -173,7 +173,8 @@ option.CALCLOUDHEIGHT=云的高度
 option.WHITECLOUDS=云的白度
 
 option.WATER_SPEED=水波速度
-option.WAVE_HEIGHT=水波高度
+option.WATER_WAVE_HEIGHT=水波高度
+option.WATER_COLOR_F_A=水体透明度
 option.WATER_PARALLAX=水体视差
 option.WATER_CAUSTICS=水的焦散
 
@@ -264,46 +265,46 @@ option.VERSION=Arlic Shaders版本
 profile.NORMAL=默认或自定义
 
 screen.COMMON=常用
-	screen.LIGHT_BAR=亮度滑块绑定
+screen.LIGHT_BAR=亮度滑块绑定
 
 screen.SURFACE=画面设置
 
 screen.CUSTOM=自定义色彩
-	screen.CUSTOMCOLOR=自定义色调
-	screen.CUSTOM_SKY_NIGHT=自定义夜晚天空颜色
-	screen.CUSTOM_SKY_NOON=自定义白天天空颜色
-	screen.CUSTOM_SUNLIGHT_DAY=自定义白天光照颜色
-	screen.CUSTOM_SUNLIGHT_RISESET=自定义日出/落光照颜色
-	screen.CUSTOM_SUNLIGHT_NIGHT=自定义夜晚光照颜色
-	screen.CUSTOM_AURORA_COLOR=自定义极光颜色
-	screen.CUSTOM_WATER_COLOR=自定义水的颜色
-	screen.CUSTOM_FOG_COLOR=自定义体积雾颜色
-	screen.CUSTOM_VL_COLOR_NOON=自定义白天体积光颜色
-	screen.CUSTOM_VL_COLOR_RISESET=自定义日出/落体积光颜色
-	screen.CUSTOM_VL_COLOR_MIDNIGHT=自定义夜晚体积光颜色
+screen.CUSTOMCOLOR=自定义色调
+screen.CUSTOM_SKY_NIGHT=自定义夜晚天空颜色
+screen.CUSTOM_SKY_NOON=自定义白天天空颜色
+screen.CUSTOM_SUNLIGHT_DAY=自定义白天光照颜色
+screen.CUSTOM_SUNLIGHT_RISESET=自定义日出/落光照颜色
+screen.CUSTOM_SUNLIGHT_NIGHT=自定义夜晚光照颜色
+screen.CUSTOM_AURORA_COLOR=自定义极光颜色
+screen.CUSTOM_WATER_COLOR=自定义水的颜色
+screen.CUSTOM_FOG_COLOR=自定义体积雾颜色
+screen.CUSTOM_VL_COLOR_NOON=自定义白天体积光颜色
+screen.CUSTOM_VL_COLOR_RISESET=自定义日出/落体积光颜色
+screen.CUSTOM_VL_COLOR_MIDNIGHT=自定义夜晚体积光颜色
 
 screen.LIGHTING=光照与阴影
-	screen.LIGHT=光照
-		screen.POINTLIGHT=点光源
-		screen.BLOOM_EXPOSE=泛光和曝光
-		screen.GI_AO=全局光照与环境光遮蔽
-	screen.SHADOW=阴影
-	
+screen.LIGHT=光照
+screen.POINTLIGHT=点光源
+screen.BLOOM_EXPOSE=泛光和曝光
+screen.GI_AO=全局光照与环境光遮蔽
+screen.SHADOW=阴影
+
 screen.SKY_ATMOSPHERIC=天空与大气
-	screen.FOG=体积雾
-	screen.AURORA=极光
-	screen.VOLUMETRIC_LIGHT=体积光
-	screen.ATMOSPHER_SCATTERING=大气散射
-	screen.CLOUD=体积云
-	
+screen.FOG=体积雾
+screen.AURORA=极光
+screen.VOLUMETRIC_LIGHT=体积光
+screen.ATMOSPHER_SCATTERING=大气散射
+screen.CLOUD=体积云
+
 screen.WATER=水
 
 screen.POM=材质设置
 
 screen.EFFECTS=特效
-	screen.DOF=景深
-	screen.PLANT_WAVE=植物晃动
-	
+screen.DOF=景深
+screen.PLANT_WAVE=植物晃动
+
 screen.MISC=其他
 
 option.Enabled_God_Rays=体积光
