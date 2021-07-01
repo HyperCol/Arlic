@@ -2766,8 +2766,8 @@ void IceFog(inout vec3 color, in SurfaceStruct surface, in MCLightmapStruct mcLi
 		// vec3 waterFogColor = vec3(0.7, 0.95, 0.00) * 0.75; //green water
 		// vec3 waterFogColor = vec3(0.2, 0.95, 0.4) * 5.0; //green water
 		// vec3 waterFogColor = vec3(0.2, 0.95, 1.0) * 1.0; //clear water
-		vec3 waterFogColor = vec3(0.2, 0.45, 1.0) * 0.75; //clear water
-			  waterFogColor *= 0.01 * dot(vec3(0.33333), colorSunlight);
+		vec3 waterFogColor = vec3(0.098, 0.3843, 1.0) * 2.0; //clear water
+			  waterFogColor *= 0.01 * dot(vec3(0.3216, 0.4824, 1.0), colorSunlight);
 			  waterFogColor *= (1.0 - rainStrength * 0.95);
 
 
