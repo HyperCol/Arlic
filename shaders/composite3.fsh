@@ -2598,7 +2598,7 @@ void main() {
 
 	vec4 transparentAlbedo = GetTransparentAlbedo(texcoord.st);
 
-	if (surface.mask.stainedGlass || surface.mask.ice)
+	if (surface.mask.stainedGlass/* || surface.mask.ice*/)
 	{
 		surface.color *= transparentAlbedo.rgb * 1.0;
 	}
