@@ -47,38 +47,38 @@ option.CUSTOM_TONED=自定义色调
 option.CUSTOM_T_R=自定义色调—§c红色
 option.CUSTOM_T_G=自定义色调—§a绿色
 option.CUSTOM_T_B=自定义色调—§b蓝色
-option.CUSTOM_T_L=自定义色调—§7亮度
+option.CUSTOM_T_L=自定义色调-亮度
 
 option.SKYLIGHT_NIGHT_R=夜晚天空-§c红色
 option.SKYLIGHT_NIGHT_G=夜晚天空-§a绿色
 option.SKYLIGHT_NIGHT_B=夜晚天空-§b蓝色
-option.SKYLIGHT_NIGHT_L=夜晚天空-§7亮度
+option.SKYLIGHT_NIGHT_L=夜晚天空-亮度
 option.FANTASIC_NIGHTSKY=夜晚幻想天空
 
 option.SKYLIGHT_DAY_RED=白天天空-§c红色
 option.SKYLIGHT_DAY_GREEN=白天天空-§a绿色
 option.SKYLIGHT_DAY_BLUE=白天天空-§b蓝色
-option.SKYLIGHT_DAY_L=白天天空-§7亮度
+option.SKYLIGHT_DAY_L=白天天空-亮度
 
 option.CUSTOM_SL_NN_R=白天光照-§c红色
 option.CUSTOM_SL_NN_G=白天光照-§a绿色
 option.CUSTOM_SL_NN_B=白天光照-§b蓝色
-option.CUSTOM_SL_NN_L=白天光照-§7亮度
+option.CUSTOM_SL_NN_L=白天光照-亮度
 
 option.CUSTOM_SL_SR_R=日出/日落光照-§c红色
 option.CUSTOM_SL_SR_G=日出/日落光照-§a绿色
 option.CUSTOM_SL_SR_B=日出/日落光照-§b蓝色
-option.CUSTOM_SL_SR_L=日出/日落光照-§7亮度
+option.CUSTOM_SL_SR_L=日出/日落光照-亮度
 
 option.CUSTOM_SL_NT_R=夜晚光照-§c红色
 option.CUSTOM_SL_NT_G=夜晚光照-§a绿色
 option.CUSTOM_SL_NT_B=夜晚光照-§b蓝色
-option.CUSTOM_SL_NT_L=夜晚光照-§7亮度
+option.CUSTOM_SL_NT_L=夜晚光照-亮度
 
 option.NIGHT_AURORA_R=夜晚极光-§c红色
 option.NIGHT_AURORA_G=夜晚极光-§a绿色
 option.NIGHT_AURORA_B=夜晚极光-§b蓝色
-option.NIGHT_AURORA_L=夜晚极光-§7亮度
+option.NIGHT_AURORA_L=夜晚极光-亮度
 
 option.WATER_COLOR_F_R=水颜色-§c红色
 option.WATER_COLOR_F_G=水颜色-§a绿色
@@ -91,17 +91,23 @@ option.CUSTOM_VLFC_B=体积雾-§b蓝色
 option.VL_NOON_R=白天体积光-§c红色
 option.VL_NOON_G=白天体积光-§a绿色
 option.VL_NOON_B=白天体积光-§b蓝色
-option.VL_NOON_L=白天体积光-§7强度
+option.VL_NOON_L=白天体积光-强度
 
 option.VL_SUNRISESET_R=日出/日落体积光-§c红色
 option.VL_SUNRISESET_G=日出/日落体积光-§a绿色
 option.VL_SUNRISESET_B=日出/日落体积光-§b蓝色
-option.VL_SUNRISESET_L=日出/日落体积光-§7强度
+option.VL_SUNRISESET_L=日出/日落体积光-强度
 
 option.VL_NIGHT_R=夜晚体积光-§c红色
 option.VL_NIGHT_G=夜晚体积光-§a绿色
 option.VL_NIGHT_B=夜晚体积光-§b蓝色
-option.VL_NIGHT_L=夜晚体积光-§7强度
+option.VL_NIGHT_L=夜晚体积光-强度
+
+option.IceColorR=冰块颜色-§c红色
+option.IceColorG=冰块颜色-§a绿色
+option.IceColorB=冰块颜色-§b蓝色
+option.IceColorA=冰块颜色-强度
+
 
 option.POINTLIGHT_COLOR_TEMPERATURE=点光源温度
 option.TORCHLIGHT_BRIGHTNESS=点光源亮度
@@ -203,9 +209,6 @@ option.FORCE_WET_EFFECT=雨天地面积水
 option.MOTION_BLUR=动态模糊
 option.LF=镜头光晕
 
-option.IceColorR=冰块颜色-红
-option.IceColorG=冰块颜色-绿
-option.IceColorB=冰块颜色-蓝
 
 #=========Tone Option============
 screen.TONE_OPTION=色调与滤镜设置
