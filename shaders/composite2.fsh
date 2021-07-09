@@ -101,6 +101,9 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define STAR
 #define RAINBOW
 
+#define IceColorR 0.098 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#define IceColorG 0.3843 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#define IceColorB 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
 #define High_Altitude_Clouds
 
@@ -2766,7 +2769,7 @@ void IceFog(inout vec3 color, in SurfaceStruct surface, in MCLightmapStruct mcLi
 		// vec3 waterFogColor = vec3(0.7, 0.95, 0.00) * 0.75; //green water
 		// vec3 waterFogColor = vec3(0.2, 0.95, 0.4) * 5.0; //green water
 		// vec3 waterFogColor = vec3(0.2, 0.95, 1.0) * 1.0; //clear water
-		vec3 waterFogColor = vec3(0.098, 0.3843, 1.0) * 2.0; //clear water
+		vec3 waterFogColor = vec3(IceColorR, IceColorG, IceColorB) * 2.0; //clear water
 			  waterFogColor *= 0.01 * dot(vec3(0.3216, 0.4824, 1.0), colorSunlight);
 			  waterFogColor *= (1.0 - rainStrength * 0.95);
 
