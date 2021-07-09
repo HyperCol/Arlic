@@ -180,7 +180,7 @@ option.Night_Density=夜晚雾密度
 
 option.ATMOSPHERIC_SCATTERING=大气散射
 option.RAYLEIGH_AMOUNT=大气散射强度
-option.AtmospherieDensity=大气雾密度
+option.AtmosphereDensity=大气雾密度
 option.ATMOSPHERIC_HAZE=大气浓度
 
 option.VOLUMETRIC_CLOUDS=体积云

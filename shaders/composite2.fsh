@@ -1595,7 +1595,7 @@ void 	CalculateRainFog(inout vec3 color, in SurfaceStruct surface)
 	color = mix(color, fogColor, vec3(fogFactor));
 }
 
-#define AtmospherieDensity 4.0		//[1.0 2.0 4.0 8.0 16.0 32.0 64.0 128.0]
+#define AtmosphereDensity 4.0		//[1.0 2.0 4.0 8.0 16.0 32.0 64.0 70.0 128.0]
 
 uniform vec3 shadowLightVectorView;
 

@@ -35,7 +35,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
  
-#define VERSION 0.9.0      //Arlic Shaders VERSION.
+#define VERSION Rewrite      //Arlic Shaders VERSION.
 
 //#define FINAL_ALT_COLOR_SOURCE 
 #define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
