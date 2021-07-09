@@ -30,11 +30,12 @@
 
 
 2021@HyperCol Studios
-VisionLab is part of HyperCol Studios
+VacGrd is part of HyperCol Studios
 Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
 
+//----------------Shadow&Lightning---------------//
 //#define Disabled_SkyLight_Occlusion
 
 #define SHADOW_MAP_BIAS 0.90
