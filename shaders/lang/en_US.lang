@@ -132,6 +132,7 @@ option.COLORED_SHADOWS=彩色阴影
 option.PIXEL_SHADOWS=像素阴影
 option.SHADOW_MAP_BIAS=阴影贴图大小
 
+option.HQ_VOLUMETRIC_CLOUDS=高精度体积云
 option.sunPathRotation=太阳倾角
 option.STAR=夜晚星星
 option.RAINBOW=彩虹
@@ -196,10 +197,13 @@ option.WHITECLOUDS=云的白度
 option.High_Altitude_Clouds=高海拔云
 
 option.WATER_SPEED=水波速度
+option.WAVE_HEIGHT=水波高度
 option.WATER_WAVE_HEIGHT=水波高度
 option.WATER_COLOR_F_A=水体透明度
 option.WATER_PARALLAX=水体视差
 option.WATER_CAUSTICS=水的焦散
+
+option.ICE=冰
 
 option.TEXTURE_RESOLUTION=视差材质适配分辨率
 option.PARALLAX=视差效果
@@ -219,6 +223,9 @@ option.AVERAGE_EXPOSURE=§6动态曝光§r
 option.ambientOcclusionLevel=方块交界暗化
 screen.COLORFUL_TONE=色彩滤镜
 screen.OTHER_TONE=其他滤镜
+
+option.SRGB_CLAMP=使用SRGB色域
+option.VIGNETTE=边缘暗角
 
 option.HUE_ADJUSTMENT=色调调整
 option.TONE=色调渲染
@@ -326,6 +333,11 @@ screen.POM=材质
 screen.EFFECTS=一些特效
 screen.DOF=景深
 screen.PLANT_WAVE=植物晃动
+
+screen.Debug=调试
+screen.PostProcess=后处理
+
+screen.Deprecation=已弃用功能
 
 screen.MISC=其他
 
