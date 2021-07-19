@@ -203,8 +203,6 @@ option.WATER_COLOR_F_A=水体透明度
 option.WATER_PARALLAX=水体视差
 option.WATER_CAUSTICS=水的焦散
 
-option.ICE=冰
-
 option.TEXTURE_RESOLUTION=视差材质适配分辨率
 option.PARALLAX=视差效果
 option.PARALLAX_SHADOW=视差阴影
@@ -289,10 +287,12 @@ option.FINAL_ALT_COLOR_SOURCE=调用最终着色器的颜色
 option.NEW_SKY_LIGHT=新的天空光照
 option.OLD_LIGHTING_FIX=旧版本的原版光照修复
 
-option.VERSION=Arlic Shaders版本
+option.VERSION=Arlic Shader版本
 
 //-------------------------- ScreenGUIs --------------------------//
 profile.NORMAL=默认或自定义模式
+profile.Work=性能模式
+profile.Render=画质模式
 
 screen.LIGHT_BAR=亮度滑块绑定
 
@@ -327,6 +327,7 @@ screen.ATMOSPHER_SCATTERING=大气散射
 screen.CLOUD=体积云
 
 screen.WATER=水
+screen.ICE=冰
 
 screen.POM=材质
 
