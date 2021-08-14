@@ -1,6 +1,5 @@
-#ifndef INCLUDE_PACKING
+#if !defined INCLUDE_PACKING
 #define INCLUDE_PACKING
-#endif
 
 float pack2x8(in vec2 x){
   float pack = dot(floor(x * 255.0), vec2(1.0, 256.0));
@@ -37,3 +36,4 @@ vec3 NormalDecode(vec2 enc) {
     nn.xy *= sqrt(l);
     return nn.xyz * 2.0 + vec3(0.0, 0.0, -1.0);
 }
+#endif

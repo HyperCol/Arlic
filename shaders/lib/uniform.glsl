@@ -1,4 +1,4 @@
-#if !(defined _INCLUDE_UNIFORM)
+#if !defined _INCLUDE_UNIFORM
 #define _INCLUDE_UNIFORM
 
 #ifndef VIEW_WIDTH

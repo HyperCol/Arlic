@@ -1,4 +1,4 @@
-#if !(defined _INCLUDE_CAMERA_)
+#if !defined _INCLUDE_CAMERA_
 #define _INCLUDE_CAMERA_
 
 #define AUTO_CAMERA

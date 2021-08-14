@@ -1,10 +1,7 @@
-#ifndef _TAA_
-    #define _TAA_
-#endif
+#if !defined _TAA_
+#define _TAA_
 
-#ifndef _TAAPROJECTION_
-    #include "/lib/antialiasing/taaProjection.glsl"
-#endif
+#include "/lib/antialiasing/taaProjection.glsl"
 
 #define TAA_Post_Sharpeness 50		//[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
 #define TAA_Sharpeness 50		    //[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100]
@@ -254,4 +251,5 @@ vec3 TemportalAntiAliasing(in vec2 coord){
 
 	return YCoCg_RGB(antialiasing);
 }
+#endif
 #endif

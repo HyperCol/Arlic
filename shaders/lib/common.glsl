@@ -1,4 +1,4 @@
-#ifndef INCLUDE_COMMON
+#if !defined INCLUDE_COMMON
 #define INCLUDE_COMMON
 
 uniform float near;

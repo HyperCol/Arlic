@@ -1,6 +1,5 @@
-#ifndef INCLUDE_LIGHTING
+#if !defined INCLUDE_LIGHTING
 #define INCLUDE_LIGHTING
-#endif
 
 float SchlickFresnel(in float u) {
     return pow5(saturate(1.0 - u));
@@ -99,3 +98,4 @@ vec4 ImportanceSampleGGX(in vec2 E, in float roughness){
 
   return vec4(H, 1.0 / D);
 }
+#endif

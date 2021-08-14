@@ -1,6 +1,5 @@
-#ifndef INCLUDE_LIGHTMAP
+#if !defined INCLUDE_LIGHTMAP
 #define INCLUDE_LIGHTMAP
-#endif
 
 float GetParallaxShadow(in vec2 coord)
 {
@@ -79,3 +78,4 @@ float 	GetLightmapSky(in sampler2D tex, in vec2 coord) {			//Function that retri
 
 	return pow(light, 2.0);
 }
+#endif

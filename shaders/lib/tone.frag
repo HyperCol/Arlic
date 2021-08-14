@@ -1,4 +1,4 @@
-#if !(defined _INCLUDE_TONE)
+#if !defined _INCLUDE_TONE
 #define _INCLUDE_TONE
 
 #include "/lib/camera/cameraEffect.frag"
