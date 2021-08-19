@@ -56,6 +56,7 @@ out vec3 vertexViewVector;
 #define PLANT_WAVE_SPEED 1.0 //[0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0] //Lower numbers means faster, Higher numbers means slower
 //#define PLANT_SPEED_LIGHT_BAR_LINKER
 
+#include "/libs/antialiasing/taaProjection.glsl"
 
 vec4 cubic(float x)
 {
@@ -567,7 +568,9 @@ position.xyz += cameraPosition.xyz;
 	gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 	
 
-
+#ifdef Enabled_TemportalAntiAliasing
+	gl_Position.xy += jitter * 2.0 * gl_Position.w;
+#endif
 
 	
 

@@ -156,11 +156,8 @@ uniform sampler2DShadow shadow;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D noisetex;
-//uniform sampler2D colortex4;
-//uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform sampler2D colortex6;
-uniform sampler2D colortex7;
 
 uniform float near;
 uniform float far;
@@ -248,7 +245,11 @@ float GetDepthLinear(vec2 coord) {
 
 vec4 	GetTransparentAlbedo(in vec2 coord)
 {
-	return pow(texture(colortex7, coord), vec4(2.2));
+	vec3 transparency = vec3(0.0);
+	transparency.r = texture(colortex3, coord).a;
+	transparency.g = texture(colortex0, coord).a;
+	transparency.b = texture(colortex5, coord).a;
+	return pow(vec4(transparency, 1.0), vec4(2.2));
 }
 
 vec4  	GetViewSpacePosition(in vec2 coord) {	//Function that calculates the screen-space position of the objects in the scene using the depth texture and the texture coordinates of the full-screen quad
@@ -730,7 +731,7 @@ vec4 	ComputeRaytraceReflection(inout SurfaceStruct surface)
         numSteps++;
     }
 
-	color = pow(textureLod(colortex0, finalSamplePos, 0), vec4(2.2f));
+	color = pow(vec4(textureLod(colortex0, finalSamplePos, 0).rgb, 1.0), vec4(2.2f));
 
 	if (finalSamplePos.x == 0.0f || finalSamplePos.y == 0.0f) {
 		color.a = 0.0f;
@@ -2654,6 +2655,5 @@ void main() {
 	surface.color = pow(surface.color, vec3(1.0f / 2.2f));
 	gl_FragData[0] = vec4(surface.color, 1.0f);
 	//gl_FragData[1] = vec4(surface.normal.xyz * 0.5 + 0.5, 1.0f);
-
 
 }

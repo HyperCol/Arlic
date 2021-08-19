@@ -136,9 +136,15 @@ const int 		RGA8 					= 0;
 const int 		RGBA8 					= 1;
 const int 		RGBA16 					= 2;
 const int 		colortex0Format 			= RGBA16;
-const int 		colortex1Format 			= RGBA8;
+const int 		colortex1Format 			= RGBA16;
 const int 		colortex2Format 			= RGBA16;
-const int 		colortex3Format 		= RGBA8;
+const int 		colortex3Format 		= RGBA16;
+const int 		colortex4Format 		= RGBA16;
+const int 		colortex5Format 		= RGBA16;
+const int 		colortex6Format 		= RGBA16;
+const int 		colortex7Format 		= RGBA16;
+
+const bool gaux4Clear = false;
 
 const float 	eyeBrightnessHalflife 	= 10.0f;
 const float 	wetnessHalflife 		= 300.0f;
@@ -3387,10 +3393,10 @@ void main() {
 	finalComposite += CalculateNoisePattern1(vec2(0.0), 64.0) * (1.0 / 65535.0);
 
 	
-	gl_FragData[0] = vec4(finalComposite, 1.0);
+	gl_FragData[0] = vec4(finalComposite, texture(colortex0, texcoord.st).a);
 	gl_FragData[1] = vec4(surface.mask.matIDs, 1.0, mcLightmap.sky, 1.0f);
-	gl_FragData[2] = vec4(surface.specular.specularity, surface.cloudAlpha, surface.specular.glossiness, 1.0f);
-	gl_FragData[3] = vec4(shading.sunlightVisibility, 1.0f);
+	gl_FragData[2] = vec4(surface.specular.specularity, surface.cloudAlpha, surface.specular.glossiness, texture(colortex3, texcoord.st).b);
+	gl_FragData[3] = vec4(shading.sunlightVisibility, texture(colortex5, texcoord.st).a);
 	// gl_FragData[4] = vec4(pow(surface.albedo.rgb, vec3(1.0f / 2.2f)), 1.0f);
 	// gl_FragData[5] = vec4(surface.normal.rgb * 0.5f + 0.5f, 1.0f);
 

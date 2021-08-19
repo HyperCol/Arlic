@@ -1,5 +1,7 @@
 #version 330 compatibility
 
+#include "/libs/antialiasing/taaProjection.glsl"
+
 out vec4 color;
 out vec4 texcoord;
 out vec4 lmcoord;
@@ -67,6 +69,10 @@ void main() {
 
 	gl_Position = gl_ProjectionMatrix * gbufferModelView * position;
 
+
+#ifdef Enabled_TemportalAntiAliasing
+	gl_Position.xy += jitter * 2.0 * gl_Position.w;
+#endif
 
 	color = gl_Color;
 

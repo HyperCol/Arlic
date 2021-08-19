@@ -36,15 +36,27 @@ Do not modify this code until you have read the LICENSE contained in the root di
 */
 
 const bool		colortex2MipmapEnabled = true;
-/* DRAWBUFFERS:0 */
+/* DRAWBUFFERS:027 */
 
 uniform sampler2D colortex2;
+uniform sampler2D colortex7;
+uniform sampler2D depthtex0;
 
 uniform float aspectRatio;
 uniform float viewWidth;
 uniform float viewHeight;
 
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferPreviousModelView;
+uniform mat4 gbufferPreviousProjection;
+
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+
 in vec4 texcoord;
+
+#include "/libs/antialiasing/taa.glsl"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,5 +127,7 @@ void main() {
 		 bloom = pow(bloom, vec3(1.0f / (1.0f + 1.2f)));
 
 	gl_FragData[0] = vec4(bloom.rgb, 1.0f);
-
+	gl_FragData[1] = vec4(TemportalAntiAliasing(texcoord.st), 1.0);
+	//gl_FragData[1] = vec4(texture2D(colortex2, texcoord.st).rgb, 1.0);
+	gl_FragData[2] = gl_FragData[1];
 }

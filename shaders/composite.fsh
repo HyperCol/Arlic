@@ -70,15 +70,6 @@ const bool 		shadowcolor0Nearest = false;
 const bool 		shadowcolor1Mipmap = true;
 const bool 		shadowcolor1Nearest = false;
 
-const int 		R8 						= 0;
-const int 		RG8 					= 0;
-const int 		RGB8 					= 1;
-const int 		RGB16 					= 2;
-const int 		colortex0Format 			= RGB16;
-const int 		colortex1Format 			= RGB8;
-const int 		colortex2Format 			= RGB16;
-const int 		colortex3Format 		= RGB8;
-
 const float 	eyeBrightnessHalflife 	= 10.0f;
 const float 	wetnessHalflife 		= 300.0f;
 const float 	drynessHalflife 		= 40.0f;
@@ -93,15 +84,16 @@ const int 		noiseTextureResolution  = 64;
 
 //END OF INTERNAL VARIABLES//
 
-/* DRAWBUFFERS:46 */
+/* DRAWBUFFERS:0456 */
 
-uniform sampler2D colortex2;
 uniform sampler2D depthtex1;
+uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D shadowcolor1;
 uniform sampler2D shadowcolor;
 uniform sampler2D shadowtex1;
 uniform sampler2D noisetex;
+uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform sampler2D colortex6;
 
@@ -1074,9 +1066,10 @@ void main() {
 	light.a = mix(light.a, 1.0, GetMaterialMask(texcoord.st * (GI_RENDER_RESOLUTION + 1.0), 5));
 
 
-	
-	gl_FragData[0] = vec4(pow(light.rgb, vec3(1.0 / 2.2)), light.a);
-	gl_FragData[1] = vec4(GetWavesNormal(vec3(texcoord.s * 50.0, 1.0, texcoord.t * 50.0)).xy * 0.5 + 0.5, texture(colortex6, texcoord.st).gb);
+	gl_FragData[0] = vec4(texture(colortex0, texcoord.st).rgb, texture(colortex4, texcoord.st).g);
+	gl_FragData[1] = vec4(pow(light.rgb, vec3(1.0 / 2.2)), light.a);
+	gl_FragData[2] = vec4(texture(colortex5, texcoord.st).rgb, texture(colortex4, texcoord.st).b);
+	gl_FragData[3] = vec4(GetWavesNormal(vec3(texcoord.s * 50.0, 1.0, texcoord.t * 50.0)).xy * 0.5 + 0.5, texture(colortex6, texcoord.st).gb);
 	// gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);
 }
 
