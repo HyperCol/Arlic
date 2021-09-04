@@ -2,7 +2,8 @@
 
 
 #define OLD_LIGHTING_FIX		//In newest versions of the shaders mod/optifine, old lighting isn't removed properly. If OldLighting is On and this is enabled, you'll get proper results in any shaders mod/minecraft version.
-
+#define STRENGTH_WIND 0 		//[0 1 2 4 6 8]
+#define WIND_DIRECTION 0		//[0 15 30 45 60 75 90 105 120 135 150 165 180 195 210 225 240 255 270 285 300 315 330 345]
 
 out vec4 color;
 out vec4 texcoord;
@@ -57,6 +58,8 @@ out vec3 vertexViewVector;
 //#define PLANT_SPEED_LIGHT_BAR_LINKER
 
 #include "/libs/antialiasing/taaProjection.glsl"
+
+#define pow2(x) (x * x)
 
 vec4 cubic(float x)
 {
@@ -301,7 +304,7 @@ void main() {
 		materialIDs = max(materialIDs, 33.0f);
 	}
 
-float Plants_Speed = PLANT_WAVE_SPEED;
+float Plants_Speed = PLANT_WAVE_SPEED * (1.0 + 0.25 * STRENGTH_WIND);
    #ifdef PLANT_SPEED_LIGHT_BAR_LINKER
       Plants_Speed *= pow(screenBrightness * 2.0f, 4.0);
    #endif
@@ -336,8 +339,16 @@ float lightWeight = clamp((lmcoord.t * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.
 const float pi = 3.14159265358979323846264;
 
 position.xyz += cameraPosition.xyz;
+
+	vec3 w_pn = position.xyz;
+		w_pn.x -= Plants_Speed * FRAME_TIME;
+
+	float wind_dir = (WIND_DIRECTION / 180.0) * pi + (BicubicTexture(noisetex, w_pn.xz / 64.0f).x * 2.0 - 1.0);
+	float x_wind = cos(wind_dir) * STRENGTH_WIND * 0.25;
+	float y_wind = sin(wind_dir) * STRENGTH_WIND * 0.25;
+	const float l_fix = 1.0 - 1.0 / sqrt(pow2(STRENGTH_WIND * 0.25) + 1.0);
 	
-	  #ifdef WAVING_GRASS
+	#ifdef WAVING_GRASS
 	//Waving grass
 	if (waveCoeff > 0.5f)
 	{
@@ -412,6 +423,10 @@ position.xyz += cameraPosition.xyz;
 		position.x += (sin((angle.x / 180.0f) * 3.141579f)) * grassWeight * lightWeight						* 1.0f	;
 		position.z += (sin((angle.y / 180.0f) * 3.141579f)) * grassWeight * lightWeight						* 1.0f	;
 		position.y += (cos(((angle.x + angle.y) / 180.0f) * 3.141579f) - 1.0f)  * grassWeight * lightWeight	* 1.0f	;
+
+		position.x += x_wind * grassWeight;
+		position.z += y_wind * grassWeight;
+		position.y -= l_fix * grassWeight;
 	}
 	  #endif
 
@@ -446,6 +461,9 @@ position.xyz += cameraPosition.xyz;
 		position.x += sin((tick * pi / (18.0 * speed)) + (-position.x + d0)*1.6 + (position.z + d1)*1.6) * magnitude * (1.0f + rainStrength * 2.0f);
 		position.z += sin((tick * pi / (18.0 * speed)) + (position.z + d2)*1.6 + (-position.x + d3)*1.6) * magnitude * (1.0f + rainStrength * 2.0f);
 		position.y += sin((tick * pi / (11.0 * speed)) + (position.z + d2) + (position.x + d3)) * (magnitude/3.0) * (1.0f + rainStrength * 2.0f);
+
+		position.x += x_wind;
+		position.z += y_wind;
 	}
   #endif
 
