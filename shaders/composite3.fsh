@@ -30,16 +30,26 @@
 
 
 2021@HyperCol Studios
-VisionLab is part of HyperCol Studios
+VacGrd is part of HyperCol Studios
 Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
 
-//#define Disabled_SkyLight_Occlusion
+#define Hardbaked_HDR 0.001
+
+//----------------Shadow&Lightning---------------//
 
 #define SHADOW_MAP_BIAS 0.90
 
-#define VOLUMETRIC_CLOUDS // Volumetric clouds
+#define NEW_SKY_LIGHT
+//#define Disabled_SkyLight_Occlusion
+
+//---------------Atmosphere&Sky---------------//
+
+//Clouds
+//#define SMOOTH_CLOUDS // Smooth out dither pattern from volumetric clouds. Not necessary if HQ Volumetric Clouds is enabled.
+
+//#define VOLUMETRIC_CLOUDS // Volumetric clouds
 	#define CALCULATECLOUDDEPTH 280           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
 	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
 	#define CALCULATECLOUDSCONCENTRATION 2.5  // [0.5 1.0 1.5 2.0 2.5 3.0 4.0 5.0 7.0 9.0]
@@ -47,10 +57,10 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define CALCLOUD_SPEED 1				  // [0 0.2 0.5 1 2.5 5 8]
 	#define CALCLOUDHEIGHT 275				  // [100 150 200 225 250 275 300 325 350 400 450 500 600 700 800]
 	#define WHITECLOUDS 1.5                     // [0.01 1 1.5 4 6 9]
+	#define High_Altitude_Clouds
 	//#define MOREVOLUMETRIC_CLOUDS
 
-//#define SMOOTH_CLOUDS // Smooth out dither pattern from volumetric clouds. Not necessary if HQ Volumetric Clouds is enabled.
-
+//Rays
 #define CREPUSCULAR_RAYS // Light rays from sunlight
 	#define RAYS_SAMPLES 16.0  // Ray samples. [8.0 16.0 24.0 32.0 48.0 64.0 72.0 100.0 120.0]
 	#define VL_STRENGTH 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0 5.0 6.0 7.0 8.0 9.0 10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0 90.0 100.0 500.0 1000.0]	#define VL_NOON_R 1.0   //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]  
@@ -64,61 +74,70 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define VL_SUNRISESET_B 0.0155  //[0.0 0.1 0.15 0.0155 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]
 	#define VL_SUNRISESET_L 1.0  //[0.0 0.1 0.15 0.0155 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]
 
-
 	#define VL_NIGHT_R 1.2   //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]
 	#define VL_NIGHT_G 2.0   //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]
 	#define VL_NIGHT_B 2.5   //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]
 	#define VL_NIGHT_L 1.0   //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1]
 
-#define AURORA		//Night aurora.
-	#define NIGHT_AURORA_R 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-	#define NIGHT_AURORA_G 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-	#define NIGHT_AURORA_B 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-	#define NIGHT_AURORA_L 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-#define AURORA_COLOR blueAurora //[blueAurora purpleAurora greenAurora]
-#define AURORA_STRENGTH 0.7 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.7 2.0 2.5 3.0 4.0 5.0 7.0 10.0 15.0 20.0 30.0 50.0 70.0 100.0]
-#define aurora_power 0.3 //[0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
-#define aurora_speed 3.0 //[0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
-#define aurora_flash 50.0 //[0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0 21.0 22.0 23.0 24.0 25.0 26.0 27.0 28.0 29.0 30.0 31.0 32.0 33.0 34.0 35.0 36.0 37.0 38.0 39.0 40.0 41.0 42.0 43.0 44.0 45.0 46.0 47.0 48.0 49.0 50.0 51.0 52.0 53.0 54.0 55.0 56.0 57.0 58.0 59.0 60.0 61.0 62.0 63.0 64.0 65.0 66.0 67.0 68.0 69.0 70.0 71.0 72.0 73.0 74.0 75.0 76.0 77.0 78.0 79.0 80.0 81.0 82.0 83.0 84.0 85.0 86.0 87.0 88.0 89.0 90.0 91.0 92.0 93.0 94.0 95.0 96.0 97.0 98.0 99.0 100.0]
-//#define AURORA_PRESET_COL //Preset color of aurora
+//Fog (form JMSEUS FCM)
+/*------This is VOLUMETRIC FOG from jmeseus, not VOLUMETRIC CLOUDS, but me -the Author- is too lazy to change it's name of #define :P ------*/
+#define TRUE_VOLUMETRIC_CLOUDS2  //Now it becomes VOLUMETRIC FOG, it was changed from True Volumetric clouds from Continuum
+	//#define SOFT_FLUFFY_CLOUDS2						// dissable to fully remove dither Pattern ripple, adds a little pixel noise on cloud edge
+	#define Volumetric_Cloud_Type2					//Turn this off to change the way Volumetric clouds are rendered,If off there will be less detail in the clouds BUT there will be less Dither Pattern ripple in them. Best set Vol_Cloud_Coverage to 0.52 if off!
+	#define Cloud3Height2 60						    //[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 80 90 100 120 140 160 180 210 200 220 240 250 300 350 400 500] //Sets the Volumetric clouds3 Height
+	#define Cloud3Depth2 100                            //[50 75 100 125 150 175 200 225 250 275 300 350 400]
+	#define VOLUMETRIC_CLOUD_SPEED2 1.0				    //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0] //Default is 2.0f, Lower number to slow speed, Higher number to increase speed 
+	#define CLOUD_DISPERSE2 64          			// [1 2 3 4 5 7 10 12 15 17 20 25 30 64]increase this for thicker clouds and so that they don't fizzle away when you fly close to them, 10 is default Dont Go Over 30 will lag and maybe crash
+	#define CLOUD_PRECISION2 2.0 //[0.5 1.0 2.0 4.0 6.0 8.0 10.0 12.0 16.0 32.0]
+	#define Vol_Cloud_Coverage2 0.45   			    // Vol_Cloud_Coverage. 0.20 = Lowest Cover. 0.60 = Highest Cover [0.20 0.30 0.35 0.40 0.42 0.45 0.48 0.50 0.52 0.55 0.60 0.70 0.80 0.90 1.00]
+	#define VOLUMETRIC_CLOUD_LIGHTING2 0.5          //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0]
 
+	#define VFCWWT //Dynamic fog amount, which means that the strength of VOLUMETRIC FOG would be change with The worldTime
+	#define VFDensityStrength 1.2 //strength of VOLUMETRIC FOG [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.5 3.0 3.5 4.0 5.0 7.0 10.0 15.0 20.0]
+
+	#define FOGDENS_SUNRISE 1.5   //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
+	#define FOGDENS_NOON 1.0      //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
+	#define FOGDENS_MIDNIGHT 0.7  //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
+
+	#define CUSTOM_VLFC_R 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
+	#define CUSTOM_VLFC_G 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
+	#define CUSTOM_VLFC_B 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
+
+//Aurora
+#define AURORA		//Night aurora.
+	#define NIGHT_AURORA_R 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+	#define NIGHT_AURORA_G 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+	#define NIGHT_AURORA_B 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+	#define NIGHT_AURORA_L 1.0 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+	#define AURORA_COLOR blueAurora //[blueAurora purpleAurora greenAurora]
+	#define AURORA_STRENGTH 0.7 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.7 2.0 2.5 3.0 4.0 5.0 7.0 10.0 15.0 20.0 30.0 50.0 70.0 100.0]
+	#define aurora_power 0.3 //[0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
+	#define aurora_speed 3.0 //[0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
+	#define aurora_flash 50.0 //[0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0 21.0 22.0 23.0 24.0 25.0 26.0 27.0 28.0 29.0 30.0 31.0 32.0 33.0 34.0 35.0 36.0 37.0 38.0 39.0 40.0 41.0 42.0 43.0 44.0 45.0 46.0 47.0 48.0 49.0 50.0 51.0 52.0 53.0 54.0 55.0 56.0 57.0 58.0 59.0 60.0 61.0 62.0 63.0 64.0 65.0 66.0 67.0 68.0 69.0 70.0 71.0 72.0 73.0 74.0 75.0 76.0 77.0 78.0 79.0 80.0 81.0 82.0 83.0 84.0 85.0 86.0 87.0 88.0 89.0 90.0 91.0 92.0 93.0 94.0 95.0 96.0 97.0 98.0 99.0 100.0]
+	//#define AURORA_PRESET_COL //Preset color of aurora
+
+#define STAR
+
+//---------------Water---------------//
+
+//#define WATER_SPEED_LIGHT_BAR_LINKER
+
+#define WATER_SPEED 1.0    //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.32.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+#define WATER_COLOR_F_R 0.15 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+#define WATER_COLOR_F_G 0.6375 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.6375 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+#define WATER_COLOR_F_B 0.75 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+
+//---------------Others---------------//
 
 //#define COMPOSITE2_FINAL
 
-#define NEW_SKY_LIGHT
-#define STAR
+//---------------END---------------//
+//---------------END---------------//
 
-#define WATER_SPEED 1.0    //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.32.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-//#define WATER_SPEED_LIGHT_BAR_LINKER
 
-//JMSEUSFCM体积雾
-/*------This is VOLUMETRIC FOG from jmeseus, not VOLUMETRIC CLOUDS, but me -the Author- is too lazy to change it's name of #define :P ------*/
-#define TRUE_VOLUMETRIC_CLOUDS2  //Now it becomes VOLUMETRIC FOG, it was changed from True Volumetric clouds from Continuum
-//#define SOFT_FLUFFY_CLOUDS2						// dissable to fully remove dither Pattern ripple, adds a little pixel noise on cloud edge
-#define Volumetric_Cloud_Type2					//Turn this off to change the way Volumetric clouds are rendered,If off there will be less detail in the clouds BUT there will be less Dither Pattern ripple in them. Best set Vol_Cloud_Coverage to 0.52 if off!
-#define Cloud3Height2 60						    //[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 80 90 100 120 140 160 180 210 200 220 240 250 300 350 400 500] //Sets the Volumetric clouds3 Height
-#define Cloud3Depth2 100                            //[50 75 100 125 150 175 200 225 250 275 300 350 400]
-#define VOLUMETRIC_CLOUD_SPEED2 1.0				    //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0] //Default is 2.0f, Lower number to slow speed, Higher number to increase speed 
-#define CLOUD_DISPERSE2 64          			// [1 2 3 4 5 7 10 12 15 17 20 25 30]increase this for thicker clouds and so that they don't fizzle away when you fly close to them, 10 is default Dont Go Over 30 will lag and maybe crash
-#define Vol_Cloud_Coverage2 0.45   			    // Vol_Cloud_Coverage. 0.20 = Lowest Cover. 0.60 = Highest Cover [0.20 0.30 0.35 0.40 0.42 0.45 0.48 0.50 0.52 0.55 0.60 0.70 0.80 0.90 1.00]
-#define VOLUMETRIC_CLOUD_LIGHTING2 0.5          //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0]
-#define VFCWWT //Dynamic fog amount, which means that the strength of VOLUMETRIC FOG would be change with The worldTime
-#define VFDensityStrength 1.2 //strength of VOLUMETRIC FOG [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.5 3.0 3.5 4.0 5.0 7.0 10.0 15.0 20.0]
-#define FOGDENS_SUNRISE 1.5   //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
-#define FOGDENS_NOON 1.0      //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
-#define FOGDENS_MIDNIGHT 0.7  //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
 
-#define CLOUD_PRECISION2 2.0 //[0.5 1.0 2.0 4.0 6.0 8.0 10.0 12.0 16.0 32.0]
 
-#define CUSTOM_VLFC_R 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
-#define CUSTOM_VLFC_G 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
-#define CUSTOM_VLFC_B 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
 
-	#define WATER_COLOR_F_R 0.15 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-	#define WATER_COLOR_F_G 0.6375 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.6375 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-	#define WATER_COLOR_F_B 0.75 //[0.0 0.09 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.55 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
-
-#define High_Altitude_Clouds
 
 /* DRAWBUFFERS:2 */
 const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096]
@@ -139,11 +158,8 @@ uniform sampler2DShadow shadow;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D noisetex;
-//uniform sampler2D colortex4;
-//uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform sampler2D colortex6;
-uniform sampler2D colortex7;
 
 uniform float near;
 uniform float far;
@@ -231,7 +247,11 @@ float GetDepthLinear(vec2 coord) {
 
 vec4 	GetTransparentAlbedo(in vec2 coord)
 {
-	return pow(texture(colortex7, coord), vec4(2.2));
+	vec3 transparency = vec3(0.0);
+	transparency.r = texture(colortex3, coord).a;
+	transparency.g = texture(colortex0, coord).a;
+	transparency.b = texture(colortex5, coord).a;
+	return pow(vec4(transparency, 1.0), vec4(2.2));
 }
 
 vec4  	GetViewSpacePosition(in vec2 coord) {	//Function that calculates the screen-space position of the objects in the scene using the depth texture and the texture coordinates of the full-screen quad
@@ -713,7 +733,8 @@ vec4 	ComputeRaytraceReflection(inout SurfaceStruct surface)
         numSteps++;
     }
 
-	color = pow(textureLod(colortex0, finalSamplePos, 0), vec4(2.2f));
+	color = pow(vec4(textureLod(colortex0, finalSamplePos, 0).rgb, 1.0), vec4(2.2f));
+	color.rgb /= Hardbaked_HDR;
 
 	if (finalSamplePos.x == 0.0f || finalSamplePos.y == 0.0f) {
 		color.a = 0.0f;
@@ -848,6 +869,84 @@ vec3 NewSkyLight(float p, in SurfaceStruct surface){
 	return lightColor;
 }
 
+void 	AddSkyGradient(inout vec3 color, in vec3 rayDirection, inout SurfaceStruct surface) {
+	float curve = 5.0f;
+	vec3 npos = rayDirection;
+	vec3 halfVector2 = normalize(-surface.upVector + npos);
+	float skyGradientFactor = dot(halfVector2, npos);
+	float skyDirectionGradient = skyGradientFactor;
+
+	if (dot(halfVector2, npos) > 0.75)
+		skyGradientFactor = 1.5f - skyGradientFactor;
+
+	skyGradientFactor = pow(skyGradientFactor, curve);
+
+	color = colorSkylight;
+
+	color *= mix(skyGradientFactor, 1.0f, clamp((0.12f - (timeNoon * 0.1f)) + rainStrength, 0.0f, 1.0f));
+	color *= pow(skyGradientFactor, 2.5f) + 0.2f;
+	color *= (pow(skyGradientFactor, 1.1f) + 0.425f) * 0.5f;
+	color.g *= skyGradientFactor * 1.0f + 1.0f;
+
+
+	vec3 linFogColor = pow(gl_Fog.color.rgb, vec3(2.2f));
+
+	float fogLum = max(max(linFogColor.r, linFogColor.g), linFogColor.b);
+
+
+	float fade1 = clamp(skyGradientFactor - 0.05f, 0.0f, 0.2f) / 0.2f;
+		  fade1 = fade1 * fade1 * (3.0f - 2.0f * fade1);
+	vec3 color1 = vec3(12.0f, 8.0, 4.7f) * 0.15f;
+		 color1 = mix(color1, vec3(2.0f, 0.55f, 0.2f), vec3(timeSunriseSunset));
+
+	color *= mix(vec3(1.0f), color1, vec3(fade1));
+
+	float fade2 = clamp(skyGradientFactor - 0.11f, 0.0f, 0.2f) / 0.2f;
+	vec3 color2 = vec3(2.7f, 1.0f, 2.8f) / 20.0f;
+		 color2 = mix(color2, vec3(1.0f, 0.15f, 0.5f), vec3(timeSunriseSunset));
+
+	color *= mix(vec3(1.0f), color2, vec3(fade2 * 0.5f));
+
+
+
+	float horizonGradient = 1.0f - distance(skyDirectionGradient, 0.72f) / 0.72f;
+		  horizonGradient = pow(horizonGradient, 10.0f);
+		  horizonGradient = max(0.0f, horizonGradient);
+
+	float sunglow = CalculateSunglow(surface);
+		  horizonGradient *= sunglow * 2.0f + (0.65f - timeSunriseSunset * 0.55f);
+
+	vec3 horizonColor1 = vec3(1.5f, 1.5f, 1.5f);
+		 horizonColor1 = mix(horizonColor1, vec3(1.5f, 1.95f, 1.5f) * 2.0f, vec3(timeSunriseSunset));
+	vec3 horizonColor2 = vec3(1.5f, 1.2f, 0.8f) * 1.0f;
+		 horizonColor2 = mix(horizonColor2, vec3(1.9f, 0.6f, 0.4f) * 2.0f, vec3(timeSunriseSunset));
+
+	color *= mix(vec3(1.0f), horizonColor1, vec3(horizonGradient) * (1.0f - timeMidnight));
+	color *= mix(vec3(1.0f), horizonColor2, vec3(pow(horizonGradient, 2.0f)) * (1.0f - timeMidnight));
+
+	float grayscale = fogLum / 10.0f;
+		  grayscale /= 3.0f;
+
+	color = mix(color, vec3(grayscale * colorSkylight.r) * 0.06f * vec3(0.85f, 0.85f, 1.0f), vec3(rainStrength));
+
+
+	color /= fogLum;
+
+
+	color *= mix(1.0f, 4.5f, timeNoon);
+
+	color *= 6.0; //DO NOT FORGET CHANGE THIS VAULE IN COMPOSITE2
+
+
+
+	// //Fake land
+	//vec3 fakeLandColor = vec3(0.7f, 0.9f, 1.0f) * 0.012f;
+	//surface.sky.albedo = mix(surface.sky.albedo, fakeLandColor, clamp(skyGradientFactor * 8.0f - 0.7f, 0.0f, 1.0f));
+
+
+	//surface.sky.albedo *= (surface.mask.sky);
+}
+
 vec3 	ComputeReflectedSkyGradient(in SurfaceStruct surface) {
 	float curve = 5.0f;
 	surface.viewSpacePosition.xyz = reflect(surface.viewSpacePosition.xyz, surface.normal);
@@ -952,7 +1051,7 @@ vec3 	ComputeReflectedSkyGradient(in SurfaceStruct surface) {
 
 	skyColor = mix(skyColor, colorSunlight * 2.0, pow(sunglow, 6.0) * (1.0 - rainStrength));
 
-	return skyColor;
+	return skyColor * 1.0; 
 }
 
 Intersection 	RayPlaneIntersectionWorld(in Ray ray, in Plane plane)
@@ -1618,27 +1717,18 @@ void NightAurora(inout vec3 color, in SurfaceStruct surface)
 	}
 }
 
-vec4 	ComputeFakeSkyReflection(in SurfaceStruct surface) {
+vec3 	ComputeFakeSkyReflection(in SurfaceStruct surface) {
 
 	vec3 cameraSpacePosition = convertScreenSpaceToWorldSpace(texcoord.st);
 	vec3 cameraSpaceNormal = surface.normal;
 	vec3 cameraSpaceViewDir = normalize(cameraSpacePosition);
-	vec4 color = vec4(0.0f);
+	vec3 color = vec3(0.0f);
 
-	color.rgb = ComputeReflectedSkyGradient(surface);
+	vec3 rayDirection = normalize(reflect(cameraSpaceViewDir, cameraSpaceNormal));
 
-	color.rgb *= 0.006f;
-	color.rgb *= mix(1.0f, 20000.0f, timeSkyDark);
+	AddSkyGradient(color.rgb, rayDirection, surface);
 
 	float viewVector = dot(cameraSpaceViewDir, cameraSpaceNormal);
-
-	color.a = pow(clamp(1.0f + viewVector, 0.0f, 1.0f), surface.fresnelPower) * (1.0f - surface.baseSpecularity) + surface.baseSpecularity;
-
-	if (viewVector > 0.0f) {
-		color.a = 1.0f - pow(clamp(viewVector, 0.0f, 1.0f), 1.0f / surface.fresnelPower) * (1.0f - surface.baseSpecularity) + surface.baseSpecularity;
-		color.rgb = vec3(0.0f);
-	}
-
 
 	DoNightEye(color.rgb);
 
@@ -1646,6 +1736,8 @@ vec4 	ComputeFakeSkyReflection(in SurfaceStruct surface) {
 #ifdef NEW_SKY_LIGHT
 	color.rgb += (NewSkyLight(0.045, surface) / 6.0) * 0.006f;
 #endif
+	
+	color /= Hardbaked_HDR;
 
 #ifdef STAR
 	if (rainStrength < 0.99) CalStar(surface, color.rgb);
@@ -1664,7 +1756,7 @@ vec4 	ComputeFakeSkyReflection(in SurfaceStruct surface) {
 	CalculateClouds(color.rgb, surface);
 #endif
 
-	return color;
+	return color * Hardbaked_HDR;
 }
 
 void 	CalculateSpecularReflections(inout SurfaceStruct surface) {
@@ -1679,6 +1771,16 @@ void 	CalculateSpecularReflections(inout SurfaceStruct surface) {
 
 	surface.rDepth = 0.0f;
 
+	vec3 color = surface.color;
+
+	//materials
+	vec3 albedo = pow(texture2D(colortex3, texcoord.xy).rgb, vec3(2.2));
+
+	float smoothness = 0.0;
+	float roughness = 1.0 - smoothness * smoothness;
+	float metallic = 0.02;
+	vec3 F0 = vec3(0.02);//mix(vec3(max(0.02, metallic)), albedo, step(0.9, metallic));
+
 	if (surface.mask.sky)
 		specularity = 0.0f;
 
@@ -1689,6 +1791,8 @@ void 	CalculateSpecularReflections(inout SurfaceStruct surface) {
 		surface.baseSpecularity = 1.0f;
 		//specularity = 1.0f;
 		//surface.roughness = 0.0f;
+		metallic = 1.0;
+		F0 = albedo;
 	}
 
 	if (surface.mask.goldBlock)
@@ -1698,6 +1802,9 @@ void 	CalculateSpecularReflections(inout SurfaceStruct surface) {
 		surface.baseSpecularity = 1.0f;
 		surface.specularColor = vec3(1.0f, 0.32f, 0.002f);
 		surface.specularColor = mix(surface.specularColor, vec3(1.0f), vec3(0.015f));
+
+		metallic = 1.0;
+		F0 = surface.specularColor;
 	}
 
 	if (surface.mask.water || surface.mask.ice)
@@ -1708,14 +1815,41 @@ void 	CalculateSpecularReflections(inout SurfaceStruct surface) {
 		surface.baseSpecularity = 0.02f;
 	}
 
-
 	vec3 original = surface.color.rgb;
 
+	vec3 worldNormal = mat3(gbufferModelViewInverse) * surface.normal;
+
+	vec3 n = abs(worldNormal);
+	vec3 worldGeoNormal = n.x > max(n.y, n.z) ? vec3(step(0.0, worldNormal.x) * 2.0 - 1.0, 0.0, 0.0) : 
+						  n.y > max(n.x, n.z) ? vec3(0.0, step(0.0, worldNormal.y) * 2.0 - 1.0, 0.0) : 
+						  vec3(0.0, 0.0, step(0.0, worldNormal.z) * 2.0 - 1.0);
+
+	vec3 viewDirection = normalize(surface.viewSpacePosition.xyz);
+	vec3 eyeDirection = -viewDirection;
+
+	vec3 tex_normal = surface.normal;
+	vec3 geo_normal = mat3(gbufferModelView) * worldGeoNormal;
+	vec3 normal = tex_normal;
+
+	vec3 rayDirection = normalize(reflect(viewDirection, normal));
+
 	if (specularity > 0.00f) {
+		vec4 ssR = ComputeRaytraceReflection(surface);
+		vec3 fakeSkyReflection = ComputeFakeSkyReflection(surface) * (isEyeInWater == 0 ? 1.0 : 0.0) * clamp(surface.skylight * 16 - 5, 0.0f, 1.0f);
+
+		vec3 reflection = mix(fakeSkyReflection.rgb, ssR.rgb, ssR.a);
+		
+		vec3 fr = mix(F0, vec3(1.0), pow(1.0 - saturate(dot(normalize(eyeDirection + rayDirection), eyeDirection)), 5.0)) * specularity * specularity;//
+
+		color *= (1.0 - metallic) * (1.0 - step(0.9, metallic));
+		//color *= 1.0 - specularity * specularity;
+		color += reflection * fr;
+
+		/*
 		if (isEyeInWater < 0.5) {
 			vec4 reflection = ComputeRaytraceReflection(surface);
 
-			vec4 fakeSkyReflection = ComputeFakeSkyReflection(surface);
+			vec4 fakeSkyReflection = vec4(0.0);//ComputeFakeSkyReflection(surface);
 
 			vec3 noSkyToReflect = vec3(0.0f);
 
@@ -1752,9 +1886,10 @@ void 	CalculateSpecularReflections(inout SurfaceStruct surface) {
 			surface.color.rgb = mix(refractCol, reflection.rgb, vec3(reflection.a));
 			surface.reflection = reflection;
 		}
+		*/
 	}
 
-	surface.color.rgb = mix(surface.color.rgb, original, vec3(surface.cloudAlpha));
+	surface.color.rgb = color;//mix(surface.color.rgb, original, vec3(surface.cloudAlpha));
 }
 
 void CalculateSpecularHighlight(inout SurfaceStruct surface)
@@ -2176,7 +2311,7 @@ void WaterRefraction(inout SurfaceStruct surface)
 					  + pow(textureLod(colortex0, refractCoord0.xy, 2).rgb, vec3(2.2)) * blendWeights.y
 					  + pow(textureLod(colortex0, refractCoord0.xy, 3).rgb, vec3(2.2)) * blendWeights.z
 					  + pow(textureLod(colortex0, refractCoord0.xy, 4).rgb, vec3(2.2)) * blendWeights.w
-					) / blendWeightsTotal;
+					) / blendWeightsTotal / Hardbaked_HDR;
 		//*/
 	}
 }
@@ -2559,7 +2694,7 @@ void 	CalculateCloud (inout SurfaceStruct surface, out float sumLight)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
 
-	surface.color = pow(textureLod(colortex0, texcoord.st, 0).rgb, vec3(2.2f));
+	surface.color = pow(textureLod(colortex0, texcoord.st, 0).rgb, vec3(2.2f)) / Hardbaked_HDR;
 	surface.normal = GetNormals(texcoord.st);
 	surface.depth = GetDepth(texcoord.st);
 	surface.linearDepth 		= ExpToLinearDepth(surface.depth); 				//Get linear scene depth
@@ -2585,7 +2720,7 @@ void main() {
 
 	surface.cloudAlpha = 0.0f;
 	#ifdef SMOOTH_CLOUDS
-		surface.cloudAlpha = texture(colortex3, texcoord.st, 2).g;
+		surface.cloudAlpha = 0.0;//texture(colortex3, texcoord.st, 2).g;
 		SmoothSky(surface);
 	#endif
 
@@ -2598,13 +2733,13 @@ void main() {
 
 	vec4 transparentAlbedo = GetTransparentAlbedo(texcoord.st);
 
-	if (surface.mask.stainedGlass || surface.mask.ice)
+	if (surface.mask.stainedGlass/* || surface.mask.ice*/)
 	{
 		surface.color *= transparentAlbedo.rgb * 1.0;
 	}
 
 	CalculateSpecularReflections(surface);
-	CalculateSpecularHighlight(surface);
+	////CalculateSpecularHighlight(surface);
 
 	//if (isEyeInWater == 0)
 	//{
@@ -2620,11 +2755,10 @@ void main() {
 	#endif	
 
 	#ifdef CREPUSCULAR_RAYS
-	if (isEyeInWater < 0.5){
-	//surface.color += CrepuscularRays(surface) * (1.0 + sumLight * 0.2);
-	}
+	////	surface.color += CrepuscularRays(surface) * (1.0 + sumLight * 0.2);
 	#endif
 
+	surface.color *= Hardbaked_HDR;
 
 	//surface.color = surface.normal * 0.0001f;
 
@@ -2639,6 +2773,5 @@ void main() {
 	surface.color = pow(surface.color, vec3(1.0f / 2.2f));
 	gl_FragData[0] = vec4(surface.color, 1.0f);
 	//gl_FragData[1] = vec4(surface.normal.xyz * 0.5 + 0.5, 1.0f);
-
 
 }

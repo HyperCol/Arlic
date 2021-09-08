@@ -30,12 +30,14 @@
 
 
 2021@HyperCol Studios
-VisionLab is part of HyperCol Studios
+VacGrd is part of HyperCol Studios
 Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
  
-#define VERSION 0.9.0      //Arlic Shaders VERSION.
+#define VERSION Rewrite      //Arlic Shaders VERSION.
+
+#define Hardbaked_HDR 0.001
 
 //#define FINAL_ALT_COLOR_SOURCE 
 #define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.
@@ -630,7 +632,7 @@ void 	CalculateMasks(inout MaskStruct mask) {
 void AverageExposure(inout vec3 color)
 {
 	float avglod = int(log2(min(viewWidth, viewHeight))) - 1;
-	color /= pow(Luminance(textureLod(colortex2, vec2(0.5, 0.5), avglod).rgb), 1.1) + 0.0001;
+	//color /= pow(Luminance(textureLod(colortex2, vec2(0.5, 0.5), avglod).rgb), 2.2) / Hardbaked_HDR + 0.05;
 }
 
 #include "/libs/tone.frag"
@@ -645,7 +647,7 @@ void main() {
 
 	mask.matIDs = GetMaterialIDs(texcoord.st);
 	CalculateMasks(mask);
-
+/*
 	#ifdef MOTION_BLUR
 		MotionBlur(tone.color);
 	#endif
@@ -659,8 +661,12 @@ void main() {
 	#else
 	CalculateExposure(tone.color);
 	#endif
-
+*/
 	Hue_Adjustment(tone);
+
+	//tone.color = GetColorTexture(texcoord.xy).rgb / Hardbaked_HDR * 10.0;
+	//tone.color = tonemap(tone.color);
+	//tone.color = toGamma(tone.color);
 
 	//tone.color = texture(colortex2, texcoord.st).rgb*50.0;
 	gl_FragColor = vec4(tone.color, 1.0f);

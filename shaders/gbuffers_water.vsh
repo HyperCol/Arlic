@@ -2,6 +2,8 @@
 
 //#define WAVING_WATER
 
+#include "/libs/antialiasing/taaProjection.glsl"
+
 uniform int worldTime;
 
 uniform vec3 cameraPosition;
@@ -67,6 +69,8 @@ void main() {
 	distance = length(localPosition.xyz);
 
 	gl_Position = gl_ProjectionMatrix * (gbufferModelView * position);
+
+	TAAProjection(gl_Position);
 
 	
 	color = gl_Color;

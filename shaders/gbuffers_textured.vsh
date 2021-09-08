@@ -12,6 +12,8 @@ out vec3 binormal;
 
 //attribute vec4 mc_Entity;
 
+#include "/libs/antialiasing/taaProjection.glsl"
+
 void main() {
 
 	//bloommask = vec4(0.0);
@@ -21,6 +23,7 @@ void main() {
 	//}
 
 	gl_Position = ftransform();
+	TAAProjection(gl_Position);
 	
 	color = gl_Color;
 	

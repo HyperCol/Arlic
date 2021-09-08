@@ -1,5 +1,7 @@
 #version 330 compatibility
 
+#include "/libs/antialiasing/taaProjection.glsl"
+
 out vec4 color;
 out vec4 texcoord;
 out vec4 lmcoord;
@@ -267,6 +269,9 @@ void main() {
 
 
 	gl_Position = gl_ProjectionMatrix * (gl_ModelViewMatrix * position);
+	
+	TAAProjection(gl_Position);
+
 	
 	color = gl_Color;
 	

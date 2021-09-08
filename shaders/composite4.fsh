@@ -30,21 +30,35 @@
 
 
 2021@HyperCol Studios
-VisionLab is part of HyperCol Studios
+VacGrd is part of HyperCol Studios
 Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
 
 const bool		colortex2MipmapEnabled = true;
-/* DRAWBUFFERS:0 */
+/* DRAWBUFFERS:027 */
 
 uniform sampler2D colortex2;
+uniform sampler2D colortex7;
+uniform sampler2D depthtex0;
 
 uniform float aspectRatio;
 uniform float viewWidth;
 uniform float viewHeight;
 
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferPreviousModelView;
+uniform mat4 gbufferPreviousProjection;
+
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+
 in vec4 texcoord;
+
+#define Hardbaked_HDR 0.001
+
+#include "/libs/antialiasing/taa.glsl"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,4 +130,25 @@ void main() {
 
 	gl_FragData[0] = vec4(bloom.rgb, 1.0f);
 
+	#ifdef Enabled_Temporal_Antialiasing
+	vec3 antialiasing = TemportalAntiAliasing(texcoord.st);
+	gl_FragData[1] = vec4(GAMMA_RGB(InverseTonemapping(antialiasing)), 1.0);
+	gl_FragData[2] = vec4(GAMMA_RGB(antialiasing), 1.0);
+	#else
+	vec3 color = texture2D(colortex2, texcoord.xy).rgb;
+
+	gl_FragData[1] = vec4(color, 1.0);
+	gl_FragData[2] = vec4(0.0);
+	#endif
+
+
+	/*
+	vec3 color = (RGB_GAMMA(texture2DLod(colortex2, texcoord.xy, 0).rgb) / Hardbaked_HDR);
+
+	if(max(color.r, max(color.g, color.b)) >= 1.0) color = vec3(1.0, 0.0, 0.0);
+
+	color = GAMMA_RGB(color);
+
+	gl_FragData[1] = vec4(color, 1.0);
+	*/
 }

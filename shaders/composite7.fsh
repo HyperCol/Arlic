@@ -30,7 +30,7 @@
 
 
 2021@HyperCol Studios
-VisionLab is part of HyperCol Studios
+VacGrd is part of HyperCol Studios
 Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
@@ -242,6 +242,8 @@ void LowlightFuzziness(inout vec3 color, in BloomDataStruct bloomData)
 
 
 }
+
+#define Hardbaked_HDR 0.001
 
 void main()
 {

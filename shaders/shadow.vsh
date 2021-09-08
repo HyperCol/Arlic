@@ -1,7 +1,8 @@
 #version 330 compatibility
 
 #define SHADOW_MAP_BIAS 0.90
-
+#define STRENGTH_WIND 0 		//[0 1 2 4 6 8]
+#define WIND_DIRECTION 0		//[0 15 30 45 60 75 90 105 120 135 150 165 180 195 210 225 240 255 270 285 300 315 330 345]
 
 out vec4 texcoord;
 out vec4 vPosition;
@@ -44,6 +45,8 @@ uniform mat4 gbufferProjection;
 #define PLANT_WAVE_SPEED 1.0 //[0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0] //Lower numbers means faster, Higher numbers means slower
 //#define PLANT_SPEED_LIGHT_BAR_LINKER
 
+
+#define pow2(x) (x * x)
 
 vec4 cubic(float x)
 {
@@ -162,6 +165,8 @@ void main() {
 
 	materialIDs = 0.0f;
 
+	float facingEast = abs(normalize(gl_Normal.xz).x);
+	float facingUp = abs(gl_Normal.y);
 
 	iswater = 0.0;
 
@@ -198,41 +203,38 @@ void main() {
 		|| mc_Entity.x == 1925.0f 	//Biomes O Plenty: Medium Grass
 		|| mc_Entity.x == 1920.0f 	//Biomes O Plenty: Thorns, barley
 		|| mc_Entity.x == 1921.0f 	//Biomes O Plenty: Sunflower
-		|| mc_Entity.x == 188.0f 	//Biomes O Plenty: Medium Grass
-		|| mc_Entity.x == 176.0f 	//Biomes O Plenty: Desert Grass
-		|| mc_Entity.x == 177.0f 	//Biomes O Plenty: Desert Grass
-		|| mc_Entity.x == 178.0f 	//Lavender
+		|| mc_Entity.x == 2.0 && gl_Normal.y < 0.5 && facingEast > 0.01 && facingEast < 0.99 && facingUp < 0.9
 
 		)
 	{
-			materialIDs = max(materialIDs, 2.0f);
+		materialIDs = max(materialIDs, 2.0f);
+		waveCoeff = 1.0f;
+	}
+
+	if (  mc_Entity.x == 175.0f)
+	{
+		materialIDs = max(materialIDs, 2.0f);
 	}
 
 	//Wheat
 	if (mc_Entity.x == 59.0) {
 		materialIDs = max(materialIDs, 2.0f);
+		waveCoeff = 1.0f;
 	}	
 	
 	//Leaves
 	if   ( mc_Entity.x == 18.0 
 
-		|| mc_Entity.x == 161.0f
 		|| mc_Entity.x == 1962.0f //Biomes O Plenty: Leaves
 		|| mc_Entity.x == 1924.0f //Biomes O Plenty: Leaves
 		|| mc_Entity.x == 1923.0f //Biomes O Plenty: Leaves
 		|| mc_Entity.x == 1926.0f //Biomes O Plenty: Leaves
 		|| mc_Entity.x == 1936.0f //Biomes O Plenty: Giant Flower Leaves
-		|| mc_Entity.x == 184.0f  //Yellow autumn leaves
-		|| mc_Entity.x == 185.0f  //Dying leaves
-		|| mc_Entity.x == 186.0f  //maple leaves
-		|| mc_Entity.x == 187.0f  //maple leaves
-		|| mc_Entity.x == 192.0f  //maple leaves
-		|| mc_Entity.x == 249.0f  //Willow leaves
-		|| mc_Entity.x == 248.0f  //Sacred Oak Leaves
+		|| mc_Entity.x == 161.0f //Biomes O Plenty: Giant Flower Leaves
 
 		 ) {
 		materialIDs = max(materialIDs, 3.0f);
-	}
+	}	
 		
 	//Ice
 	if (  mc_Entity.x == 79.0f
@@ -247,7 +249,7 @@ void main() {
 		materialIDs = max(materialIDs, 11.0f);
 	}
 
-float Plants_Speed = PLANT_WAVE_SPEED;
+float Plants_Speed = PLANT_WAVE_SPEED * (1.0 + 0.25 * STRENGTH_WIND);
    #ifdef PLANT_SPEED_LIGHT_BAR_LINKER
       Plants_Speed *= pow(screenBrightness * 2.0f, 4.0);
    #endif
@@ -283,7 +285,15 @@ const float pi = 3.14159265358979323846264;
 
 position.xyz += cameraPosition.xyz;
 	
-	  #ifdef WAVING_GRASS
+	vec3 w_pn = position.xyz;
+		w_pn.x -= Plants_Speed * FRAME_TIME;
+
+	float wind_dir = (WIND_DIRECTION / 180.0) * pi + (BicubicTexture(noisetex, w_pn.xz / 64.0f).x * 2.0 - 1.0);
+	float x_wind = cos(wind_dir) * STRENGTH_WIND * 0.25;
+	float y_wind = sin(wind_dir) * STRENGTH_WIND * 0.25;
+	const float l_fix = 1.0 - 1.0 / sqrt(pow2(STRENGTH_WIND * 0.25) + 1.0);
+	
+	#ifdef WAVING_GRASS
 	//Waving grass
 	if (waveCoeff > 0.5f)
 	{
@@ -358,6 +368,10 @@ position.xyz += cameraPosition.xyz;
 		position.x += (sin((angle.x / 180.0f) * 3.141579f)) * grassWeight * lightWeight						* 1.0f	;
 		position.z += (sin((angle.y / 180.0f) * 3.141579f)) * grassWeight * lightWeight						* 1.0f	;
 		position.y += (cos(((angle.x + angle.y) / 180.0f) * 3.141579f) - 1.0f)  * grassWeight * lightWeight	* 1.0f	;
+
+		position.x += x_wind * grassWeight;
+		position.z += y_wind * grassWeight;
+		position.y -= l_fix * grassWeight;
 	}
 	  #endif
 

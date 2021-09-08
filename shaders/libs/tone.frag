@@ -41,7 +41,7 @@ uniform float valLive;
 #define plus(m, n) ((m + n) - m * n)
 
 const float gamma = 2.2f;
-const vec3 agamma = vec3(0.8 / 2.2f);
+const vec3 agamma = vec3(1.0 / 2.2f);
 
 vec3 fromGamma(vec3 c) {
 	return pow(c, vec3(gamma));
@@ -102,10 +102,6 @@ vec3 colorBalance(vec3 rgbColor, vec3 s, vec3 m, vec3 h, bool p) {
 #define EXPOSURE 1.2 		//[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 
 vec3 tonemap(in vec3 color) {
-
-	color *= 150.0 * EXPOSURE * (1.8 - clamp(pow(eyeBrightnessSmooth.y / 240.0, 6.0) * luma(colorSunlight), 0.0, 1.2));
-	color /= (DARKNESS * (1.5-0.5*timeNoon+0.5*timeSunriseSunset)*(1-0.65*timeMidnight));
-	
 	const float a = 2.51f;
 	const float b = 0.03f;
 	const float c = 2.43f;
@@ -113,6 +109,7 @@ vec3 tonemap(in vec3 color) {
 	const float e = 0.14f;
 	
 	color = color*(a*color+b)/(color*(c*color+d)+e);
+
 	return color;
 }
 
@@ -247,9 +244,16 @@ void Hue_Adjustment(inout Tone t) {
 	#endif
 
 	//tonemap
-	vec3 color = t.color;
+	vec3 color = t.color / Hardbaked_HDR;
+
+	//exposure
+	color *= 8.0 * EXPOSURE;
+
 	if (t.useToneMap > 0) t.color = mix(t.color, tonemap(color), t.useToneMap);
 	
+	//t.color = toGamma(t.color);
+	//return;
+
 	//hue
 	#ifdef HUE_ADJUSTMENT
 	if (t.useAdjustment > 0) {

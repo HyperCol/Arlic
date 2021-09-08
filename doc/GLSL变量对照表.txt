@@ -1,0 +1,13 @@
+gl_Position: 用于vertex shader, 写顶点位置；被图元收集、裁剪等固定操作功能所使用；
+           其内部声明是：highp vec4 gl_Position;
+gl_PointSize: 用于vertex shader, 写光栅化后的点大小，像素个数；
+           其内部声明是：mediump float gl_Position;
+gl_FragColor: 用于Fragment shader，写fragment color；被后续的固定管线使用；
+            mediump vec4 gl_FragColor;
+gl_FragData: 用于Fragment shader，是个数组，写gl_FragData[n] 为data n；被后续的固定管线使用；
+            mediump vec4 gl_FragData[gl_MaxDrawBuffers];
+gl_FragColor和gl_FragData是互斥的，不会同时写入；
+gl_FragCoord: 用于Fragment shader,只读， Fragment相对于窗口的坐标位置 x,y,z,1/w; 这个是固定管线图元差值后产生的；z 是深度值; mediump vec4 gl_FragCoord;
+gl_FrontFacing: 用于判断 fragment是否属于 front-facing primitive；只读；
+              bool gl_FrontFacing;   
+gl_PointCoord: 仅用于 point primitive; mediump vec2 gl_PointCoord;
