@@ -3404,11 +3404,7 @@ void main() {
 	
 	gl_FragData[0] = vec4(finalComposite, texture(colortex0, texcoord.st).a);
 	gl_FragData[1] = vec4(surface.mask.matIDs, 1.0, mcLightmap.sky, 1.0f);
-<<<<<<< HEAD
 	gl_FragData[2] = vec4(texture2D(colortex0, texcoord.xy).rgb, texture(colortex3, texcoord.st).b);
-=======
-	gl_FragData[2] = vec4(surface.specular.specularity, surface.cloudAlpha, surface.specular.glossiness, texture(colortex3, texcoord.st).b);
->>>>>>> e791f6bfc7e8b945603c3d9b59878a446e19d942
 	gl_FragData[3] = vec4(shading.sunlightVisibility, texture(colortex5, texcoord.st).a);
 	// gl_FragData[4] = vec4(pow(surface.albedo.rgb, vec3(1.0f / 2.2f)), 1.0f);
 	// gl_FragData[5] = vec4(surface.normal.rgb * 0.5f + 0.5f, 1.0f);
