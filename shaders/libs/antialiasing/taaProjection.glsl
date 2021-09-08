@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #define Enabled_Temporal_Antialiasing
 
 #if !defined _TAAPROJECTION_
@@ -11,4 +12,11 @@ void TAAProjection(inout vec4 c) {
     #endif
 }
 
+=======
+#if !defined _TAAPROJECTION_
+#define _TAAPROJECTION_
+
+#define Enabled_TemportalAntiAliasing
+uniform vec2 jitter;
+>>>>>>> e791f6bfc7e8b945603c3d9b59878a446e19d942
 #endif

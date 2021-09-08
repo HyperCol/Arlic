@@ -36,8 +36,11 @@ Do not modify this code until you have read the LICENSE contained in the root di
 */
  
 #define VERSION Rewrite      //Arlic Shaders VERSION.
+<<<<<<< HEAD
 
 #define Hardbaked_HDR 0.001
+=======
+>>>>>>> e791f6bfc7e8b945603c3d9b59878a446e19d942
 
 //#define FINAL_ALT_COLOR_SOURCE 
 #define AVERAGE_EXPOSURE // Uses the average screen brightness to calculate exposure. Disable for old exposure behavior.

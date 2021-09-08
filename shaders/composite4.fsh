@@ -56,8 +56,11 @@ uniform vec3 previousCameraPosition;
 
 in vec4 texcoord;
 
+<<<<<<< HEAD
 #define Hardbaked_HDR 0.001
 
+=======
+>>>>>>> e791f6bfc7e8b945603c3d9b59878a446e19d942
 #include "/libs/antialiasing/taa.glsl"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,6 +132,7 @@ void main() {
 		 bloom = pow(bloom, vec3(1.0f / (1.0f + 1.2f)));
 
 	gl_FragData[0] = vec4(bloom.rgb, 1.0f);
+<<<<<<< HEAD
 
 	#ifdef Enabled_Temporal_Antialiasing
 	vec3 antialiasing = TemportalAntiAliasing(texcoord.st);
@@ -151,4 +155,9 @@ void main() {
 
 	gl_FragData[1] = vec4(color, 1.0);
 	*/
+=======
+	gl_FragData[1] = vec4(TemportalAntiAliasing(texcoord.st), 1.0);
+	//gl_FragData[1] = vec4(texture2D(colortex2, texcoord.st).rgb, 1.0);
+	gl_FragData[2] = gl_FragData[1];
+>>>>>>> e791f6bfc7e8b945603c3d9b59878a446e19d942
 }
