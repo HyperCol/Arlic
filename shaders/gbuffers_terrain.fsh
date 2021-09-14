@@ -48,8 +48,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 ///////////////////////////////////////////////////END OF ADJUSTABLE VARIABLES///////////////////////////////////////////////////
 
-/* DRAWBUFFERS:01235 */
-
 uniform sampler2D tex;
 uniform sampler2D lightmap;
 uniform sampler2D normals;
@@ -94,6 +92,8 @@ const int GL_EXP = 2048;
 
 const float bump_distance = 78.0f;
 const float fademult = 0.1f;
+
+#include "/libs/packing.glsl"
 
 vec4 cubic(float x)
 {
@@ -454,8 +454,10 @@ void main() {
 			vec3 bump = GetTexture(normals, parallaxCoord.st).rgb * 2.0f - 1.0f;
 			
 			float bumpmult = clamp(bump_distance * fademult - distance * fademult, 0.0f, 1.0f);
-	              bumpmult *= 1.0f - (clamp(spec.g * 1.0f - 0.0f, 0.0f, 1.0f) * 0.97f);
-				  
+	        //      bumpmult *= 1.0f - (clamp(spec.g * 1.0f - 0.0f, 0.0f, 1.0f) * 0.97f);
+			
+			//bump.z = 1.0;
+
 			bump = bump * vec3(bumpmult, bumpmult, bumpmult) + vec3(0.0f, 0.0f, 1.0f - bumpmult);
 
 			//bump += CalculateRainBump(worldPosition.xyz);
@@ -571,6 +573,20 @@ void main() {
 	// 	frag2.x = 0.0;
 	// }
 
+	vec4 materialData = GetTexture(specular, parallaxCoord.st);
+
+	float material_ao = 1.0;
+	float material_smoothness = materialData.r;
+	float material_metallic = materialData.g;
+	float material_id = materialData.b;
+	float material_emissive = materialData.a * step(materialData.a, 0.999);
+
+	//encode smoothness and metallic
+	float encode_spec_rg = pack2x8(vec2(material_smoothness, material_metallic));
+
+	if(albedo.a < 0.2) discard;
+	albedo.a = 1.0;
+
 	gl_FragData[0] = albedo;
 
 	//Depth  
@@ -580,8 +596,6 @@ void main() {
 	gl_FragData[2] = frag2;
 		
 	//specularity
-	gl_FragData[3] = vec4(spec.r + spec.g, spec.b, 1.0 - parallaxShadow, 1.0f);	
-
-	gl_FragData[4] = frag2;
-
+	gl_FragData[3] = vec4(encode_spec_rg, material_id, 1.0 - parallaxShadow, 1.0f);	
 }
+/* DRAWBUFFERS:0123 */

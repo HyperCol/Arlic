@@ -44,9 +44,7 @@ in float isStainedGlass;
 
 //#define WATER_SPEED_LIGHT_BAR_LINKER
 
-
-/* DRAWBUFFERS:02346 */
-
+#include "/libs/packing.glsl"
 
 vec4 cubic(float x)
 {
@@ -340,10 +338,10 @@ void main() {
 	}
 
 
-	matID += 0.1f;
+	//matID += 0.1f;
 
   // gl_FragData[0] = vec4(texs.rgb, 0.2);
-	gl_FragData[0] = vec4(vec3(0.0), 0.2);
+	//gl_FragData[0] = vec4(vec3(0.0), 0.2);
 	//gl_FragData[1] = vec4(matID / 255.0f, lightmap.r, lightmap.b, 1.0);
 
 
@@ -366,22 +364,23 @@ void main() {
 	vec3 texNormal = texture(normals, texcoord.st).rgb * 2.0f - 1.0f;
 		 texNormal = texNormal * tbnMatrix;
 
-
 	waterNormal = mix(waterNormal, texNormal, isice + isStainedGlass);
 
+	vec4 materialData = texture(specular, texcoord.st);
 
-	gl_FragData[1] = vec4(waterNormal.rgb * 0.5 + 0.5, 1.0);
+	float material_ao = 1.0;
+	float material_smoothness = materialData.r;
+	float material_metallic = materialData.g;
+	float material_id = materialData.b;
+	float material_emissive = materialData.a * step(materialData.a, 0.999);
 
+	//encode smoothness and metallic
+	float encode_spec_rg = pack2x8(vec2(material_smoothness, material_metallic));
 
-	vec4 spec = texture(specular, texcoord.st);
-
-	gl_FragData[2] = vec4(spec.r, spec.b, transparency.r, 1.0);
-	gl_FragData[3] = vec4(0.0, transparency.gb, 1.0);
-
-
-	//gl_FragData[5] = vec4(lightmap.rgb, 0.0f);
-	gl_FragData[4] = vec4(0.0, lightmap.b, matID / 255.0f, 1.0);
-
-
-	//gl_FragData[7] = vec4(globalNormal * 0.5f + 0.5f, 1.0);
+	gl_FragData[0] = vec4(vec3(0.0), 0.2);
+	gl_FragData[1] = vec4(matID / 255.0, lightmap.r, lightmap.b, 1.0);
+	gl_FragData[2] = vec4(waterNormal.rgb * 0.5 + 0.5, 1.0);
+	gl_FragData[3] = vec4(encode_spec_rg, material_id, 1.0, 1.0);
+	gl_FragData[4] = vec4(transparency, 1.0);
 }
+/* DRAWBUFFERS:01235 */

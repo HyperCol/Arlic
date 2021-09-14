@@ -8,7 +8,7 @@ const int GL_EXP = 2048;
 
 uniform int fogMode;
 
-/* DRAWBUFFERS:0 */
+/* DRAWBUFFERS:0123 */
 
 
 void main() {

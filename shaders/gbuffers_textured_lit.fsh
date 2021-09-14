@@ -70,16 +70,14 @@ const int GL_EXP = 2048;
 const float bump_distance = 78.0f;
 const float fademult = 0.1f;
 
-
-
-
-
+#include "/libs/packing.glsl"
 
 void main() {	
+	vec4 albedo = texture(tex, texcoord.st) * color;
 
-if (texture(tex, texcoord.st).a == 0.0f){
-	//discard;
-}
+	if (albedo.a < 0.2){
+		discard;
+	}
 
 		
 	vec4 spec = texture(specular, texcoord.st);
@@ -119,23 +117,15 @@ if (texture(tex, texcoord.st).a == 0.0f){
 	
 			frag2 = vec4((normal) * 0.5f + 0.5f, 1.0f);		
 			
-	}
-
-	//Diffuse
-		vec4 albedo = texture(tex, texcoord.st) * color;
-		
-		gl_FragData[0] = albedo;
-		
+	}		
 
 	float mats_1 = 1.0f;
 		  mats_1 += 0.1f;
-	//Depth  
+
+	gl_FragData[0] = vec4(vec3(0.0), 0.2);
 	gl_FragData[1] = vec4(mats_1/255.0f, lightmap.r, lightmap.b, 1.0f);
-
-	//normal
 	gl_FragData[2] = frag2;
-		
-	//specularity
-	gl_FragData[3] = vec4(spec.r + spec.b + spec.g * wetness * wetfactor, 0.0f, 0.0f, 1.0f);	
-
+	gl_FragData[3] = vec4(pack2x8(spec.rg), 0.0f, 0.0f, 1.0f);	
+	gl_FragData[4] = vec4(albedo.rgb, 1.0);
 }
+/* DRAWBUFFERS:01235 */

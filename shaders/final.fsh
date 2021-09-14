@@ -631,8 +631,12 @@ void 	CalculateMasks(inout MaskStruct mask) {
 
 void AverageExposure(inout vec3 color)
 {
+	color /= Hardbaked_HDR;
+
 	float avglod = int(log2(min(viewWidth, viewHeight))) - 1;
-	//color /= pow(Luminance(textureLod(colortex2, vec2(0.5, 0.5), avglod).rgb), 2.2) / Hardbaked_HDR + 0.05;
+	color /= pow(Luminance(textureLod(colortex2, vec2(0.5, 0.5), avglod).rgb), 1.1) / Hardbaked_HDR * 0.2 + 1e-4;
+
+	color *= Hardbaked_HDR;
 }
 
 #include "/libs/tone.frag"
@@ -647,7 +651,7 @@ void main() {
 
 	mask.matIDs = GetMaterialIDs(texcoord.st);
 	CalculateMasks(mask);
-/*
+
 	#ifdef MOTION_BLUR
 		MotionBlur(tone.color);
 	#endif
@@ -661,7 +665,7 @@ void main() {
 	#else
 	CalculateExposure(tone.color);
 	#endif
-*/
+
 	Hue_Adjustment(tone);
 
 	//tone.color = GetColorTexture(texcoord.xy).rgb / Hardbaked_HDR * 10.0;

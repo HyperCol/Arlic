@@ -36,7 +36,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 */
 
 const bool		colortex2MipmapEnabled = true;
-/* DRAWBUFFERS:027 */
+/* DRAWBUFFERS:02 */
 
 uniform sampler2D colortex2;
 uniform sampler2D colortex7;
@@ -58,7 +58,7 @@ in vec4 texcoord;
 
 #define Hardbaked_HDR 0.001
 
-#include "/libs/antialiasing/taa.glsl"
+//#include "/libs/antialiasing/taa.glsl"
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,25 +130,22 @@ void main() {
 
 	gl_FragData[0] = vec4(bloom.rgb, 1.0f);
 
+	vec3 color = pow(textureLod(colortex2, texcoord.xy, 0).rgb, vec3(2.2));
+	color = color * (1.0 / Hardbaked_HDR);
+	color = color / (color + 1.0);
+	color = pow(color, vec3(1.0 / 2.2));
+
+	gl_FragData[1] = vec4(color, 1.0);
+
+/*
 	#ifdef Enabled_Temporal_Antialiasing
 	vec3 antialiasing = TemportalAntiAliasing(texcoord.st);
 	gl_FragData[1] = vec4(GAMMA_RGB(InverseTonemapping(antialiasing)), 1.0);
 	gl_FragData[2] = vec4(GAMMA_RGB(antialiasing), 1.0);
 	#else
 	vec3 color = texture2D(colortex2, texcoord.xy).rgb;
-
 	gl_FragData[1] = vec4(color, 1.0);
 	gl_FragData[2] = vec4(0.0);
 	#endif
-
-
-	/*
-	vec3 color = (RGB_GAMMA(texture2DLod(colortex2, texcoord.xy, 0).rgb) / Hardbaked_HDR);
-
-	if(max(color.r, max(color.g, color.b)) >= 1.0) color = vec3(1.0, 0.0, 0.0);
-
-	color = GAMMA_RGB(color);
-
-	gl_FragData[1] = vec4(color, 1.0);
-	*/
+*/
 }

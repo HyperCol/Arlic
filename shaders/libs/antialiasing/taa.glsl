@@ -1,5 +1,3 @@
-#define TAA_blend 0.95
-
 #if !defined _TAA_
 #define _TAA_
 
@@ -161,7 +159,7 @@ vec3 GAMMA_RGB(in vec3 c) {
     for(float i = -1.0; i <= 1.0; i += 1.0){
       for(float j = -1.0; j <= 1.0; j += 1.0){
         vec2 samplePosition = vec2(i, j);
-        vec3 sampleColor = RGB_YCoCg(Tonemapping(RGB_GAMMA(texture2DLod(colortex2, coord + samplePosition / vec2(viewWidth, viewHeight), 0).rgb)));
+        vec3 sampleColor = RGB_YCoCg(texture(colortex2, coord + samplePosition / vec2(viewWidth, viewHeight)).rgb);
 
         m1 += sampleColor;
         m2 += sampleColor * sampleColor;
@@ -178,7 +176,7 @@ vec3 GAMMA_RGB(in vec3 c) {
     minColor = m1 - stddev * scale;
     maxColor = m1 + stddev * scale;
 
-    vec3 centerColor = RGB_YCoCg(Tonemapping(RGB_GAMMA(texture2DLod(colortex2, coord, 0).rgb)));
+    vec3 centerColor = RGB_YCoCg((texture(colortex2, coord).rgb));
     minColor = min(minColor, centerColor);
     maxColor = max(maxColor, centerColor);
   }
@@ -187,7 +185,7 @@ void CalculateClampColor(in vec2 coord, inout vec3 minColor, inout vec3 maxColor
 	for(float i = -1.0; i <= 1.0; i += 1.0){
 		for(float j = -1.0; j <= 1.0; j += 1.0){
 			vec2 samplePosition = vec2(i, j);
-			vec3 sampleColor = RGB_YCoCg(Tonemapping(RGB_GAMMA(texture2DLod(colortex2, coord + samplePosition / vec2(viewWidth, viewHeight), 0).rgb)));
+			vec3 sampleColor = RGB_YCoCg((texture(colortex2, coord + samplePosition / vec2(viewWidth, viewHeight)).rgb));
 
 			minColor = min(minColor, sampleColor);
 			maxColor = max(maxColor, sampleColor);
@@ -199,12 +197,10 @@ void CalculateClampColor(in vec2 coord, inout vec3 minColor, inout vec3 maxColor
 vec3 TemportalAntiAliasing(in vec2 coord){
 	vec2 unjitter = coord + jitter;
 
-	vec3 currentColor = RGB_YCoCg(Tonemapping(RGB_GAMMA(texture2DLod(colortex2, unjitter, 0).rgb)));
+	vec3 currentColor = RGB_YCoCg((texture(colortex2, unjitter).rgb));
 	vec3 maxColor = vec3(-1.0);
 	vec3 minColor = vec3(1.0);
   ResolverAABB(unjitter, minColor, maxColor, 2.0);
-  //vec3 maxColor = currentColor;
-  //vec3 minColor = currentColor;
 	//CalculateClampColor(unjitter, minColor, maxColor);
 
 	vec3 closest = GetClosest(unjitter);	//vec3(unjitter, texture2D(depthtex0, unjitter).x)
@@ -212,12 +208,12 @@ vec3 TemportalAntiAliasing(in vec2 coord){
 
 	vec2 reprojectCoord = texcoord.st - velocity;
 
-	vec3 previousSample = RGB_YCoCg(RGB_GAMMA(ReprojectSampler(colortex7, reprojectCoord).rgb));
+	vec3 previousSample = RGB_YCoCg(ReprojectSampler(colortex7, reprojectCoord).rgb);
 
 	vec3 antialiasing = previousSample;
 	  	 antialiasing = clamp(antialiasing, minColor, maxColor);
 
-	float blend = TAA_blend;
+	float blend = 0.95;
 		    blend *= float(floor(reprojectCoord) == vec2(0.0));
 		    blend *= mix(1.0, 0.8, min(1.0, length(velocity * vec2(viewWidth, viewHeight))));
 

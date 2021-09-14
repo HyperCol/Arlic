@@ -46,8 +46,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 ///////////////////////////////////////////////////END OF ADJUSTABLE VARIABLES///////////////////////////////////////////////////
 
-/* DRAWBUFFERS:01235 */
-
 uniform sampler2D tex;
 uniform sampler2D lightmap;
 uniform sampler2D normals;
@@ -89,6 +87,7 @@ const int GL_EXP = 2048;
 const float bump_distance = 78.0f;
 const float fademult = 0.1f;
 
+#include "/libs/packing.glsl"
 
 void main() {	
 
@@ -126,6 +125,8 @@ void main() {
 	//Diffuse
 	vec4 albedo = texture(tex, texcoord.st) * color;
 
+	if(albedo.a < 0.2) discard;
+	albedo.a = 1.0;
 
 	albedo.rgb = mix(albedo.rgb, entityColor.rgb, entityColor.aaa);
 
@@ -136,10 +137,10 @@ void main() {
 
 	//normal
 	gl_FragData[2] = frag2;
-		
+	
 	//specularity
-	gl_FragData[3] = vec4(0.0f, 0.0f, 0.0f, 1.0f);	
-
-	gl_FragData[4] = frag2;		
+	vec4 spec = texture(specular, texcoord.st);
+	gl_FragData[3] = vec4(pack2x8(spec.rg), 0.0f, 0.0f, 1.0f);		
 
 }
+/* DRAWBUFFERS:0123 */

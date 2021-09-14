@@ -35,324 +35,249 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 */
 
-/* DRAWBUFFERS:2 */
+#define Hardbaked_HDR 0.001
 
-#define LF
+#define BANDING_FIX_FACTOR 1.0f
 
-const bool colortex5MipmapEnabled = true;
+#define BLOOM_EFFECTS
+    #define BLOOM_AMOUNT 1.0 // How strong the bloom effect is. [0.5 0.75 1.0 1.25 1.5]
+    #define ATMOSPHERIC_HAZE 1.0 // Amount of haziness added to distant land. [0.0 0.5 1.0 1.5 2.0] 
 
 uniform sampler2D colortex0;
-uniform sampler2D colortex1;
-uniform sampler2D gdepthtex;
 uniform sampler2D colortex2;
-uniform sampler2D colortex3;
+uniform sampler2D colortex7;
+uniform sampler2D gdepthtex;
 uniform sampler2D noisetex;
 
-uniform float aspectRatio;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform float rainStrength;
-
-uniform vec3 sunPosition;
-uniform vec3 moonPosition;
-
-uniform int   isEyeInWater;
-uniform int worldTime;
-
-uniform mat4 gbufferProjection;
-uniform float frameTimeCounter;
-in float timeSunrise;
-in float timeNoon;
-in float timeSunset;
-in float timeMidnight;
+uniform sampler2D depthtex0;
 
 in vec4 texcoord;
 
-float timeDay = 1.0 - timeMidnight;
-float timeNoonNight = timeMidnight + timeNoon;
-float timeSunriseSunset = 1.0 - timeNoonNight;
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferPreviousModelView;
+uniform mat4 gbufferPreviousProjection;
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float distratio(vec2 pos, vec2 pos2, float ratio) {
-    float xvect = pos.x*ratio-pos2.x*ratio;
-    float yvect = pos.y-pos2.y;
-    return sqrt(xvect*xvect + yvect*yvect);
+uniform vec3 cameraPosition;
+uniform vec3 previousCameraPosition;
+
+uniform float near;
+uniform float far;
+uniform float viewWidth;
+uniform float viewHeight;
+uniform float frameTimeCounter;
+
+uniform float rainStrength;
+
+uniform int   isEyeInWater;
+uniform ivec2 eyeBrightnessSmooth;
+
+#include "/libs/antialiasing/taa.glsl"
+
+vec3 	GetTextureLod(in sampler2D tex, in vec2 coord, in int level) {				//Perform a texture lookup with BANDING_FIX_FACTOR compensation
+	return pow(textureLod(tex, coord, level).rgb, vec3(BANDING_FIX_FACTOR + 1.2f));
 }
 
-float gen_circular_lens(vec2 center, float size) {
-    return 1.0-pow(min(distratio(texcoord.xy,center,aspectRatio),size)/size,10.0);
+vec3 	GetColorTexture(in vec2 coord) {
+	return GetTextureLod(colortex2, coord.st, 0).rgb;
 }
 
-vec2 noisepattern(vec2 pos) {
-    return vec2(abs(fract(sin(dot(pos ,vec2(18.9898f,28.633f))) * 4378.5453f)),abs(fract(sin(dot(pos.yx ,vec2(18.9898f,28.633f))) * 4378.5453f)));
-} 
-
-float yDistAxis (in float degrees) {
-	
-	vec4 tpos = vec4(sunPosition,1.0)*gbufferProjection;
-		 tpos = vec4(tpos.xyz/tpos.w,1.0);
-	vec2 lightPos = tpos.xy/tpos.z;
-		 lightPos = (lightPos + 1.0f)/2.0f;
-			 
-	return abs((lightPos.y-lightPos.x*(degrees))-(texcoord.y-texcoord.x*(degrees)));
-		
+float 	GetDepthLinear(in vec2 coord) {					//Function that retrieves the scene depth. 0 - 1, higher values meaning farther away
+	return 2.0f * near * far / (far + near - (2.0f * texture(gdepthtex, coord).x - 1.0f) * (far - near));
 }
 
-float ratioDist (in float lensDist) {
-
-	vec4 tpos = vec4(sunPosition,1.0)*gbufferProjection;
-		 tpos = vec4(tpos.xyz/tpos.w,1.0);
-	vec2 lightPos = tpos.xy/tpos.z*lensDist;
-		 lightPos = (lightPos + 1.0f)/2.0f;
-			 
-	return distratio(lightPos.xy,texcoord.xy,aspectRatio);
-		
+float Luminance(in vec3 color)
+{
+	return dot(color.rgb, vec3(0.2125f, 0.7154f, 0.0721f));
 }
 
-float smoothCircleDist (in float lensDist) {
-	vec4 tpos = vec4(sunPosition,1.0)*gbufferProjection;
-		 tpos = vec4(tpos.xyz/tpos.w,1.0);
-	vec2 lightPos = tpos.xy/tpos.z*lensDist;
-		 lightPos = (lightPos + 1.0f)/2.0f;
-			 
-	return distratio(lightPos.xy, texcoord.xy, aspectRatio);		
+vec4 cubic(float x)
+{
+    float x2 = x * x;
+    float x3 = x2 * x;
+    vec4 w;
+    w.x =   -x3 + 3*x2 - 3*x + 1;
+    w.y =  3*x3 - 6*x2       + 4;
+    w.z = -3*x3 + 3*x2 + 3*x + 1;
+    w.w =  x3;
+    return w / 6.f;
 }
 
-float hash( float n ) {
-	return fract(sin(n)*43758.5453);
+vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
+{
+	vec2 resolution = vec2(viewWidth, viewHeight);
+
+	coord *= resolution;
+
+	float fx = fract(coord.x);
+    float fy = fract(coord.y);
+    coord.x -= fx;
+    coord.y -= fy;
+
+    fx -= 0.5;
+    fy -= 0.5;
+
+    vec4 xcubic = cubic(fx);
+    vec4 ycubic = cubic(fy);
+
+    vec4 c = vec4(coord.x - 0.5, coord.x + 1.5, coord.y - 0.5, coord.y + 1.5);
+    vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
+    vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
+
+    vec4 sample0 = texture(tex, vec2(offset.x, offset.z) / resolution);
+    vec4 sample1 = texture(tex, vec2(offset.y, offset.z) / resolution);
+    vec4 sample2 = texture(tex, vec2(offset.x, offset.w) / resolution);
+    vec4 sample3 = texture(tex, vec2(offset.y, offset.w) / resolution);
+
+    float sx = s.x / (s.x + s.y);
+    float sy = s.z / (s.z + s.w);
+
+    return mix( mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
 }
-	
-float noise( in vec2 x ) {
-	vec2 p = floor(x);
-	vec2 f = fract(x);
-    	 f = f*f*(3.0-2.0*f);
-    float n = p.x + p.y*57.0;
-    float res = mix(mix( hash(n+  0.0), hash(n+  1.0),f.x), mix( hash(n+ 57.0), hash(n+ 58.0),f.x),f.y);
-    return res;
+
+struct BloomDataStruct
+{
+	vec3 blur0;
+	vec3 blur1;
+	vec3 blur2;
+	vec3 blur3;
+	vec3 blur4;
+	vec3 blur5;
+	vec3 blur6;
+
+	vec3 bloom;
+} bloomData;
+
+void 	CalculateBloom(inout BloomDataStruct bloomData) {		//Retrieve previously calculated bloom textures
+
+	//constants for bloom bloomSlant
+	const float    bloomSlant = 0.25f;
+	const float[7] bloomWeight = float[7] (pow(7.0f, bloomSlant),
+										   pow(6.0f, bloomSlant),
+										   pow(5.0f, bloomSlant),
+										   pow(4.0f, bloomSlant),
+										   pow(3.0f, bloomSlant),
+										   pow(2.0f, bloomSlant),
+										   1.0f
+										   );
+
+	vec2 recipres = vec2(1.0f / viewWidth, 1.0f / viewHeight);
+
+	bloomData.blur0  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(2.0f 	)) + 	vec2(0.0f, 0.0f)		+ vec2(0.000f, 0.000f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur1  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(3.0f 	)) + 	vec2(0.0f, 0.25f)		+ vec2(0.000f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur2  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(4.0f 	)) + 	vec2(0.125f, 0.25f)		+ vec2(0.025f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur3  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(5.0f 	)) + 	vec2(0.1875f, 0.25f)	+ vec2(0.050f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur4  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(6.0f 	)) + 	vec2(0.21875f, 0.25f)	+ vec2(0.075f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur5  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(7.0f 	)) + 	vec2(0.25f, 0.25f)		+ vec2(0.100f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+	bloomData.blur6  =  pow(BicubicTexture(colortex0, (texcoord.st - recipres * 0.5f) * (1.0f / exp2(8.0f 	)) + 	vec2(0.28f, 0.25f)		+ vec2(0.125f, 0.025f)	).rgb, vec3(1.0f + 1.2f));
+
+	// bloomData.blur2 *= vec3(0.5, 0.5, 2.0);
+	bloomData.blur4 *= vec3(1.0, 0.85, 0.85);
+	bloomData.blur5 *= vec3(0.85, 0.85, 1.2);
+
+ 	bloomData.bloom  = bloomData.blur0 * bloomWeight[0];
+ 	bloomData.bloom += bloomData.blur1 * bloomWeight[1];
+ 	bloomData.bloom += bloomData.blur2 * bloomWeight[2];
+ 	bloomData.bloom += bloomData.blur3 * bloomWeight[3];
+ 	bloomData.bloom += bloomData.blur4 * bloomWeight[4];
+ 	bloomData.bloom += bloomData.blur5 * bloomWeight[5];
+ 	bloomData.bloom += bloomData.blur6 * bloomWeight[6];
+
 }
- 
-float fbm( vec2 p ) {
-    float f = 0.0;
-          f += 0.50000*noise( p ); p = p*2.02;
-          f += 0.25000*noise( p ); p = p*2.03;
-          f += 0.12500*noise( p ); p = p*2.01;
-          f += 0.06250*noise( p ); p = p*2.04;
-          f += 0.03125*noise( p );
-		
-    return f/1.084375;
+
+void 	AddRainFogScatter(inout vec3 color, in BloomDataStruct bloomData)
+{
+	const float    bloomSlant = 1.0f;
+	const float[7] bloomWeight = float[7] (pow(7.0f, bloomSlant),
+										   pow(6.0f, bloomSlant),
+										   pow(5.0f, bloomSlant),
+										   pow(4.0f, bloomSlant),
+										   pow(3.0f, bloomSlant),
+										   pow(2.0f, bloomSlant),
+										   1.0f
+										   );
+
+	vec3 fogBlur = bloomData.blur0 * bloomWeight[6] +
+			       bloomData.blur1 * bloomWeight[5] +
+			       bloomData.blur2 * bloomWeight[4] +
+			       bloomData.blur3 * bloomWeight[3] +
+			       bloomData.blur4 * bloomWeight[2] +
+			       bloomData.blur5 * bloomWeight[1] +
+			       bloomData.blur6 * bloomWeight[0];
+
+	float fogTotalWeight = 	1.0f * bloomWeight[0] +
+			       			1.0f * bloomWeight[1] +
+			       			1.0f * bloomWeight[2] +
+			       			1.0f * bloomWeight[3] +
+			       			1.0f * bloomWeight[4] +
+			       			1.0f * bloomWeight[5] +
+			       			1.0f * bloomWeight[6];
+
+	fogBlur /= fogTotalWeight;
+
+	float linearDepth = GetDepthLinear(texcoord.st);
+
+	float fogDensity = 0.007f * (rainStrength);
+
+	fogDensity += 0.001 * ATMOSPHERIC_HAZE;
+
+	if (isEyeInWater > 0)
+		fogDensity = 0.2;
+
+	float visibility = 1.0f / (pow(exp(linearDepth * fogDensity), 1.0f));
+	float fogFactor = 1.0f - visibility;
+		  fogFactor = clamp(fogFactor, 0.0f, 1.0f);
+
+		  if (isEyeInWater < 1)
+		  fogFactor *= mix(0.0f, 1.0f, pow(eyeBrightnessSmooth.y / 240.0f, 6.0f));
+
+	color = mix(color, fogBlur, fogFactor * 1.0f);
 }
 
-vec2 texel = vec2(1.0/viewWidth,1.0/viewHeight);
-	
-#define deg2rad 3.14159 / 180.
-#define degrad 3.14159 / 10.
+void LowlightFuzziness(inout vec3 color, in BloomDataStruct bloomData)
+{
+	float lum = Luminance(color.rgb);
+	float factor = 1.0f - clamp(lum * 50000000.0f, 0.0f, 1.0f);
+	      //factor *= factor * factor;
 
-float hex(float lensDist, float size) {                        
-	
-	vec4 tpos = vec4(sunPosition,1.0)*gbufferProjection;
-		 tpos = vec4(tpos.xyz/tpos.w,1.0);
-	vec2 lightPos = tpos.xy/tpos.z*lensDist;
-		 lightPos = (lightPos + 1.0f)/2.0f;
-	
-	vec2 uv = texcoord.xy;	
-		size *= (viewHeight + viewWidth) / 1920.0;
-	
-	vec2 v = (lightPos / texel) - (uv / texel);			
-    vec2 topBottomEdge = vec2(0., 1.);
-	vec2 leftEdges = vec2(cos(30.*deg2rad), sin(30.*deg2rad));
-	vec2 rightEdges = vec2(cos(30.*deg2rad), sin(30.*deg2rad));
 
-	float dot1 = dot(abs(v), topBottomEdge);
-	float dot2 = dot(abs(v), leftEdges);
-	float dot3 = dot(abs(v), rightEdges);
+	float time = frameTimeCounter * 4.0f;
+	vec2 coord = texture(noisetex, vec2(time, time / 64.0f)).xy;
+	vec3 snow = BicubicTexture(noisetex, (texcoord.st + coord) / (512.0f / vec2(viewWidth, viewHeight))).rgb;	//visual snow
+	vec3 snow2 = BicubicTexture(noisetex, (texcoord.st + coord) / (128.0f / vec2(viewWidth, viewHeight))).rgb;	//visual snow
 
-	float dotMax = max(max((dot1), (dot2)), (dot3));
-		
-	return max(0.0, mix(0.0, mix(1.0, 1.0, floor(size - dotMax*1.1 + 0.99 )), floor(size - dotMax + 0.99 ))) * 0.1;
-}	
+	vec3 rodColor = vec3(0.2f, 0.4f, 1.0f) * 2.5;
+	vec3 rodLight = dot(color.rgb + snow.r * 0.0000000005f, vec3(0.0f, 0.6f, 0.4f)) * rodColor;
+	color.rgb = mix(color.rgb, rodLight, vec3(factor));	//visual acuity loss
 
-float Rectangle(float lensDist, float size) {                        
-	
-	vec4 tpos = vec4(sunPosition,1.0)*gbufferProjection;
-		 tpos = vec4(tpos.xyz/tpos.w,1.0);
-	vec2 lightPos = tpos.xy/tpos.z*lensDist;
-		 lightPos = (lightPos + 1.0f)/2.0f;
-	
-	vec2 uv = texcoord.xy;	
-		size *= (viewHeight + viewWidth) / 1920.0;
-		
-	vec2 v = (lightPos / texel) - (uv / texel);			
-    vec2 topBottomEdge = vec2(0., 1.);
-	vec2 leftEdges = vec2(cos(30.*degrad), sin(30.*degrad));
-	vec2 rightEdges = vec2(cos(30.*degrad), sin(30.*degrad));
+	color.rgb += snow.rgb * snow2.rgb * snow.rgb * 0.000000002f;
 
-	float dot1 = dot(abs(v), topBottomEdge);
-	float dot2 = dot(abs(v), leftEdges);
-	float dot3 = dot(abs(v), rightEdges);
 
-	float dotMax = max(max((dot1), (dot2)), (dot3));
-		
-	return max(0.0, mix(0.0, mix(1.0, 1.0, floor(size - dotMax*1.1 + 0.99 )), floor(size - dotMax + 0.99 ))) * 0.1;
-}		
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void main() {
-	vec4 color = texture(colortex2, texcoord.xy);
-		 color.a = 1.0;
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	vec3 sunPos = sunPosition;
-	
-	vec4 tpos = vec4(sunPosition,1.0)*gbufferProjection;
-         tpos = vec4(tpos.xyz/tpos.w,1.0);
-		 
-    vec2 lightPos = tpos.xy/tpos.z;
-		 lightPos = (lightPos + 1.0f)/2.0f;
+}
 
-    float distof = min(min(1.0-lightPos.x,lightPos.x),min(1.0-lightPos.y,lightPos.y));
-	float fading = clamp(1.0-step(distof,0.1)+pow(distof*10.0,5.0),0.0,1.0);		 
-	
-	float time = float(worldTime);
-	float transition_fading = 1.0-(clamp((time-12000.0)/500.0,0.0,1.0)-clamp((time-13000.0)/500.0,0.0,1.0) + clamp((time-22500.0)/100.0,0.0,1.0)-clamp((time-23300.0)/200.0,0.0,1.0));	 
-	
-    float sunvisibility = min(float(texture(colortex1, lightPos).r == 0), 1.0) * fading * transition_fading;
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+void main()
+{
+    vec3 color = GetColorTexture(texcoord.st);	//Sample color texture
 
-	float lensBrightness = 0.0;
-	float lensExpDT = 1.0;
+	vec3 antialiasing = vec3(0.0);
 
-	#ifdef LF
-		if (isEyeInWater < 0.5){
-			lensBrightness = lensExpDT * 0.8 - 0.5 * timeSunrise - 0.6 * timeSunset;	  
-		}else{
-			lensBrightness = 0;	 
-		}
-	#else
-			lensBrightness = 0;	 
+	#ifdef Enabled_Temporal_Antialiasing
+	antialiasing = RGB_GAMMA(TemportalAntiAliasing(texcoord.st));
+	color = antialiasing;
 	#endif
-    float truepos = 0.0f;
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-	if ((worldTime < 13000 || worldTime > 23000) && sunPos.z < 0) truepos = 1.0 * (timeNoon + timeSunriseSunset); 
-		if ((worldTime < 23000 || worldTime > 13000) && -sunPos.z < 0) truepos = 1.0 * timeMidnight;
-if (sunvisibility > 0.01) {	
-	vec2 q = texcoord.xy + texcoord.x * 0.4;
-	vec2 p = -1.0 + 3.0 * q;
-	vec2 p2 = -1.0 + 3.0 * q + vec2(10.0, 10.0);
-    float f = fbm(15.0 * p);
-	float f2 = fbm(10.0 * p2);	 
-	float cover = 0.4f;
-	float sharpness = 0.99 * sunvisibility;
-	float c = f - (1.0 - cover);
-	if ( c < 0.0 )
-		  c = 0.0;			
-		  f = 1.0 - (pow(1.0 - sharpness, c));
-	float c2 = f2 - (1.0 - cover);
-	if ( c2 < 0.0 )
-		  c2 = 0.0;			
-		  f2 = 1.0 - (pow(1.0 - sharpness, c2));
-	float dirtylens = (f * 2.0) + (f2 / 1);
 
-	
-    float visibility = max(pow(max(1.2 - smoothCircleDist(1.0)/0.9,0.1),2.0)-0.1,0.0);
-	
-	vec3 dirtcolorSunriseset = vec3(2.00, 0.9, 0.3) * 0.4 * timeSunriseSunset;
-	vec3 dirtcolorNoon = vec3(2.52, 2.25, 2.25) * 0.4 * timeNoon;
-	vec3 dirtcolorNight = vec3(0.8, 1.0, 1.3) * 0.03 * timeMidnight;					
-	vec3 dirtcolor = dirtcolorSunriseset + dirtcolorNoon + dirtcolorNight;
-	
-	float lens_strength = 0.045 * lensBrightness;
-	     dirtcolor *= lens_strength;
-	color += vec4((dirtylens*visibility*truepos)*dirtcolor * 0.05*(1.0-rainStrength*1.0),1.0);
+	color = -color / (color - 1.0);
+	color *= Hardbaked_HDR;
+
+    #ifdef BLOOM_EFFECTS
+
+	CalculateBloom(bloomData);			//Gather bloom textures
+	color = mix(color, bloomData.bloom, vec3(0.0100f * BLOOM_AMOUNT));
+
+    AddRainFogScatter(color, bloomData);
+	#endif
+
+    gl_FragData[0] = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
+    gl_FragData[1] = vec4(GAMMA_RGB(antialiasing), 1.0);
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-if (sunvisibility > 0.01) {
-			
-	float visibility = max(pow(max(1.0 - smoothCircleDist(1.0)/1.1,0.1),1.0)-0.1,0.0);
-			
-	vec3 lenscolorSunrise = vec3(0.3, 1.3, 2.55) * timeSunriseSunset;
-	vec3 lenscolorNoon = vec3(0.4, 1.5, 2.55) * timeNoon;
-	vec3 lenscolorNight = vec3(0.6, 0.8, 1.3) * timeMidnight;
-				
-	vec3 lenscolor = lenscolorSunrise + lenscolorNoon + lenscolorNight * 0.1;
-
-	float lens_strength = 0.008 * lensBrightness;
-	lenscolor *= lens_strength;
-				
-	float anamorphic_lens = max(pow(max(1.0 - yDistAxis(0.0)/0.25,0.1),10.0)-0.3,0.0);
-	color += vec4(anamorphic_lens * lenscolor * visibility * truepos * sunvisibility * (1.0-rainStrength*1.0),1.0);			
-}
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-if (sunvisibility > 0.01) {
-											
-	float hex0 = clamp(hex(-0.1, 100.0), 0.0, 0.8);
-	float hex1 = clamp(hex(-0.3, 40.0), 0.0, 0.8);
-    float hex2 = clamp(hex(-0.7, 55.0), 0.1, 0.8);
-	float hex3 = clamp(hex(-1.0, 90.0), 0.0, 0.8);
-	float hex4 = clamp(hex(-0.5, 120.0), 0.0, 0.8);
-	
-	float Sun = clamp(hex(1.0, 50.0), 0.9, 0.8);	
-	
-	vec3 hexColor = hex0 * vec3(0.4, 1.0, 1.0);
-	vec3 hex1Color = hex1 * vec3(0.2, 0.6, 1.0);
-	vec3 hex2Color = hex2 * vec3(0.15, 0.45, 1.0);
-	vec3 hex3Color = hex3 * vec3(0.1, 0.4, 1.0);
-	vec3 hex4Color = hex4 * vec3(0.1, 0.3, 1.0);
-	
-	vec3 SunColor = Sun * vec3(1.1, 0.7, 0.0) * 0.25;
-	
-	vec3 hexagon = hexColor + hex1Color + hex2Color + hex3Color + hex4Color + SunColor;
-				
-    color += vec4(hexagon * 0.0025 * lensBrightness * (1.0-rainStrength) * (timeSunriseSunset + timeNoon) * sunvisibility,1.0);				
-}
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-if (rainStrength > 0.01) {
-		const float pi = 3.14159265359;
-		float raindrops = 0.0;
-		float time2 = frameTimeCounter * 0.2;
-		float fake_refract  = sin(texcoord.x*30.0 + texcoord.y*50.0);
-        vec3 watercolor = textureLod(colortex2, texcoord.st + fake_refract * 0.0075, 2).rgb;
-			 watercolor = pow(watercolor, vec3(2.2));
-			 
-		float gen = cos(time2*pi)*0.5+0.5;
-		vec2 pos = noisepattern(vec2(0.9347*floor(time2*0.5+0.5),-0.2533282*floor(time2*0.5+0.5)));
-		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
-
-		gen = cos(time2*pi)*0.5+0.5;
-		pos = noisepattern(vec2(0.785282*floor(time2*0.5+0.5),-0.285282*floor(time2*0.5+0.5)));
-		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
-
-		gen = sin(time2*pi)*0.5+0.5;
-		pos = noisepattern(vec2(-0.347*floor(time2*0.5+0.5),0.6847*floor(time2*0.5+0.5)));
-		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
-
-		gen = cos(time2*pi)*0.5+0.5;
-		pos = noisepattern(vec2(0.3347*floor(time2*0.5+0.5),-0.2533282*floor(time2*0.5+0.5)));
-		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
-
-		gen = cos(time2*pi)*0.5+0.5;
-		pos = noisepattern(vec2(0.385282*floor(time2*0.5+0.5),-0.185282*floor(time2*0.5+0.5)));
-		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
-		
-		gen = cos(time2*pi)*0.5+0.5;
-		pos = noisepattern(vec2(0.385282*floor(time2*0.5+0.5),0.285282*floor(time2*0.5+0.5)));
-		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
-		
-		gen = cos(time2*pi)*0.5+0.5;
-		pos = noisepattern(vec2(0.385282*floor(time2*0.5+0.5),-0.385282*floor(time2*0.5+0.5)));
-		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
-		
-		gen = cos(time2*pi)*0.5+0.5;
-		pos = noisepattern(vec2(0.385282*floor(time2*0.5+0.5),-0.85282*floor(time2*0.5+0.5)));
-		raindrops += gen_circular_lens(pos,0.033)*gen*rainStrength;
-		
-		color += vec4(raindrops*watercolor * 300.0,1.0);				
-}		
-	gl_FragData[0] = color;
-}
+/* DRAWBUFFERS:27 */

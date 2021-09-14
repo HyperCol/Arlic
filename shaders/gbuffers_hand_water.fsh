@@ -117,11 +117,8 @@ void main() {
 
 	//Diffuse
 	vec4 albedo = texture(tex, texcoord.st) * color;
-		
-	if(albedo.a < 0.2) discard;
 	albedo.a = 1.0;
-
-	gl_FragData[0] = albedo;
+	gl_FragData[0] = vec4(vec3(0.0), 0.2);
 		
 
 	float mats_1 = 5.0f;
@@ -134,5 +131,6 @@ void main() {
 		
 	//specularity
 	gl_FragData[3] = vec4(pack2x8(spec.rg), 0.0f, 0.0f, 1.0f);	
+	gl_FragData[4] = vec4(albedo.rgb, 1.0);
 }
-/* DRAWBUFFERS:0123 */
+/* DRAWBUFFERS:01235 */

@@ -6,8 +6,8 @@
 uniform vec2 jitter;
 
 void TAAProjection(inout vec4 c) {
-    #ifdef Enbaled_Temporal_Antialiasing
-    c.xy += jitter * c.w * 2.0;
+    #ifdef Enabled_Temporal_Antialiasing
+    c.xy -= jitter * c.w * 2.0;
     #endif
 }
 
