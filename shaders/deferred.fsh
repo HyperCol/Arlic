@@ -350,7 +350,7 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 		float d = sqrt(worldposition.x * worldposition.x + worldposition.y * worldposition.y);
 		float distortFactor = (1.0f - SHADOW_MAP_BIAS) + d * SHADOW_MAP_BIAS;
 		//worldposition.xy /= distortFactor;
-		//worldposition.z = mix(worldposition.z, 0.5, 0.8);
+		worldposition.z = mix(worldposition.z, 0.5, 0.8);
 		worldposition = worldposition * 0.5f + 0.5f;		//Transform from shadow projection space to shadow map coordinates
 
 		float shadowMult = 0.0f;														//Multiplier used to fade out shadows at distance
@@ -406,7 +406,7 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 					depthSample = depthSample * 0.5 + 0.5;
 					*/
 
-					depthSample = -3 + 5.0 * depthSample;
+					//depthSample = -3 + 5.0 * depthSample;
 					vec3 samplePos = vec3(coord.x, coord.y, depthSample);
 
 
@@ -698,6 +698,16 @@ vec3 GetWavesNormal(vec3 position) {
 
 
 	return wavesNormal.rgb;
+}
+
+uniform vec2 jitter;
+
+float R2Dither(vec2 coord){
+	vec2 alpha = vec2(0.75487765, 0.56984026);
+	
+	coord *= vec2(viewWidth, viewHeight);
+
+	return fract(alpha.x * coord.x + alpha.y * coord.y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
