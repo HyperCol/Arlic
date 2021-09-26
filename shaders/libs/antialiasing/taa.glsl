@@ -16,7 +16,7 @@ vec3 Tonemapping(in vec3 c) {
 }
 
 vec3 InverseTonemapping(in vec3 c) {
-  return (-c / min(vec3(1e-5), c - 1.0)) * Hardbaked_HDR;
+  return (-c / (c - 1.0)) * Hardbaked_HDR;
 }
 
 vec3 RGB_GAMMA(in vec3 c) {
@@ -197,25 +197,24 @@ void CalculateClampColor(in vec2 coord, inout vec3 minColor, inout vec3 maxColor
 vec3 TemportalAntiAliasing(in vec2 coord){
 	vec2 unjitter = coord + jitter;
 
-	vec3 currentColor = RGB_YCoCg((texture(colortex2, unjitter).rgb));
+	vec3 currentColor = RGB_YCoCg((texture(colortex2, coord).rgb));
 	vec3 maxColor = vec3(-1.0);
 	vec3 minColor = vec3(1.0);
-  ResolverAABB(unjitter, minColor, maxColor, 2.0);
+  ResolverAABB(coord, minColor, maxColor, 4.0);
 	//CalculateClampColor(unjitter, minColor, maxColor);
 
-	vec3 closest = GetClosest(unjitter);	//vec3(unjitter, texture2D(depthtex0, unjitter).x)
+	vec3 closest = GetClosest(coord);	//vec3(unjitter, texture2D(depthtex0, unjitter).x)
 	vec2 velocity = CalculateVector(closest);
 
-	vec2 reprojectCoord = texcoord.st - velocity;
+	vec2 reprojectCoord = coord - velocity;
 
 	vec3 previousSample = RGB_YCoCg(ReprojectSampler(colortex7, reprojectCoord).rgb);
 
 	vec3 antialiasing = previousSample;
-	  	 antialiasing = clamp(antialiasing, minColor, maxColor);
+	  	 antialiasing = clipToAABB(antialiasing, minColor, maxColor);
 
-	float blend = 0.95;
+	float blend = 0.95 - 0.1 * min(2.0, length(velocity * vec2(viewWidth, viewHeight)));
 		    blend *= float(floor(reprojectCoord) == vec2(0.0));
-		    blend *= mix(1.0, 0.8, min(1.0, length(velocity * vec2(viewWidth, viewHeight))));
 
 	antialiasing = mix(currentColor, antialiasing, blend);
 
