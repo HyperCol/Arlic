@@ -385,7 +385,7 @@ bool  	GetSky(in vec2 coord) {					//Function that returns true for any pixel th
 }
 
 float 	GetMaterialMask(in vec2 coord ,const in int ID, in float matID) {
-	matID = (matID * 255.0f);
+	matID = floor(matID * 255.0f);
 
 	//Catch last part of sky
 	if (matID > 254.0f) {
@@ -3426,7 +3426,6 @@ void main() {
 	#endif
 
 	//finalComposite = pow(texture2D(colortex3, texcoord.xy).rgb, vec3(2.2));
-
 	finalComposite *= Hardbaked_HDR;												//Scale image down for HDR
 	finalComposite.b *= 1.0f;
 
