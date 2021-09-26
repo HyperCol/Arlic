@@ -1877,7 +1877,17 @@ void main() {
 		vec3 sky = surface.albedo * mcLightmap.sky * colorSkylight * 0.06;
 		vec3 torch = surface.albedo * mcLightmap.torch * 100.0 * colorTorchlight * TORCHLIGHT_BRIGHTNESS;
 
-		finalComposite = sun + sky + torch;
+		float sigma_s = 1.0;
+
+		if(surface.mask.ice > 0.9) {
+			sigma_s = 0.05;
+		}else if(surface.mask.water > 0.9){
+			sigma_s = 0.0;
+		}else if(surface.mask.stainedGlass > 0.9) {
+			sigma_s = 0.0;
+		}
+
+		finalComposite = mix(finalComposite, sun + sky + torch, vec3(sigma_s));
 	}
 
 	#ifdef ATMOSPHERIC_SCATTERING

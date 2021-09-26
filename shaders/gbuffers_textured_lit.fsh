@@ -78,6 +78,8 @@ void main() {
 	if (albedo.a < 0.2){
 		discard;
 	}
+	
+	albedo.a = 1.0;
 
 		
 	vec4 spec = texture(specular, texcoord.st);
