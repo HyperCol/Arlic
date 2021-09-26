@@ -560,6 +560,7 @@ position.xyz -= cameraPosition.xyz;
 		}
 	}
 
+	//normal = mat3(shadowModelView) * normal;
 
 	//position.z += pow(max(0.0, 1.0 - dot(normal, vec3(0.0, 0.0, 1.0))), 4.0) * 0.001;
 	//position.z -= pow(clamp(dot(normal, vec3(0.0, 0.0, -1.0)) * 10.0, 0.0, 1.0), 1.0) * 0.016;
