@@ -1870,7 +1870,7 @@ void main() {
 	WaterFog(finalComposite, surface, mcLightmap);
 	IceFog(finalComposite, surface, mcLightmap);
 
-	if(texture(colortex0, texcoord.xy).a <= 0.2) {
+	if(texture(colortex0, texcoord.xy).a <= 0.2 && texture(depthtex0, texcoord.xy).x < 1.0 - 1e-5) {
 		vec3 sun = surface.albedo * colorSunlight * shading.sunlightVisibility * (1.0 - rainStrength);
 		vec3 sky = surface.albedo * mcLightmap.sky * colorSkylight * 0.06;
 		vec3 torch = surface.albedo * mcLightmap.torch * 10.0 * colorTorchlight * TORCHLIGHT_BRIGHTNESS;

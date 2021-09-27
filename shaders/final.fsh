@@ -527,7 +527,7 @@ void 	MotionBlur(inout vec3 color) {
 void CalculateExposure(inout vec3 color) {
 	float exposureMax = 1.55f;
 		  exposureMax *= mix(1.0f, 0.25f, timeSunriseSunset);
-		  exposureMax *= mix(1.0f, 0.0f, timeMidnight);
+		  exposureMax *= mix(1.0f, 0.25, timeMidnight);
 		  exposureMax *= mix(1.0f, 0.25f, rainStrength);
 	float exposureMin = 0.07f;
 	float exposure = pow(eyeBrightnessSmooth.y / 240.0f, 6.0f) * exposureMax + exposureMin;

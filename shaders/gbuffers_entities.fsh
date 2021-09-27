@@ -42,8 +42,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define NORMAL_MAP_MAX_ANGLE 1.0f   		//The higher the value, the more extreme per-pixel normal mapping (bump mapping) will be.
 #define TILE_RESOLUTION 128
 
-//#define PARALLAX
-
 ///////////////////////////////////////////////////END OF ADJUSTABLE VARIABLES///////////////////////////////////////////////////
 
 uniform sampler2D tex;

@@ -206,6 +206,7 @@ option.WATER_CAUSTICS=水的焦散
 option.TEXTURE_RESOLUTION=视差材质适配分辨率
 option.PARALLAX=视差效果
 option.PARALLAX_SHADOW=视差阴影
+option.Emissive_Luminance=自发光强度
 
 option.FORCE_WET_EFFECT=雨天地面积水
 option.MOTION_BLUR=动态模糊

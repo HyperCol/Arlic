@@ -56,6 +56,8 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define NEW_SKY_LIGHT
 //#define Disabled_SkyLight_Occlusion
 
+#define Emissive_Luminance	1.0		//[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.25 2.5 2.75 3.0 4.0]
+
 //---------------Atmosphere&Sky---------------//
 
 //Clouds
@@ -3365,7 +3367,7 @@ void main() {
 		 finalComposite += final.glow.fire			* 0.025f 	* TORCHLIGHT_BRIGHTNESS;
 		 finalComposite += final.glow.torch			* 0.15f 	* TORCHLIGHT_BRIGHTNESS;
 		 finalComposite += final.heldLight 			* 0.05f 	* TORCHLIGHT_BRIGHTNESS;
-		 finalComposite += emissive * surface.albedo;
+		 finalComposite += emissive * surface.albedo * Emissive_Luminance;
 						
 
 	delta.rgb *= mix(vec3(1.0), vec3(0.1, 0.3, 1.0) * 1.0, surface.mask.water);

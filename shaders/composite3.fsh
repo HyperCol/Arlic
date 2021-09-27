@@ -2830,8 +2830,7 @@ void main() {
 		SmoothSky(surface);
 	#endif
 
-	if (surface.mask.water || surface.mask.ice)
-		surface.sunlightVisibility = vec3(1.0);
+	if (surface.mask.water || surface.mask.ice) surface.sunlightVisibility = vec3(1.0);
 
 	WaterRefraction(surface);
 
