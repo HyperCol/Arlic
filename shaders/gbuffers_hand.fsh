@@ -133,6 +133,6 @@ void main() {
 	gl_FragData[2] = frag2;
 		
 	//specularity
-	gl_FragData[3] = vec4(pack2x8(spec.rg), 0.0f, 0.0f, 1.0f);	
+	gl_FragData[3] = vec4(pack2x8(spec.rg), pack2x8(spec.ba), 0.0f, 1.0f);	
 }
 /* DRAWBUFFERS:0123 */

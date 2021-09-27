@@ -140,7 +140,7 @@ void main() {
 	
 	//specularity
 	vec4 spec = texture(specular, texcoord.st);
-	gl_FragData[3] = vec4(pack2x8(spec.rg), 0.0f, 0.0f, 1.0f);		
+	gl_FragData[3] = vec4(pack2x8(spec.rg), pack2x8(spec.ba), 0.0f, 1.0);		
 
 }
 /* DRAWBUFFERS:0123 */

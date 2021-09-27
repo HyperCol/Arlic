@@ -535,7 +535,7 @@ void CalculateExposure(inout vec3 color) {
 	//exposure = 1.0f;
 
 	color.rgb /= vec3(exposure);
-	color.rgb *= 350.0;
+	//color.rgb *= 350.0;
 }
 
 float   CalculateSunspot() {

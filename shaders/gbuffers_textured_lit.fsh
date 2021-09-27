@@ -92,7 +92,7 @@ void main() {
 	lightmap.b = clamp((lmcoord.t * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
 
 	lightmap.b = pow(lightmap.b, 1.0f);
-	lightmap.r = pow(lightmap.r, 3.0f);
+	lightmap.r = pow(lightmap.r, 1.0f);
 
 	float wetfactor = clamp(lightmap.b - 0.9f, 0.0f, 0.1f) / 0.1f;
 	
@@ -127,7 +127,7 @@ void main() {
 	gl_FragData[0] = vec4(vec3(0.0), 0.2);
 	gl_FragData[1] = vec4(mats_1/255.0f, lightmap.r, lightmap.b, 1.0f);
 	gl_FragData[2] = frag2;
-	gl_FragData[3] = vec4(pack2x8(spec.rg), 0.0f, 0.0f, 1.0f);	
+	gl_FragData[3] = vec4(pack2x8(spec.rg), pack2x8(spec.ba), 0.0f, 1.0);	
 	gl_FragData[4] = vec4(albedo.rgb, 1.0);
 }
 /* DRAWBUFFERS:01235 */

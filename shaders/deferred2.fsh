@@ -2886,19 +2886,22 @@ float hash(in vec2 p) { // replace this by something better
 }
 
 void CalStar(in SurfaceStruct surface, inout vec3 color) {
-
 	vec3 direction = normalize(surface.worldSpacePosition.xyz);
-	vec3 n = abs(direction);
 
 	vec2 tracing = RaySphereIntersection(vec3(0.0, 0.0, 0.0), direction, vec3(0.0), 600.0);
 	vec2 tracingPlanet = RaySphereIntersection(vec3(0.0, 6360e3 + 0.5, 0.0), direction, vec3(0.0), 6360e3);
 
-	vec3 wP = direction * (tracing.x > 0.0 ? tracing.x : max(0.0, tracing.y));
+	float planet_angle = 0.125 * 2.0 * 3.14159265;
+	mat2 planet_rotateXorZ = mat2(cos(planet_angle), -sin(planet_angle), sin(planet_angle), cos(planet_angle));
+	direction.xy *= planet_rotateXorZ;
 
-    float time_angle = frameTimeCounter * 0.0001 * 2.0 * 3.14159265;
+    float time_angle = frameTimeCounter / (2400.0) * 2.0 * 3.14159265;
     mat3 time_rotate = mat3(vec3(cos(time_angle), 0.0, sin(time_angle)), vec3(0.0, 1.0, 0.0), vec3(-sin(time_angle), 0.0, cos(time_angle)));
+	direction *= time_rotate;
 
-	wP.xyz *= time_rotate;
+	vec3 n = abs(direction);
+
+	vec3 wP = direction * (tracing.x > 0.0 ? tracing.x : max(0.0, tracing.y));
 
 	vec3 coord3 = n.x > max(n.y, n.z) ? wP.yzx : 
 				  n.y > max(n.x, n.z) ? wP.zxy : wP.xyz;
@@ -3026,7 +3029,7 @@ vec4 CalculateNearVolumetric(inout SurfaceStruct surface){
 
 	for(int i = 0; i < steps; i++){
 		float rayLength = length(rayPosition.xyz);
-		if(bool(step(viewLength, rayLength))) break;
+		if(viewLength < rayLength) break;
 
 		vec4 shadowCoord = shadowProjection *  shadowModelView * rayPosition; shadowCoord /= shadowCoord.w;
 		float distortion = 0.95 / mix(1.0 - SHADOW_MAP_BIAS, 1.0, length(shadowCoord.xy));
@@ -3179,9 +3182,12 @@ void main() {
 	vec3 eyeDirection = -normalize(surface.screenSpacePosition.xyz);
 
 	vec2 decode_spec_rg = unpack2x8(texture(colortex3, texcoord.xy).r);
+	vec2 decode_spec_ba = unpack2x8(texture(colortex3, texcoord.xy).g);
 	float 	smoothness 	= min(decode_spec_rg.r, 0.999);
 	float 	metallic 	= decode_spec_rg.g;
 	float 	roughness 	= pow(1.0 - smoothness, 2.0);
+	float	emissive	= floor(decode_spec_ba.y * 255.0);
+			emissive	= emissive > 254.5 ? 0.0 : emissive / 255.0;
 
 	//Calculate surface shading
 	CalculateNdotL(surface);
@@ -3309,7 +3315,7 @@ void main() {
 	//final.glow.torch 				= pow(surface.albedo, vec3(4.0f)) * float(surface.mask.torch);
 	final.glow.lava 				= Glowmap(surface.albedo, surface.mask.lava,      4.0f, vec3(1.0f, 0.05f, 0.001f));
 
-	final.glow.glowstone 			= Glowmap(surface.albedo, surface.mask.glowstone, 2.0f, colorTorchlight*0.1);
+	final.glow.glowstone 			= Glowmap(surface.albedo, surface.mask.glowstone, 2.0f, colorTorchlight);
 	//final.glow.glowstone 		   *= (sin(frameTimeCounter * 3.1415f / 3.0f) * 0.5f + 0.5f) * 3.0f + 1.0f;
 	final.torchlight 			   *= 1.0f - (surface.mask.glowstone);
 
@@ -3344,8 +3350,6 @@ void main() {
 
 	DoNightEye(final.nolight);
 
-
-
 	surface.cloudShadow = 1.0f;
 	const float sunlightMult = 0.63;
 
@@ -3357,10 +3361,11 @@ void main() {
 		 finalComposite += final.scatteredSunlight 	* 0.02f		* (1.0f - sunlightMult);					//Add fake scattered sunlight					
 		 finalComposite += final.torchlight 			* 100.0f 		* TORCHLIGHT_BRIGHTNESS;	//Add light coming from emissive blocks
 		 finalComposite += final.glow.lava			* 1.6f 		* TORCHLIGHT_BRIGHTNESS;
-		 finalComposite += final.glow.glowstone		* 1.1f 		* TORCHLIGHT_BRIGHTNESS;
+		 finalComposite += final.glow.glowstone		* 0.1f 		* TORCHLIGHT_BRIGHTNESS;
 		 finalComposite += final.glow.fire			* 0.025f 	* TORCHLIGHT_BRIGHTNESS;
 		 finalComposite += final.glow.torch			* 0.15f 	* TORCHLIGHT_BRIGHTNESS;
 		 finalComposite += final.heldLight 			* 0.05f 	* TORCHLIGHT_BRIGHTNESS;
+		 finalComposite += emissive * surface.albedo;
 						
 
 	delta.rgb *= mix(vec3(1.0), vec3(0.1, 0.3, 1.0) * 1.0, surface.mask.water);

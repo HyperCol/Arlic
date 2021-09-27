@@ -248,14 +248,14 @@ vec4 GetTexture(in sampler2D tex, in vec2 coord)
 {
 	#ifdef PARALLAX
 		vec4 t = vec4(0.0f);
-		if (distance < 20.0f)
-		{
-			t = textureLod(tex, coord, 0);
-		}
-		else
-		{
+		//if (distance < 20.0f)
+		//{
+		//	t = textureLod(tex, coord, 0);
+		//}
+		//else
+		//{
 			t = texture(tex, coord);
-		}
+		//}
 		return t;
 	#else
 		return texture(tex, coord);
@@ -489,6 +489,7 @@ void main() {
 
 	//Diffuse
 	vec4 albedo = GetTexture(tex, parallaxCoord.st) * color;
+		 albedo.a = albedo.a < 0.2 ? 0.0 : 1.0;
 
 
 		//sunlightVisibility *= clamp(dot(frag2.rgb * 2.0f - 1.0f, normalize(sunPosition.xyz)), 0.0f, 1.0f);
@@ -579,13 +580,11 @@ void main() {
 	float material_smoothness = materialData.r;
 	float material_metallic = materialData.g;
 	float material_id = materialData.b;
-	float material_emissive = materialData.a * step(materialData.a, 0.999);
+	float material_emissive = materialData.a;
 
 	//encode smoothness and metallic
 	float encode_spec_rg = pack2x8(vec2(material_smoothness, material_metallic));
-
-	if(albedo.a < 0.2) discard;
-	albedo.a = 1.0;
+	float encode_spec_ba = pack2x8(vec2(material_id, material_emissive));
 
 	gl_FragData[0] = albedo;
 
@@ -596,6 +595,6 @@ void main() {
 	gl_FragData[2] = frag2;
 		
 	//specularity
-	gl_FragData[3] = vec4(encode_spec_rg, material_id, 1.0 - parallaxShadow, 1.0f);	
+	gl_FragData[3] = vec4(encode_spec_rg, encode_spec_ba, 1.0 - parallaxShadow, material_emissive);	
 }
 /* DRAWBUFFERS:0123 */

@@ -288,7 +288,7 @@ float 	GetLightmapTorch(in vec2 coord) {			//Function that retrieves the lightma
 	lightmap 		*= 0.008f;
 	lightmap 		= clamp(lightmap, 0.0f, 1.0f);
 	lightmap 		= pow(lightmap, 0.9f);
-	return lightmap * 1.0;
+	return saturate((lightmap - 0.001) / (1.0 - 0.001));
 
 
 }
@@ -1397,8 +1397,6 @@ void 	CalculateRainFog(inout vec3 color, in SurfaceStruct surface)
 uniform vec3 shadowLightVectorView;
 
 void 	CalculateAtmosphericScattering(inout vec3 color, in SurfaceStruct surface) {
-	if(bool(step(0.5, surface.mask.sky))) return;
-
 	vec4 fragposition  = gbufferProjectionInverse * (vec4(texcoord.st, texture(depthtex0, texcoord.st).x, 1.0) * 2.0 - 1.0);
 	fragposition /= fragposition.w;
 
@@ -1872,10 +1870,10 @@ void main() {
 	WaterFog(finalComposite, surface, mcLightmap);
 	IceFog(finalComposite, surface, mcLightmap);
 
-	if(texture(colortex0, texcoord.xy).a <= 0.2 && surface.mask.sky < 0.9) {
-		vec3 sun = surface.albedo * colorSunlight * shading.sunlightVisibility;
+	if(texture(colortex0, texcoord.xy).a <= 0.2) {
+		vec3 sun = surface.albedo * colorSunlight * shading.sunlightVisibility * (1.0 - rainStrength);
 		vec3 sky = surface.albedo * mcLightmap.sky * colorSkylight * 0.06;
-		vec3 torch = surface.albedo * mcLightmap.torch * 100.0 * colorTorchlight * TORCHLIGHT_BRIGHTNESS;
+		vec3 torch = surface.albedo * mcLightmap.torch * 10.0 * colorTorchlight * TORCHLIGHT_BRIGHTNESS;
 
 		float sigma_s = 1.0;
 

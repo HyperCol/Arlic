@@ -1590,17 +1590,21 @@ void CalStar(in SurfaceStruct surface, inout vec3 color, vec3 rayDirection) {
 	*/
 
 	vec3 direction = mat3(gbufferModelViewInverse) * normalize(rayDirection);
-	vec3 n = abs(direction);
 
 	vec2 tracing = RaySphereIntersection(vec3(0.0, 0.0, 0.0), direction, vec3(0.0), 600.0);
 	vec2 tracingPlanet = RaySphereIntersection(vec3(0.0, 6360e3 + 0.5, 0.0), direction, vec3(0.0), 6360e3);
 
-	vec3 wP = direction * (tracing.x > 0.0 ? tracing.x : max(0.0, tracing.y));
+	float planet_angle = 0.125 * 2.0 * 3.14159265;
+	mat2 planet_rotateXorZ = mat2(cos(planet_angle), -sin(planet_angle), sin(planet_angle), cos(planet_angle));
+	direction.xy *= planet_rotateXorZ;
 
-    float time_angle = frameTimeCounter * 0.0001 * 2.0 * 3.14159265;
+    float time_angle = frameTimeCounter / (2400.0) * 2.0 * 3.14159265;
     mat3 time_rotate = mat3(vec3(cos(time_angle), 0.0, sin(time_angle)), vec3(0.0, 1.0, 0.0), vec3(-sin(time_angle), 0.0, cos(time_angle)));
+	direction *= time_rotate;
 
-	wP.xyz *= time_rotate;
+	vec3 n = abs(direction);
+
+	vec3 wP = direction * (tracing.x > 0.0 ? tracing.x : max(0.0, tracing.y));
 
 	vec3 coord3 = n.x > max(n.y, n.z) ? wP.yzx : 
 				  n.y > max(n.x, n.z) ? wP.zxy : wP.xyz;
@@ -1609,9 +1613,9 @@ void CalStar(in SurfaceStruct surface, inout vec3 color, vec3 rayDirection) {
 		 coord = round(coord);
 
 	float stars = max(hash(coord) - 0.995, 0.0) / (1.0 - 0.995);
-		  stars *= 0.8;
+		  stars *= 0.08;
 
-	color = mix(color, vec3(0.66, 1.0, 1.0), vec3(stars * timeMidnight * (1.0 - rainStrength) * step(tracingPlanet.x, 0.0)));	
+	color = mix(color, vec3(0.66, 1.0, 1.0), vec3(stars * timeMidnight * (1.0 - rainStrength) * step(tracingPlanet.x, 0.0)));
 }
 
 mat2 mm2(in float a){
@@ -1906,7 +1910,9 @@ void 	CalculateSpecularReflections(inout SurfaceStruct surface) {
 		vec4 ssR = vec4(0.0);
 		vec3 fakeSkyReflection = ComputeFakeSkyReflection(surface, rayPDF.xyz) * (isEyeInWater == 0 ? 1.0 : 0.0) * clamp(surface.skylight * 16 - 5, 0.0f, 1.0f);
 		
-		if(smoothness > 0.6 || metallic > 0.9) ssR = ComputeRaytraceReflection(rayPDF.xyz);
+		//if(smoothness > 0.6 || metallic > 0.9) {
+			ssR = ComputeRaytraceReflection(rayPDF.xyz);
+		//}
 		
 		vec3 reflection = mix(fakeSkyReflection.rgb, ssR.rgb, ssR.a);
 		
