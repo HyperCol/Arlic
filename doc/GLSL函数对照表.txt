@@ -1,0 +1,91 @@
+radians(degree) : 角度变弧度；
+degrees(radian) : 弧度变角度；
+sin(angle), cos(angle), tan(angle)
+asin(x): arc sine, 返回弧度 [-PI/2, PI/2];
+acos(x): arc cosine,返回弧度 [0, PI];
+atan(y, x): arc tangent, 返回弧度 [-PI, PI];
+atan(y/x): arc tangent, 返回弧度 [-PI/2, PI/2];
+pow(x, y): x的y次方；
+exp(x): 指数, log(x)：
+exp2(x): 2的x次方， log2(x):
+sqrt(x): x的根号； inversesqrt(x): x根号的倒数
+abs(x): 绝对值
+sign(x): 符号, 1, 0 或 -1
+floor(x): 底部取整
+ceil(x): 顶部取整
+fract(x): 取小数部分,函数形状跟mod相似，锯齿形状。
+mod(x, y): 取模， x - y*floor(x/y)，函数形状跟fract相似，如果y=1.0，那么mod和fract函数的形状就相同了。
+min(x, y): 取最小值
+max(x, y): 取最大值
+clamp(x, min, max):  min(max(x, min), max); 根据输入的x，返回介于 min 与 max 之间的值,当 x < min时，返回min，当 x > max 时，返回 max.
+mix(x, y, a): x, y的线性混叠， x(1-a) + y*a;
+step(edge, x): 第一个是极限或阈值，第二个是我们想要检测或通过的值。对任何小于阈值edge的值，返回 0.0，大于阈值edge的值，则返回 1.0。
+smoothstep(edge0, edge1, x): 当给定一个范围的上下限和一个数值，这个函数会在已有的范围内给出插值。前两个参数规定转换的开始和结束点，第三个是给出一个值用来插值。 x<=edge0时为0.0， x>=edge1时为1.0
+length(x): 向量长度
+distance(p0, p1): 两点距离， length(p0-p1);
+dot(x, y): 点积，各分量分别相乘 后 相加,对于向量x, y，返回的结果是 sum = ∑(xi * yi) 乘积之和。关于点积的数学知识请参考《线性代数》等相关书籍.
+cross(x, y): 差积，x[1]*y[2]-y[1]*x[2], x[2]*y[0] - y[2]*x[0], x[0]*y[1] - y[0]*x[1]
+normalize(x): 归一化， length(x)=1;
+faceforward(N, I, Nref): 如 dot(Nref, I)< 0则N, 否则 -N
+reflect(I, N): I的反射方向， I -2*dot(N, I)*N, N必须先归一化
+refract(I, N, eta): 折射，k=1.0-eta*eta*(1.0 - dot(N, I) * dot(N, I)); 如k<0.0 则0.0，否则 eta*I - (eta*dot(N, I)+sqrt(k))*N
+matrixCompMult(matX, matY): 矩阵相乘, 每个分量 自行相乘， 即 r[i][j] = x[i][j]*y[i][j];
+                           矩阵线性相乘，直接用 *
+lessThan(vecX, vecY): 向量 每个分量比较 x < y
+lessThanEqual(vecX, vecY): 向量 每个分量比较 x<=y
+greaterThan(vecX, vecY): 向量 每个分量比较 x>y
+greaterThanEqual(vecX, vecY): 向量 每个分量比较 x>=y
+equal(vecX, vecY): 向量 每个分量比较 x==y
+notEqual(vecX, vexY): 向量 每个分量比较 x!=y
+any(bvecX): 只要有一个分量是true， 则true
+all(bvecX): 所有分量是true， 则true
+not(bvecX): 所有分量取反
+texture2D(sampler2D, coord): texture lookup
+texture2D(sampler2D, coord, bias): LOD bias, mip-mapped texture
+texture2DProj(sampler2D, coord):
+texture2DProj(sampler2D, coord, bias):
+texture2DLod(sampler2D, coord, lod):
+texture2DProjLod(sampler2D, coord, lod):
+textureCube(samplerCube, coord):
+textureCube(samplerCube, coord, bias):
+textureCubeLod(samplerCube, coord, lod)
+
+1. dot 点乘 返回两个单位向量之间夹角的cos值
+
+2. cross 叉乘
+
+3. texture2D 用于纹理采样
+
+4. normalize :对⼀一个向量量规格化
+
+5. clamp 将⼀个向量固定在一个最小值和最大值之间
+
+以下内建函数对矢量标量同样有效
+
+6. pow()幂函数
+
+7. exp() log() 指数函数 对数函数
+
+8. sqrt() 平方根
+
+9. max() min()最大值 最小值
+
+10. ceil() floor()，取大于实参的最小整数，取小于实参的最大整数
+
+11. sin() cos() tan() 三角函数
+
+12. asin() acos() atan() 反三角函数
+
+13. sinh() cosh() tanh() 双曲正弦 双曲余弦 双曲正切
+
+14. asinh() acosh() atanh() 反双曲正弦 反双曲余弦 反双曲正切
+
+15. length() 向量长度
+
+16. distance() 两个向量的距离
+
+17. matrixCompMult() 矩阵对应元素分别相乘
+
+18. transpose() determinant() inverse() 矩阵转置 行列式 逆
+
+19. lessThan() greaterThan() equal() 小于 大于 等于(对实参向量对应位置的每个分量做大小比较，生成布尔向量)

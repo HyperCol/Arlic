@@ -1,21 +1,39 @@
-#version 120
+#version 330 compatibility
 
 /*
- _______ _________ _______  _______  _
-(  ____ \\__   __/(  ___  )(  ____ )( )
-| (    \/   ) (   | (   ) || (    )|| |
-| (_____    | |   | |   | || (____)|| |
-(_____  )   | |   | |   | ||  _____)| |
-      ) |   | |   | |   | || (      (_)
-/\____) |   | |   | (___) || )       _
-\_______)   )_(   (_______)|/       (_)
+                                                                
+                       H                                         
+                       HCHCHC                  H                
+                       HCHCHCHCHC            HCH                
+                       HCHCHCHCHCHCHCH    HCHCHCH               
+                      HCHCHCHCHCHCHCHCHCHCHCHCHCHC              
+           HCHCHCHCHCHCHCHCHCHCHCHCH HCHCHCHCHCHCHC             
+     HCHCHCHCHCHCHCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHC             
+        HCHCHCHCHCHCHC HCHCH         HCHCHCHCHCHCHCH            
+          HCHCHCHCHCHC H                     HCHCHCH            
+          HCHCHCHCHCH                      HCHCHCHCHCHCHCHCHCH  
+         HCHCH HCHCH                        HCHCHCHCHCHCHCHC    
+       HCHCHCHCH  HC                          HCHCHCHCHCHCH     
+      HCHCHCHCHCH                              HCHCHCHCHCH      
+     HCHCHCHCHCHCHC                         HCHC HCHCHCH        
+   HCHCHCHCHCHCHCHCH                        HCHCHCHCHCH         
+  HCHCHCHCHCHCHCHCHCHC                     HCHCHCHCHC           
+            HCHCHCHCH                  HC HCHCHCHCHCHCH         
+             HCHCHCHCHCHCHCHCHC   HCHCHCH HCHCHCHCHCHCHCHC      
+             HCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHCHCHCHCHCHCHC     
+              HCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHC                
+              HCHCHCHCHCHCHCHCHCHCHCHCHCH                       
+               HCHCHC        HCHCHCHCHCHC                       
+                HCH             HCHCHCHCH                       
+                                      HCH                       
+										H
 
-Do not modify this code until you have read the LICENSE.txt contained in the root directory of this shaderpack!
+
+2021@HyperCol Studios
+VisionLab is part of HyperCol Studios
+Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
-
-
-
 
 /////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,7 +48,7 @@ Do not modify this code until you have read the LICENSE.txt contained in the roo
 
 //If you want shadows to be pixelated to look more integrated with low res pixel-arty textures
 //#define PIXEL_SHADOWS
-#define TEXTURE_RESOLUTION 64 // Resolution of current resource pack. This needs to be set properly for POM! [16 32 64 128 256 512 1024 2048]
+#define TEXTURE_RESOLUTION 128 // Resolution of current resource pack. This needs to be set properly for POM! [16 32 64 128 256 512]
 
 
 
@@ -60,10 +78,10 @@ const int 		R8 						= 0;
 const int 		RG8 					= 0;
 const int 		RGB8 					= 1;
 const int 		RGB16 					= 2;
-const int 		gcolorFormat 			= RGB16;
-const int 		gdepthFormat 			= RGB8;
-const int 		gnormalFormat 			= RGB16;
-const int 		compositeFormat 		= RGB8;
+const int 		colortex0Format 			= RGB16;
+const int 		colortex1Format 			= RGB8;
+const int 		colortex2Format 			= RGB16;
+const int 		colortex3Format 		= RGB8;
 
 const float 	eyeBrightnessHalflife 	= 10.0f;
 const float 	wetnessHalflife 		= 300.0f;
@@ -71,7 +89,7 @@ const float 	drynessHalflife 		= 40.0f;
 
 const int 		superSamplingLevel 		= 0;
 
-const float		sunPathRotation 		= -40.0f;
+const float		sunPathRotation 		= 0.0; // [-90.0 -89.5 -89.0 -88.5 -88.0 -87.5 -87.0 -86.5 -86.0 -85.5 -85.0 -84.5 -84.0 -83.5 -83.0 -82.5 -82.0 -81.5 -81.0 -80.5 -80.0 -79.5 -79.0 -78.5 -78.0 -77.5 -77.0 -76.5 -76.0 -75.5 -75.0 -74.5 -74.0 -73.5 -73.0 -72.5 -72.0 -71.5 -71.0 -70.5 -70.0 -69.5 -69.0 -68.5 -68.0 -67.5 -67.0 -66.5 -66.0 -65.5 -65.0 -64.5 -64.0 -63.5 -63.0 -62.5 -62.0 -61.5 -61.0 -60.5 -60.0 -59.5 -59.0 -58.5 -58.0 -57.5 -57.0 -56.5 -56.0 -55.5 -55.0 -54.5 -54.0 -53.5 -53.0 -52.5 -52.0 -51.5 -51.0 -50.5 -50.0 -49.5 -49.0 -48.5 -48.0 -47.5 -47.0 -46.5 -46.0 -45.5 -45.0 -44.5 -44.0 -43.5 -43.0 -42.5 -42.0 -41.5 -41.0 -40.5 -40.0 -39.5 -39.0 -38.5 -38.0 -37.5 -37.0 -36.5 -36.0 -35.5 -35.0 -34.5 -34.0 -33.5 -33.0 -32.5 -32.0 -31.5 -31.0 -30.5 -30.0 -29.5 -29.0 -28.5 -28.0 -27.5 -27.0 -26.5 -26.0 -25.5 -25.0 -24.5 -24.0 -23.5 -23.0 -22.5 -22.0 -21.5 -21.0 -20.5 -20.0 -19.5 -19.0 -18.5 -18.0 -17.5 -17.0 -16.5 -16.0 -15.5 -15.0 -14.5 -14.0 -13.5 -13.0 -12.5 -12.0 -11.5 -11.0 -10.5 -10.0 -9.5 -9.0 -8.5 -8.0 -7.5 -7.0 -6.5 -6.0 -5.5 -5.0 -4.5 -4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 10.5 11.0 11.5 12.0 12.5 13.0 13.5 14.0 14.5 15.0 15.5 16.0 16.5 17.0 17.5 18.0 18.5 19.0 19.5 20.0 20.5 21.0 21.5 22.0 22.5 23.0 23.5 24.0 24.5 25.0 25.5 26.0 26.5 27.0 27.5 28.0 28.5 29.0 29.5 30.0 30.5 31.0 31.5 32.0 32.5 33.0 33.5 34.0 34.5 35.0 35.5 36.0 36.5 37.0 37.5 38.0 38.5 39.0 39.5 40.0 40.5 41.0 41.5 42.0 42.5 43.0 43.5 44.0 44.5 45.0 45.5 46.0 46.5 47.0 47.5 48.0 48.5 49.0 49.5 50.0 50.5 51.0 51.5 52.0 52.5 53.0 53.5 54.0 54.5 55.0 55.5 56.0 56.5 57.0 57.5 58.0 58.5 59.0 59.5 60.0 60.5 61.0 61.5 62.0 62.5 63.0 63.5 64.0 64.5 65.0 65.5 66.0 66.5 67.0 67.5 68.0 68.5 69.0 69.5 70.0 70.5 71.0 71.5 72.0 72.5 73.0 73.5 74.0 74.5 75.0 75.5 76.0 76.5 77.0 77.5 78.0 78.5 79.0 79.5 80.0 80.5 81.0 81.5 82.0 82.5 83.0 83.5 84.0 84.5 85.0 85.5 86.0 86.5 87.0 87.5 88.0 88.5 89.0 89.5 90.0]
 const float 	ambientOcclusionLevel 	= 0.01f;
 
 const int 		noiseTextureResolution  = 64;
@@ -81,28 +99,28 @@ const int 		noiseTextureResolution  = 64;
 
 /* DRAWBUFFERS:0135 */
 
-const bool gaux1MipmapEnabled = true;
+const bool colortex4MipmapEnabled = true;
 
 #define BANDING_FIX_FACTOR 1.0f
 
-uniform sampler2D gcolor;
-uniform sampler2D gdepth;
+uniform sampler2D colortex0;
+uniform sampler2D colortex1;
+uniform sampler2D colortex2;
+uniform sampler2D colortex3;
 uniform sampler2D gdepthtex;
-uniform sampler2D gnormal;
-uniform sampler2D composite;
 uniform sampler2D shadowtex1;
 uniform sampler2DShadow shadow;
 uniform sampler2D shadowcolor;
 uniform sampler2D shadowcolor1;
 uniform sampler2D noisetex;
-uniform sampler2D gaux1;
-uniform sampler2D gaux2;
-uniform sampler2D gaux3;
+uniform sampler2D colortex4;
+uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 uniform sampler2D depthtex1;
 
-varying vec4 texcoord;
-varying vec3 lightVector;
-varying vec3 upVector;
+in vec4 texcoord;
+in vec3 lightVector;
+in vec3 upVector;
 
 uniform int worldTime;
 
@@ -136,20 +154,20 @@ uniform ivec2 eyeBrightnessSmooth;
 uniform int   fogMode;
 
 
-varying float timeSunriseSunset;
-varying float timeNoon;
-varying float timeMidnight;
-varying float timeSkyDark;
+in float timeSunriseSunset;
+in float timeNoon;
+in float timeMidnight;
+in float timeSkyDark;
 
-varying vec3 colorSunlight;
-varying vec3 colorSkylight;
-varying vec3 colorSunglow;
-varying vec3 colorBouncedSunlight;
-varying vec3 colorScatteredSunlight;
-varying vec3 colorTorchlight;
-varying vec3 colorWaterMurk;
-varying vec3 colorWaterBlue;
-varying vec3 colorSkyTint;
+in vec3 colorSunlight;
+in vec3 colorSkylight;
+in vec3 colorSunglow;
+in vec3 colorBouncedSunlight;
+in vec3 colorScatteredSunlight;
+in vec3 colorTorchlight;
+in vec3 colorWaterMurk;
+in vec3 colorWaterBlue;
+in vec3 colorSkyTint;
 
 uniform int heldBlockLightValue;
 
@@ -167,29 +185,29 @@ float saturate(float x)
 
 //Get gbuffer textures
 vec3  	GetAlbedoLinear(in vec2 coord) {			//Function that retrieves the diffuse texture and convert it into linear space.
-	return pow(texture2D(gcolor, coord).rgb, vec3(2.2f));
+	return pow(texture(colortex0, coord).rgb, vec3(2.2f));
 }
 
 vec3  	GetAlbedoGamma(in vec2 coord) {			//Function that retrieves the diffuse texture and leaves it in gamma space.
-	return texture2D(gcolor, coord).rgb;
+	return texture(colortex0, coord).rgb;
 }
 
 vec3  	GetWaterNormals(in vec2 coord) {				//Function that retrieves the screen space surface normals. Used for lighting calculations
-	return normalize(texture2DLod(gnormal, coord.st, 0).rgb * 2.0f - 1.0f);
+	return normalize(textureLod(colortex2, coord.st, 0).rgb * 2.0f - 1.0f);
 }
 
 
 vec3  	GetNormals(in vec2 coord) {				//Function that retrieves the screen space surface normals. Used for lighting calculations
-	return normalize(texture2DLod(gaux2, coord.st, 0).rgb * 2.0f - 1.0f);
+	return normalize(textureLod(colortex5, coord.st, 0).rgb * 2.0f - 1.0f);
 }
 
 float 	GetDepth(in vec2 coord) {					//Function that retrieves the scene depth. 0 - 1, higher values meaning farther away
-	return texture2D(depthtex1, coord).r;
+	return texture(depthtex1, coord).r;
 }
 
 float 	GetDepthLinear(in vec2 coord) {					//Function that retrieves the scene depth. 0 - 1, higher values meaning farther away
-	//return 2.0f * near * far / (far + near - (2.0f * texture2D(depthtex1, coord).x - 1.0f) * (far - near));
-	return (near * far) / (texture2D(depthtex1, coord).x * (near - far) + far);
+	//return 2.0f * near * far / (far + near - (2.0f * texture(depthtex1, coord).x - 1.0f) * (far - near));
+	return (near * far) / (texture(depthtex1, coord).x * (near - far) + far);
 }
 
 float 	ExpToLinearDepth(in float depth)
@@ -200,13 +218,13 @@ float 	ExpToLinearDepth(in float depth)
 
 float GetParallaxShadow(in vec2 coord)
 {
-	return 1.0 - texture2D(composite, coord).b;
+	return 1.0 - texture(colortex3, coord).b;
 }
 
 
 //Lightmaps
 float 	GetLightmapTorch(in vec2 coord) {			//Function that retrieves the lightmap of light emitted by emissive blocks like torches and lava
-	float lightmap = texture2D(gdepth, coord).g;
+	float lightmap = texture(colortex1, coord).g;
 
 	//Apply inverse square law and normalize for natural light falloff
 	lightmap 		= clamp(lightmap * 1.22f, 0.0f, 1.0f);
@@ -228,9 +246,9 @@ float 	GetLightmapTorch(in vec2 coord) {			//Function that retrieves the lightma
 }
 
 float 	GetLightmapSky(in vec2 coord) {			//Function that retrieves the lightmap of light emitted by the sky. This is a raw value from 0 (fully dark) to 1 (fully lit) regardless of time of day
-	//return pow(texture2D(gdepth, coord).b, 8.3f);
+	//return pow(texture(colortex1, coord).b, 8.3f);
 
-	float light = texture2D(gdepth, coord).b;
+	float light = texture(colortex1, coord).b;
 
 	light = 1.0 - light * 0.834;
 	light = 1.0 / light - 1;
@@ -243,33 +261,33 @@ float 	GetLightmapSky(in vec2 coord) {			//Function that retrieves the lightmap 
 
 float GetTransparentLightmapSky(in vec2 coord)
 {
-	return pow(texture2D(gaux3, coord).b, 8.3f);
+	return pow(texture(colortex6, coord).b, 8.3f);
 }
 
 float 	GetUnderwaterLightmapSky(in vec2 coord) {
-	return texture2D(composite, coord).r;
+	return texture(colortex3, coord).r;
 }
 
 
 //Specularity
 float 	GetSpecularity(in vec2 coord) {			//Function that retrieves how reflective any surface/pixel is in the scene. Used for reflections and specularity
-	return texture2D(composite, texcoord.st).r;
+	return texture(colortex3, texcoord.st).r;
 }
 
 float 	GetGlossiness(in vec2 coord) {			//Function that retrieves how reflective any surface/pixel is in the scene. Used for reflections and specularity
-	return texture2D(composite, texcoord.st).g;
+	return texture(colortex3, texcoord.st).g;
 }
 
 
 
 //Material IDs
 float 	GetMaterialIDs(in vec2 coord) {			//Function that retrieves the texture that has all material IDs stored in it
-	return texture2D(gdepth, coord).r;
+	return texture(colortex1, coord).r;
 }
 
 float 	GetTransparentID(in vec2 coord)
 {
-	return texture2D(gaux3, coord).a;
+	return texture(colortex6, coord).a;
 }
 
 
@@ -518,7 +536,7 @@ vec3 	CalculateNoisePattern1(vec2 offset, float size) {
 	coord = mod(coord + offset, vec2(size));
 	coord /= noiseTextureResolution;
 
-	return texture2D(noisetex, coord).xyz;
+	return texture(noisetex, coord).xyz;
 }
 
 
@@ -978,9 +996,9 @@ vec3 	CalculateSunlightVisibility(inout SurfaceStruct surface, in ShadingStruct 
 					for (int j = -1; j <= 1; j++)
 					{
 						vec2 lookupCoord = worldposition.xy + (vec2(i, j) / shadowMapResolution) * 8.0 * vpsSpread;
-						//avgDepth += pow(texture2DLod(shadowtex1, lookupCoord, 2).x, 4.1);
-						float depthSample = texture2DLod(shadowtex1, lookupCoord, 2).x;
-						minDepth = min(minDepth, texture2DLod(shadowtex1, lookupCoord, 2).x);
+						//avgDepth += pow(textureLod(shadowtex1, lookupCoord, 2).x, 4.1);
+						float depthSample = textureLod(shadowtex1, lookupCoord, 2).x;
+						minDepth = min(minDepth, textureLod(shadowtex1, lookupCoord, 2).x);
 						avgDepth += pow(min(max(0.0, worldposition.z - depthSample) * 1.0, 0.15), 2.0);
 						c++;
 					}
@@ -1031,7 +1049,7 @@ vec3 	CalculateSunlightVisibility(inout SurfaceStruct surface, in ShadingStruct 
 
 		///*
 		#ifdef COLORED_SHADOWS
-		float shadowNormalAlpha = texture2DLod(shadowcolor1, worldposition.st, 0).a;
+		float shadowNormalAlpha = textureLod(shadowcolor1, worldposition.st, 0).a;
 
 		vec3 noise2 = CalculateNoisePattern1(vec2(0.0), 64.0);
 
@@ -1039,8 +1057,8 @@ vec3 	CalculateSunlightVisibility(inout SurfaceStruct surface, in ShadingStruct 
 
 		if (shadowNormalAlpha < 0.5)
 		{
-			result = mix(vec3(1.0), pow(texture2DLod(shadowcolor, worldposition.st, 0).rgb, vec3(1.6)), vec3(1.0 - shading));
-			float solidDepth = texture2DLod(shadowtex1, worldposition.st, 0).x;
+			result = mix(vec3(1.0), pow(textureLod(shadowcolor, worldposition.st, 0).rgb, vec3(1.6)), vec3(1.0 - shading));
+			float solidDepth = textureLod(shadowtex1, worldposition.st, 0).x;
 			float solidShadow = 1.0 - clamp((worldposition.z - solidDepth) * 1200.0, 0.0, 1.0); 
 			result *= solidShadow;
 		}
@@ -1351,20 +1369,20 @@ void CalculateAO(inout SurfaceStruct surface)
 	const int numSamples = 20;
 	vec3[numSamples] kernel;
 
-	vec3 stochastic = texture2D(noisetex, texcoord.st * vec2(viewWidth, viewHeight) / noiseTextureResolution).rgb;
+	vec3 stochastic = texture(noisetex, texcoord.st * vec2(viewWidth, viewHeight) / noiseTextureResolution).rgb;
 
 	//Generate positions for sample points in hemisphere
 	for (int i = 0; i < numSamples; i++)
 	{
 		//Random direction
-		kernel[i] = vec3(texture2D(noisetex, vec2(0.0f + (i * 1.0f) / noiseTextureResolution)).r * 2.0f - 1.0f,
-					     texture2D(noisetex, vec2(0.0f + (i * 1.0f) / noiseTextureResolution)).g * 2.0f - 1.0f,
-					     texture2D(noisetex, vec2(0.0f + (i * 1.0f) / noiseTextureResolution)).b * 2.0f - 1.0f);
+		kernel[i] = vec3(texture(noisetex, vec2(0.0f + (i * 1.0f) / noiseTextureResolution)).r * 2.0f - 1.0f,
+					     texture(noisetex, vec2(0.0f + (i * 1.0f) / noiseTextureResolution)).g * 2.0f - 1.0f,
+					     texture(noisetex, vec2(0.0f + (i * 1.0f) / noiseTextureResolution)).b * 2.0f - 1.0f);
 		//kernel[i] += (stochastic * vec3(2.0f, 2.0f, 1.0f) - vec3(1.0f, 1.0f, 0.0f)) * 0.0f;
 		kernel[i] = normalize(kernel[i]);
 
 		//scale randomly to distribute within hemisphere;
-		kernel[i] *= pow(texture2D(noisetex, vec2(0.3f + (i * 1.0f) / noiseTextureResolution)).r * CalculateNoisePattern1(vec2(43.0f), 64.0f).x * 1.0f, 1.2f);
+		kernel[i] *= pow(texture(noisetex, vec2(0.3f + (i * 1.0f) / noiseTextureResolution)).r * CalculateNoisePattern1(vec2(43.0f), 64.0f).x * 1.0f, 1.2f);
 	}
 
 	//Determine origin position and normal
@@ -1373,7 +1391,7 @@ void CalculateAO(inout SurfaceStruct surface)
 		 //normal = lightVector;
 
 	//Create matrix to orient hemisphere according to surface normal
-	//vec3 randomRotation = texture2D(noisetex, texcoord.st * vec2(viewWidth / noiseTextureResolution, viewHeight / noiseTextureResolution)).rgb * 2.0f - 1.0f;
+	//vec3 randomRotation = texture(noisetex, texcoord.st * vec2(viewWidth / noiseTextureResolution, viewHeight / noiseTextureResolution)).rgb * 2.0f - 1.0f;
 		//float dither1 = CalculateDitherPattern1() * 2.0f - 1.0f;
 		//randomRotation = vec3(dither1, mod(dither1 + 0.5f, 2.0f), mod(dither1 + 1.0f, 2.0f));
 	vec3	randomRotation = CalculateNoisePattern1(vec2(0.0f), 64.0f).xyz * 2.0f - 1.0f;
@@ -1623,8 +1641,8 @@ float Get3DNoise(in vec3 pos)
 
 	vec2 coord =  (uv  + 0.5f) / noiseTextureResolution;
 	vec2 coord2 = (uv2 + 0.5f) / noiseTextureResolution;
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord2).x;
+	float xy1 = texture(noisetex, coord).x;
+	float xy2 = texture(noisetex, coord2).x;
 	return mix(xy1, xy2, f.z);
 }
 
@@ -2125,9 +2143,9 @@ float GetAO(in vec4 screenSpacePosition, in vec3 normal, in vec2 coord, in vec3 
 
 	for (int i = 0; i < 4; i++)
 	{
-		vec3 kernel = vec3(texture2D(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).r * 2.0f - 1.0f,
-					     texture2D(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).g * 2.0f - 1.0f,
-					     texture2D(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).b * 1.0f);
+		vec3 kernel = vec3(texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).r * 2.0f - 1.0f,
+					     texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).g * 2.0f - 1.0f,
+					     texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).b * 1.0f);
 			 kernel = normalize(kernel);
 			 kernel *= pow(dither.x + 0.01f, 1.0f);
 
@@ -2176,7 +2194,7 @@ vec4 BilateralUpsample(const in float scale, in vec2 offset, in float depth, in 
 				  weight *= max(0.0f, dot(sampleNormal, normal) * 2.0f - 1.0f);
 			//weight = 1.0f;
 
-			light +=	pow(texture2DLod(gaux1, (texcoord.st) * (1.0f / exp2(scale )) + 	offset + coord, 1), vec4(2.2f, 2.2f, 2.2f, 1.0f)) * weight;
+			light +=	pow(textureLod(colortex4, (texcoord.st) * (1.0f / exp2(scale )) + 	offset + coord, 1), vec4(2.2f, 2.2f, 2.2f, 1.0f)) * weight;
 
 			weights += weight;
 		}
@@ -2187,11 +2205,11 @@ vec4 BilateralUpsample(const in float scale, in vec2 offset, in float depth, in 
 
 	if (weights < 0.01f)
 	{
-		light =	pow(texture2DLod(gaux1, (texcoord.st) * (1.0f / exp2(scale 	)) + 	offset, 2), vec4(2.2f, 2.2f, 2.2f, 1.0f));
+		light =	pow(textureLod(colortex4, (texcoord.st) * (1.0f / exp2(scale 	)) + 	offset, 2), vec4(2.2f, 2.2f, 2.2f, 1.0f));
 	}
 
 
-	// vec3 light =	texture2DLod(gcolor, (texcoord.st) * (1.0f / pow(2.0f, 	scale 	)) + 	offset, 2).rgb;
+	// vec3 light =	textureLod(gcolor, (texcoord.st) * (1.0f / pow(2.0f, 	scale 	)) + 	offset, 2).rgb;
 
 
 	return light;
@@ -2234,7 +2252,7 @@ vec4 textureSmooth(in sampler2D tex, in vec2 coord)
 	coord -= 0.5f;
 	coord /= res;
 
-	return texture2D(tex, coord);
+	return texture(tex, coord);
 }
 
 float AlmostIdentity(in float x, in float m, in float n)
@@ -2317,7 +2335,7 @@ vec3 GetWavesNormal(vec3 position) {
 	coord -= floor(coord);
 
 	vec3 normal;
-	normal.xy = texture2DLod(gaux3, coord, 1).xy * 2.0 - 1.0;
+	normal.xy = textureLod(colortex6, coord, 1).xy * 2.0 - 1.0;
 	normal.z = sqrt(1.0 - dot(normal.xy, normal.xy));
 
 	return normal;
@@ -2429,8 +2447,8 @@ void WaterFog(inout vec3 color, in SurfaceStruct surface, in MCLightmapStruct mc
 	// return;
 	if (surface.mask.water > 0.5 || isEyeInWater > 0)
 	{
-		float depth = texture2D(depthtex1, texcoord.st).x;
-		float depthSolid = texture2D(gdepthtex, texcoord.st).x;
+		float depth = texture(depthtex1, texcoord.st).x;
+		float depthSolid = texture(gdepthtex, texcoord.st).x;
 
 		vec4 viewSpacePosition = GetScreenSpacePosition(texcoord.st, depth);
 		vec4 viewSpacePositionSolid = GetScreenSpacePosition(texcoord.st, depthSolid);
@@ -2504,8 +2522,8 @@ void IceFog(inout vec3 color, in SurfaceStruct surface, in MCLightmapStruct mcLi
 	// return;
 	if (surface.mask.ice > 0.5)
 	{
-		float depth = texture2D(depthtex1, texcoord.st).x;
-		float depthSolid = texture2D(gdepthtex, texcoord.st).x;
+		float depth = texture(depthtex1, texcoord.st).x;
+		float depthSolid = texture(gdepthtex, texcoord.st).x;
 
 		vec4 viewSpacePosition = GetScreenSpacePosition(texcoord.st, depth);
 		vec4 viewSpacePositionSolid = GetScreenSpacePosition(texcoord.st, depthSolid);

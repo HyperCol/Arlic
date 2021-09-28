@@ -1,8 +1,8 @@
-#version 120
+#version 330 compatibility
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
+out vec4 color;
+out vec4 texcoord;
+out vec4 lmcoord;
 
 
 attribute vec4 mc_Entity;
@@ -10,14 +10,14 @@ attribute vec4 mc_Entity;
 uniform int worldTime;
 uniform float rainStrength;
 
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying vec3 viewVector;
-varying vec2 waves;
+out vec3 normal;
+out vec3 tangent;
+out vec3 binormal;
+out vec3 viewVector;
+out vec2 waves;
 
-varying float distance;
-varying float translucent;
+out float distance;
+out float translucent;
 
 #define WAVING_GRASS
 #define WAVING_WHEAT

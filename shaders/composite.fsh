@@ -1,111 +1,56 @@
-#version 120
+#version 330 compatibility
+
+/*
+                                                                
+                       H                                         
+                       HCHCHC                  H                
+                       HCHCHCHCHC            HCH                
+                       HCHCHCHCHCHCHCH    HCHCHCH               
+                      HCHCHCHCHCHCHCHCHCHCHCHCHCHC              
+           HCHCHCHCHCHCHCHCHCHCHCHCH HCHCHCHCHCHCHC             
+     HCHCHCHCHCHCHCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHC             
+        HCHCHCHCHCHCHC HCHCH         HCHCHCHCHCHCHCH            
+          HCHCHCHCHCHC H                     HCHCHCH            
+          HCHCHCHCHCH                      HCHCHCHCHCHCHCHCHCH  
+         HCHCH HCHCH                        HCHCHCHCHCHCHCHC    
+       HCHCHCHCH  HC                          HCHCHCHCHCHCH     
+      HCHCHCHCHCH                              HCHCHCHCHCH      
+     HCHCHCHCHCHCHC                         HCHC HCHCHCH        
+   HCHCHCHCHCHCHCHCH                        HCHCHCHCHCH         
+  HCHCHCHCHCHCHCHCHCHC                     HCHCHCHCHC           
+            HCHCHCHCH                  HC HCHCHCHCHCHCH         
+             HCHCHCHCHCHCHCHCHC   HCHCHCH HCHCHCHCHCHCHCHC      
+             HCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHCHCHCHCHCHCHC     
+              HCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHC                
+              HCHCHCHCHCHCHCHCHCHCHCHCHCH                       
+               HCHCHC        HCHCHCHCHCHC                       
+                HCH             HCHCHCHCH                       
+                                      HCH                       
+										H
+
+
+2021@HyperCol Studios
+VacGrd is part of HyperCol Studios
+Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
+
+*/
+#define SHADOW_MAP_BIAS 0.90
 
 /////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//---------- Shadows,Lights＆Color ----------//
-#define SHADOW_MAP_BIAS 0.9
 
-#define ENABLE_SOFT_SHADOWS
-	#define SHADOWS_SOFTNESS 1.0 //[0.25 0.5 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.5 4.0]
+#define ENABLE_SSAO	// Screen space ambient occlusion.
+#define GI	// Indirect lighting from sunlight.
 
-#define NSL    //New Sky Light.
+#define GI_QUALITY 0.5 // Number of GI samples. More samples=smoother GI. High performance impact! [0.5 1.0 2.0]
+#define GI_ARTIFACT_REDUCTION // Reduces artifacts on back edges of blocks at the cost of performance.
+#define GI_RENDER_RESOLUTION 0 // Render resolution of GI. 0 = High. 1 = Low. Set to 1 for faster but blurrier GI. [0 1]
+#define GI_RADIUS 0.75 // How far indirect light can spread. Can help to reduce artifacts with low GI samples. [0.5 0.75 1.0]
 
-#define ADDSUNGLOW
-
-#define NOCALCULATECLOUDSNIGHT
-	#define SUNLIGHTSTRENGTH 500.0            // [3.0 10.0 25.0 50.0 100.0 500.0]
-	#define SUNLIGHTONBLOCKS 1.5              // [0.25 0.5 0.75 1 1.25 1.5 2 3 4 6 8 10]
-
-#define LOW_SATURATION_NIGHT 0.1 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8]
-
-#define HELDLIGHTBRIGHTNESS 0.05 // [0.02 0.05 0.1 0.2 0.5 1.0]
-
-//---------- Clouds ----------//
-#define CALCULATECLOUDS
-	#define PLANE_CLOUD_SPEED3 1              // [0 0.2 0.5 1 2.5 5 8]
-	#define CLOUDHEIGHT3 275                  // [100 150 200 225 250 275 300 325 350 400 450 500 600 700 800]
-	#define CALCULATECLOUDSQUALITY 35         // [5 10 20 35 50 70 100]
-	#define CALCULATECLOUDDEPTH 500           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
-	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
-	#define CALCULATECLOUDSCONCENTRATION 2.5  // [0.5 1.0 1.5 2.0 2.5 3.0 4.0 5.0 7.0 9.0]
-	#define WHITECLOUDS 1                     // [0.01 1 4 6 9]
-
-//#define CLOUD_PLANE2
-	#define PLANE_CLOUD_SPEED2  1.0           //[0.0 1.0 2.0 3.0 6.0 10.0 15.0]
-	#define CLOUDHEIGHT2 840                  // [360 480 600 720 840 1080 1320 1560 1800]
-	//#define NOCLOUDS2DAYTIME
-
-#define LOW_QUALITY_CALCULATECLOUDS
-//#define LOW_QUALITY_CALCULATECLOUDS2
-
-//#define MOREVOLUMETRIC_CLOUDS
-
-//---------- Water ----------//
-#define UNDERWATERVISIBILITY 0.8       // [-2.5 -2.0 -1.6 -1.2 -0.8 -0.5 -0.2 0.0 0.2 0.4 0.6 0.7 0.8 0.9 1.0]
-
-//#define UNDERWATERFOG
-	#define WATERFOGCOLOR_STRENGTH 120 // [2.5 5 10 20 40 60 80 100 120 160 240 320]
-	#define WATER_FOG_COLOR_R 0.1      //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6]  
-	#define WATER_FOG_COLOR_G 1.0      //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6] 
-	#define WATER_FOG_COLOR_B 1.2      //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6] 
-
-#define HEAVIER_WATER 0                // [0 1 2] 
-
-//---------- Atmospheres ----------//
-#define ATMOSPHERIC_SCATTERING
-	#define ATM_SCATTING_STRENGTH 4.0 // [0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0 4.25 4.5 4.75 5.0 5.25 5.5 5.75 6.0 6.25 6.5 6.75 7.0 7.25 7.5 7.75.8.0 8.25 8.5 8.75 9.0 9.25 9.5 9.75 10.0]
-	#define AAA 0                     // [0 -0.7]
-	//#define ABC
-
-//Please add VL codes!
-//#define VOLUMETRIC_LIGHTS
-
-//---------- Others ----------//
-#define STAR
-
-#define TEST 10    // [2 5 10 15 20]
-
-#define WEATHER
-
-
-//---------- VL FOG from JMSEUS ----------//
-//体积雾
-/*------This is VOLUMETRIC FOG, not VOLUMETRIC CLOUDS, but me -the Author- is too lazy to change it's name of #define :P ------*/
-#define TRUE_VOLUMETRIC_CLOUDS2  //Now it becomes VOLUMETRIC FOG, it was changed from True Volumetric clouds from Continuum
-#define SOFT_FLUFFY_CLOUDS2						// dissable to fully remove dither Pattern ripple, adds a little pixel noise on cloud edge
-#define Volumetric_Cloud_Type2					//Turn this off to change the way Volumetric clouds are rendered,If off there will be less detail in the clouds BUT there will be less Dither Pattern ripple in them. Best set Vol_Cloud_Coverage to 0.52 if off!
-#define Cloud3Height2 60						    //[0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 80 90 100 120 140 160 180 210 200 220 240 250 300 350 400 500] //Sets the Volumetric clouds3 Height
-#define Cloud3Depth2 100                            //[50 75 100 125 150 175 200 225 250 275 300 350 400]
-#define VOLUMETRIC_CLOUD_SPEED2 1.0				    //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0] //Default is 2.0f, Lower number to slow speed, Higher number to increase speed 
-#define CLOUD_DISPERSE2 15          			// [1 2 3 4 5 7 10 12 15 17 20 25 30]increase this for thicker clouds and so that they don't fizzle away when you fly close to them, 10 is default Dont Go Over 30 will lag and maybe crash
-#define Vol_Cloud_Coverage2 0.45   			    // Vol_Cloud_Coverage. 0.20 = Lowest Cover. 0.60 = Highest Cover [0.20 0.30 0.35 0.40 0.42 0.45 0.48 0.50 0.52 0.55 0.60 0.70 0.80 0.90 1.00]
-#define VOLUMETRIC_CLOUD_LIGHTING2 1.0          //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0]
-
-#define VFCWWT //Dynamic fog amount, which means that the strength of VOLUMETRIC FOG would be change with The worldTime
-#define VFDensityStrength 1.2 //strength of VOLUMETRIC FOG [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.5 3.0 3.5 4.0 5.0 7.0 10.0 15.0 20.0]
-#define FOGDENS_SUNRISE 1.5   //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
-#define FOGDENS_NOON 1.0      //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
-#define FOGDENS_SUNSET 1.2    //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
-#define FOGDENS_MIDNIGHT 0.7  //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.5 3.0 3.5 4.0 5.0 10.0]
-
-#define CLOUD_PRECISION2 4.0 //[0.5 1.0 2.0 4.0 6.0 8.0 10.0 12.0 16.0 32.0]
-
-#define CUSTOM_VLFC_R 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
-#define CUSTOM_VLFC_G 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
-#define CUSTOM_VLFC_B 256 // [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256]
-
-//---------- AURORA from JMSEUS ----------//
-#define AURORA
-#define AURORA_STRENGTH 0.7 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.7 2.0 2.5 3.0 4.0 5.0 7.0 10.0 15.0 20.0 30.0 50.0 70.0 100.0]
-#define AURORA_COLOR purpleAurora //[blueAurora purpleAurora greenAurora]
-#define aurora_power 0.3 //[0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
-#define aurora_speed 3.0 //[0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
-#define aurora_flash 50.0 //[0.0 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0 19.0 20.0 21.0 22.0 23.0 24.0 25.0 26.0 27.0 28.0 29.0 30.0 31.0 32.0 33.0 34.0 35.0 36.0 37.0 38.0 39.0 40.0 41.0 42.0 43.0 44.0 45.0 46.0 47.0 48.0 49.0 50.0 51.0 52.0 53.0 54.0 55.0 56.0 57.0 58.0 59.0 60.0 61.0 62.0 63.0 64.0 65.0 66.0 67.0 68.0 69.0 70.0 71.0 72.0 73.0 74.0 75.0 76.0 77.0 78.0 79.0 80.0 81.0 82.0 83.0 84.0 85.0 86.0 87.0 88.0 89.0 90.0 91.0 92.0 93.0 94.0 95.0 96.0 97.0 98.0 99.0 100.0]
-
-#define AURORA_PRESET_COL //Preset color of aurora
-//#define RGB_AURORA
-
+#define WAVE_HEIGHT 0.75 //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+#define WATER_SPEED 1.0    //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.32.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
+//#define WATER_SPEED_LIGHT_BAR_LINKER
 
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,77 +58,71 @@
 //of the shaders mod. The shaders mod only reads these lines and doesn't actually know the real value assigned to these variables in GLSL.
 //Some of these variables are critical for proper operation. Change at your own risk.
 
-const float gr_density = 0.55;
-const int gr_samples = 5;
-const float gr_noise = 0.0;
+const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096]
+const float 	shadowDistance 			= 120.0; // Shadow distance. Set lower if you prefer nicer close shadows. Set higher if you prefer nicer distant shadows. [80.0 120.0 180.0 240.0]
+const float 	shadowIntervalSize 		= 4.0f;
+const bool 		shadowHardwareFiltering0 = true;
 
-const int		shadowMapResolution		= 2048;	// Shadowmap resolution [512 1024 2048 4096 8192]
-const float		shadowDistance			= 180.0f;
-const bool		generateShadowMipmap	= false;
-const float		shadowIntervalSize		= 4.0f;
-const bool		shadowHardwareFiltering = true;
+const bool 		shadowtex1Mipmap = true;
+const bool 		shadowtex1Nearest = false;
+const bool 		shadowcolor0Mipmap = true;
+const bool 		shadowcolor0Nearest = false;
+const bool 		shadowcolor1Mipmap = true;
+const bool 		shadowcolor1Nearest = false;
 
-const int		RA8						= 0;
-const int		RGA8					= 0;
-const int		RGBA8					= 1;
-const int		RGBA16					= 1;
-const int		gcolorFormat			= RGBA16;
-const int		gdepthFormat			= RGBA8;
-const int		gnormalFormat			= RGBA16;
-const int		compositeFormat			= RGBA8;
+const float 	eyeBrightnessHalflife 	= 10.0f;
+const float 	wetnessHalflife 		= 300.0f;
+const float 	drynessHalflife 		= 40.0f;
 
-const float		eyeBrightnessHalflife	= 10.0f;
-const float		centerDepthHalflife		= 2.0f;
-const float		wetnessHalflife			= 100.0f;
-const float		drynessHalflife			= 40.0f;
+const int 		superSamplingLevel 		= 0;
 
-const int		superSamplingLevel		= 0;
+const float		sunPathRotation 		= 0.0; // [-90.0 -89.5 -89.0 -88.5 -88.0 -87.5 -87.0 -86.5 -86.0 -85.5 -85.0 -84.5 -84.0 -83.5 -83.0 -82.5 -82.0 -81.5 -81.0 -80.5 -80.0 -79.5 -79.0 -78.5 -78.0 -77.5 -77.0 -76.5 -76.0 -75.5 -75.0 -74.5 -74.0 -73.5 -73.0 -72.5 -72.0 -71.5 -71.0 -70.5 -70.0 -69.5 -69.0 -68.5 -68.0 -67.5 -67.0 -66.5 -66.0 -65.5 -65.0 -64.5 -64.0 -63.5 -63.0 -62.5 -62.0 -61.5 -61.0 -60.5 -60.0 -59.5 -59.0 -58.5 -58.0 -57.5 -57.0 -56.5 -56.0 -55.5 -55.0 -54.5 -54.0 -53.5 -53.0 -52.5 -52.0 -51.5 -51.0 -50.5 -50.0 -49.5 -49.0 -48.5 -48.0 -47.5 -47.0 -46.5 -46.0 -45.5 -45.0 -44.5 -44.0 -43.5 -43.0 -42.5 -42.0 -41.5 -41.0 -40.5 -40.0 -39.5 -39.0 -38.5 -38.0 -37.5 -37.0 -36.5 -36.0 -35.5 -35.0 -34.5 -34.0 -33.5 -33.0 -32.5 -32.0 -31.5 -31.0 -30.5 -30.0 -29.5 -29.0 -28.5 -28.0 -27.5 -27.0 -26.5 -26.0 -25.5 -25.0 -24.5 -24.0 -23.5 -23.0 -22.5 -22.0 -21.5 -21.0 -20.5 -20.0 -19.5 -19.0 -18.5 -18.0 -17.5 -17.0 -16.5 -16.0 -15.5 -15.0 -14.5 -14.0 -13.5 -13.0 -12.5 -12.0 -11.5 -11.0 -10.5 -10.0 -9.5 -9.0 -8.5 -8.0 -7.5 -7.0 -6.5 -6.0 -5.5 -5.0 -4.5 -4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 10.5 11.0 11.5 12.0 12.5 13.0 13.5 14.0 14.5 15.0 15.5 16.0 16.5 17.0 17.5 18.0 18.5 19.0 19.5 20.0 20.5 21.0 21.5 22.0 22.5 23.0 23.5 24.0 24.5 25.0 25.5 26.0 26.5 27.0 27.5 28.0 28.5 29.0 29.5 30.0 30.5 31.0 31.5 32.0 32.5 33.0 33.5 34.0 34.5 35.0 35.5 36.0 36.5 37.0 37.5 38.0 38.5 39.0 39.5 40.0 40.5 41.0 41.5 42.0 42.5 43.0 43.5 44.0 44.5 45.0 45.5 46.0 46.5 47.0 47.5 48.0 48.5 49.0 49.5 50.0 50.5 51.0 51.5 52.0 52.5 53.0 53.5 54.0 54.5 55.0 55.5 56.0 56.5 57.0 57.5 58.0 58.5 59.0 59.5 60.0 60.5 61.0 61.5 62.0 62.5 63.0 63.5 64.0 64.5 65.0 65.5 66.0 66.5 67.0 67.5 68.0 68.5 69.0 69.5 70.0 70.5 71.0 71.5 72.0 72.5 73.0 73.5 74.0 74.5 75.0 75.5 76.0 76.5 77.0 77.5 78.0 78.5 79.0 79.5 80.0 80.5 81.0 81.5 82.0 82.5 83.0 83.5 84.0 84.5 85.0 85.5 86.0 86.5 87.0 87.5 88.0 88.5 89.0 89.5 90.0]
+const float 	ambientOcclusionLevel 	= 0.01f;
 
-const float		sunPathRotation			= -40.0f;
-const float		ambientOcclusionLevel	= 0.5f;
-
-const int		noiseTextureResolution	= 64;
+const int 		noiseTextureResolution  = 64;
 
 
 //END OF INTERNAL VARIABLES//
 
+/* DRAWBUFFERS:0456 */
 
-
-#define BANDING_FIX_FACTOR 1.0f
-
-uniform sampler2D gcolor;
-uniform sampler2D gdepth;
-uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
-uniform sampler2D gnormal;
-uniform sampler2D composite;
-uniform sampler2DShadow shadow;
-//uniform sampler2D shadowcolor;
-uniform sampler2D noisetex,
-				  depthtex0;
-//uniform sampler2D gaux1;
-//uniform sampler2D gaux2;
-//uniform sampler2D gaux3;
-//uniform sampler2D gaux4;
+uniform sampler2D colortex0;
+uniform sampler2D colortex1;
+uniform sampler2D shadowcolor1;
+uniform sampler2D shadowcolor;
+uniform sampler2D shadowtex1;
+uniform sampler2D noisetex;
+uniform sampler2D colortex4;
+uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 
-varying vec4 texcoord;
-varying vec3 lightVector;
-varying vec3 upVector;
-
-uniform int worldTime;
-uniform int moonPhase;
-
-uniform mat4 gbufferProjection;
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferModelView;
-uniform mat4 shadowProjectionInverse;
-uniform mat4 shadowProjection;
+uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
-uniform vec3 sunPosition;
-uniform vec3 cameraPosition;
-uniform vec3 upPosition;
+uniform mat4 shadowProjection;
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferProjection;
+
+in vec4 texcoord;
+in vec3 lightVector;
+
+in float timeSunriseSunset;
+in float timeNoon;
+in float timeMidnight;
+in float timeSkyDark;
+uniform float screenBrightness;
+
+in vec3 colorSunlight;
+in vec3 colorSkylight;
+in vec3 colorSunglow;
+in vec3 colorBouncedSunlight;
+in vec3 colorScatteredSunlight;
+in vec3 colorTorchlight;
+in vec3 colorWaterMurk;
+in vec3 colorWaterBlue;
+in vec3 colorSkyTint;
 
 uniform float near;
 uniform float far;
@@ -195,151 +134,71 @@ uniform float aspectRatio;
 uniform float frameTimeCounter;
 uniform float sunAngle;
 uniform vec3 skyColor;
-
-uniform int	  isEyeInWater;
-uniform float eyeAltitude;
-uniform ivec2 eyeBrightness;
-uniform ivec2 eyeBrightnessSmooth;
-uniform int	  fogMode;
-
-
-varying float timeSunrise;
-varying float timeNoon;
-varying float timeSunset;
-varying float timeMidnight;
-varying float timeSkyDark;
-
-varying vec3 colorSunlight;
-varying vec3 colorSkylight;
-varying vec3 colorSunglow;
-varying vec3 colorBouncedSunlight;
-varying vec3 colorScatteredSunlight;
-varying vec3 colorTorchlight;
-varying vec3 colorWaterMurk;
-varying vec3 colorWaterBlue;
-varying vec3 colorSkyTint;
-
-uniform int heldBlockLightValue;
-
-
-
-mat2 mm2(in float a){float c = cos(a), s = sin(a);return mat2(c,s,-s,c);}
-mat2 m2 = mat2(0.95534, 0.29552, -0.29552, 0.95534);
-float tri(in float x){return clamp(abs(fract(x)-.5),0.01,0.49);}
-vec2 tri2(in vec2 p){return vec2(tri(p.x)+tri(p.y),tri(p.y+tri(p.x)));}
+uniform vec3 cameraPosition;
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float weather(in vec2 coord) {
-#ifdef WEATHER
-if (worldTime>14000){
-return 2+moonPhase;
-}else{
-return 1+moonPhase;
-}
-#else
-return 0.0f;
-#endif
+
+vec3  	GetNormals(in vec2 coord) {				//Function that retrieves the screen space surface normals. Used for lighting calculations
+	return textureLod(colortex5, coord.st, 0).rgb * 2.0f - 1.0f;
 }
 
+float 	GetDepth(in vec2 coord) {
+	return texture(depthtex1, coord.st).x;
+}
 
-float saturate(float x)
+vec4  	GetScreenSpacePosition(in vec2 coord) {	//Function that calculates the screen-space position of the objects in the scene using the depth texture and the texture coordinates of the full-screen quad
+	float depth = GetDepth(coord);
+	vec4 fragposition = gbufferProjectionInverse * vec4(coord.s * 2.0f - 1.0f, coord.t * 2.0f - 1.0f, 2.0f * depth - 1.0f, 1.0f);
+		 fragposition /= fragposition.w;
+	
+	return fragposition;
+}
+
+vec3 	CalculateNoisePattern1(vec2 offset, float size) {
+	vec2 coord = texcoord.st;
+
+	coord *= vec2(viewWidth, viewHeight);
+	coord = mod(coord + offset, vec2(size));
+	coord /= noiseTextureResolution;
+
+	return texture(noisetex, coord).xyz;
+}
+
+vec2 DistortShadowSpace(in vec2 pos)
 {
-return clamp(x, 0.0, 1.0);
+	vec2 signedPos = pos * 2.0f - 1.0f;
+
+	float dist = sqrt(signedPos.x * signedPos.x + signedPos.y * signedPos.y);
+	float distortFactor = (1.0f - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
+	signedPos.xy *= 0.95 / distortFactor;
+
+	pos = signedPos * 0.5f + 0.5f;
+
+	return pos;
 }
 
-
-vec3 GetWaterNormals(in vec2 coord) {//Function that retrieves the screen space surface normals. Used for lighting calculations
-return normalize(texture2DLod(gnormal, coord.st, 0).rgb * 2.0f - 1.0f);
-}
-//Get gbuffer textures
-vec3	GetAlbedoLinear(in vec2 coord) {			//Function that retrieves the diffuse texture and convert it into linear space.
-	return pow(texture2D(gcolor, coord).rgb, vec3(2.2f));
-}
-
-vec3	GetAlbedoGamma(in vec2 coord) {			//Function that retrieves the diffuse texture and leaves it in gamma space.
-	return texture2D(gcolor, coord).rgb;
-}
-
-vec3	GetNormals(in vec2 coord) {				//Function that retrieves the screen space surface normals. Used for lighting calculations
-	return texture2D(gnormal, texcoord.st).rgb * 2.0f - 1.0f;
-}
-
-float	GetDepth(in vec2 coord) {					//Function that retrieves the scene depth. 0 - 1, higher values meaning farther away
-	return texture2D(depthtex1, coord).r;
-}
-
-float	GetDepthLinear(in vec2 coord) {					//Function that retrieves the scene depth. 0 - 1, higher values meaning farther away
-	return 2.0f * near * far / (far + near - (2.0f * texture2D(gdepthtex, coord).x - 1.0f) * (far - near));
-}
-
-float	ExpToLinearDepth(in float depth)
+vec3 Contrast(in vec3 color, in float contrast)
 {
-	return 2.0f * near * far / (far + near - (2.0f * depth - 1.0f) * (far - near));
+	float colorLength = length(color);
+	vec3 nColor = color / colorLength;
+
+	colorLength = pow(colorLength, contrast);
+
+	return nColor * colorLength;
 }
 
-
-//Lightmaps
-float	GetLightmapTorch(in vec2 coord) {			//Function that retrieves the lightmap of light emitted by emissive blocks like torches and lava
-	float lightmap = texture2D(gdepth, coord).g;
-
-	//Apply inverse square law and normalize for natural light falloff
-	lightmap		= clamp(lightmap * 1.22f, 0.0f, 1.0f);
-	lightmap		= 1.0f - lightmap;
-	lightmap		*= 5.6f;
-	lightmap		= 1.0f / pow((lightmap + 0.1f), 2.0f);
-	lightmap		-= 0.03075f;
-
-	// if (lightmap <= 0.0f)
-	//	lightmap = 1.0f;
-
-	lightmap		= max(0.0f, lightmap);
-	lightmap		*= 0.008f;
-	lightmap		= clamp(lightmap, 0.0f, 1.0f);
-	lightmap		= pow(lightmap, 0.9f);
-	return lightmap;
-
-
+float 	GetMaterialIDs(in vec2 coord) {			//Function that retrieves the texture that has all material IDs stored in it
+	return texture(colortex1, coord).r;
 }
 
-float	GetLightmapSky(in vec2 coord) {			//Function that retrieves the lightmap of light emitted by the sky. This is a raw value from 0 (fully dark) to 1 (fully lit) regardless of time of day
-	return pow(texture2D(gdepth, coord).b, 4.3f);
+float GetSkylight(in vec2 coord)
+{
+	return textureLod(colortex1, coord, 0).b;
 }
 
-float	GetUnderwaterLightmapSky(in vec2 coord) {
-	return texture2D(composite, coord).r;
-}
-
-
-//Specularity
-float	GetSpecularity(in vec2 coord) {			//Function that retrieves how reflective any surface/pixel is in the scene. Used for reflections and specularity
-	return texture2D(composite, texcoord.st).r;
-}
-
-float	GetGlossiness(in vec2 coord) {			//Function that retrieves how reflective any surface/pixel is in the scene. Used for reflections and specularity
-	return texture2D(composite, texcoord.st).g;
-}
-
-
-
-//Material IDs
-float	GetMaterialIDs(in vec2 coord) {			//Function that retrieves the texture that has all material IDs stored in it
-	return texture2D(gdepth, coord).r;
-}
-
-bool	GetSky(in vec2 coord) {					//Function that returns true for any pixel that is part of the sky, and false for any pixel that isn't part of the sky
-	float matID = GetMaterialIDs(coord);		//Gets texture that has all material IDs stored in it
-		  matID = floor(matID * 255.0f);		//Scale texture from 0-1 float to 0-255 integer format
-
-	if (matID == 0.0f) {						//Checks to see if the current pixel's material ID is 0 = the sky
-		return true;							//If the current pixel has the material ID of 0 (sky material ID), Return "this pixel is part of the sky"
-	} else {
-		return false;							//Return "this pixel is not part of the sky"
-	}
-}
-
-bool	GetMaterialMask(in vec2 coord, in int ID, in float matID) {
-		  matID = floor(matID * 255.0f);
+float 	GetMaterialMask(in vec2 coord, const in int ID) {
+	float matID = (GetMaterialIDs(coord) * 255.0f);
 
 	//Catch last part of sky
 	if (matID > 254.0f) {
@@ -347,64 +206,343 @@ bool	GetMaterialMask(in vec2 coord, in int ID, in float matID) {
 	}
 
 	if (matID == ID) {
-		return true;
+		return 1.0f;
 	} else {
-		return false;
+		return 0.0f;
 	}
 }
 
-
-
-
-//Water
-float	GetWaterTex(in vec2 coord) {				//Function that returns the texture used for water. 0 means "this pixel is not water". 0.5 and greater means "this pixel is water".
-	return texture2D(composite, coord).b;		//values from 0.5 to 1.0 represent the amount of sky light hitting the surface of the water. It is used to simulate fake sky reflections in composite1.fsh
-}
-
-bool	GetWaterMask(in vec2 coord, in float matID) {					//Function that returns "true" if a pixel is water, and "false" if a pixel is not water.
+bool 	GetSkyMask(in vec2 coord)
+{
+	float matID = GetMaterialIDs(coord);
 	matID = floor(matID * 255.0f);
 
-	if (matID >= 35.0f && matID <= 51) {
+	if (matID < 1.0f || matID > 254.0f)
+	{
 		return true;
 	} else {
 		return false;
 	}
 }
 
+#define OFF 0
+#define Entities 1
+#define Blocks 2
 
+#define Disabled_AO_On OFF	//[OFF Entities Blocks]
 
-
-//Surface calculations
-vec4	GetScreenSpacePosition(in vec2 coord) { //Function that calculates the screen-space position of the objects in the scene using the depth texture and the texture coordinates of the full-screen quad
-	float depth = GetDepth(coord);
-		  depth += float(GetMaterialMask(coord, 5, GetMaterialIDs(coord))) * 0.38f;
-		  //float handMask = float(GetMaterialMask(coord, 5, GetMaterialIDs(coord)));
-	vec4 fragposition = gbufferProjectionInverse * vec4(coord.s * 2.0f - 1.0f, coord.t * 2.0f - 1.0f, 2.0f * depth - 1.0f, 1.0f);
-		 fragposition /= fragposition.w;
-
-		 //fragposition.xyz *= mix(1.0f, 15.0f, handMask);
-
-	return fragposition;
-}
-
-vec4	GetScreenSpacePosition(in vec2 coord, in float depth) { //Function that calculates the screen-space position of the objects in the scene using the depth texture and the texture coordinates of the full-screen quad
-		  //depth += float(GetMaterialMask(coord, 5)) * 0.38f;
-	vec4 fragposition = gbufferProjectionInverse * vec4(coord.s * 2.0f - 1.0f, coord.t * 2.0f - 1.0f, 2.0f * depth - 1.0f, 1.0f);
-		 fragposition /= fragposition.w;
-
-	return fragposition;
-}
-
-vec4	GetWorldSpacePosition(in vec2 coord, in float depth)
+float GetAO(in vec4 screenSpacePosition, in vec3 normal, in vec2 coord, in vec3 dither)
 {
-	vec4 pos = GetScreenSpacePosition(coord, depth);
-	pos = gbufferModelViewInverse * pos;
-	pos.xyz += cameraPosition.xyz;
+	//Determine origin position
+	vec3 origin = screenSpacePosition.xyz;
 
-	return pos;
+	vec3 randomRotation = normalize(dither.xyz * vec3(2.0f, 2.0f, 1.0f) - vec3(1.0f, 1.0f, 0.0f));
+
+	vec3 tangent = normalize(randomRotation - normal * dot(randomRotation, normal));
+	vec3 bitangent = cross(normal, tangent);
+	mat3 tbn = mat3(tangent, bitangent, normal);
+
+	float aoRadius   = 0.15f * -screenSpacePosition.z;
+		  //aoRadius   = 0.8f;
+	float zThickness = 0.25f * -screenSpacePosition.z;
+		  //zThickness = 2.2f;
+
+	vec3 	samplePosition 		= vec3(0.0f);
+	float 	intersect 			= 0.0f;
+	vec4 	sampleScreenSpace 	= vec4(0.0f);
+	float 	sampleDepth 		= 0.0f;
+	float 	distanceWeight 		= 0.0f;
+	float 	finalRadius 		= 0.0f;
+
+	int numRaysPassed = 0;
+
+	float ao = 0.0f;
+
+	for (int i = 0; i < 4; i++)
+	{
+		vec3 kernel = vec3(texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).r * 2.0f - 1.0f, 
+					     texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).g * 2.0f - 1.0f,
+					     texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).b * 1.0f);
+			 kernel = normalize(kernel);
+			 kernel *= pow(dither.x + 0.01f, 1.0f);
+
+		samplePosition = tbn * kernel;
+		samplePosition = samplePosition * aoRadius + origin;
+
+			sampleScreenSpace = gbufferProjection * vec4(samplePosition, 0.0f);
+			sampleScreenSpace.xyz /= sampleScreenSpace.w;
+			sampleScreenSpace.xyz = sampleScreenSpace.xyz * 0.5f + 0.5f;
+
+			//float isentities = GetMaterialMask(sampleScreenSpace.st, 7);
+			//float iscube = 1.0 - isentities;
+
+			#if Disabled_AO_On == OFF
+			float disableAO = 0.0;
+			#elif Disabled_AO_On == Entities
+			float disableAO = GetMaterialMask(sampleScreenSpace.st, 7);
+			#elif Disabled_AO_On == Blocks
+			float disableAO = 1.0 - GetMaterialMask(sampleScreenSpace.st, 7);
+			#endif
+
+			//Check depth at sample point
+			sampleDepth = GetScreenSpacePosition(sampleScreenSpace.xy).z;
+
+			//If point is behind geometry, buildup AO
+			if (sampleDepth >= samplePosition.z && sampleDepth - samplePosition.z < zThickness && disableAO < 0.5)
+			{	
+				ao += 1.0f;
+			} else {
+
+			}
+	}
+	ao /= 4;
+	ao = 1.0f - ao;
+	ao = pow(ao, 2.0f);
+
+	return ao;
 }
 
-vec4	GetCloudSpacePosition(in vec2 coord, in float depth, in float distanceMult)
+vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3 noisePattern)
+{
+	float scale = pow(2.0f, float(LOD));
+
+	float padding = 0.002f;
+
+	if (	texcoord.s - offset.s + padding < 1.0f / scale + (padding * 2.0f) 
+		&&  texcoord.t - offset.t + padding < 1.0f / scale + (padding * 2.0f)
+		&&  texcoord.s - offset.s + padding > 0.0f 
+		&&  texcoord.t - offset.t + padding > 0.0f) 
+	{
+
+		vec2 coord = (texcoord.st - offset.st) * scale;
+
+		vec3 normal 				= GetNormals(coord.st);						//Gets the screen-space normals
+
+		vec4 gn = gbufferModelViewInverse * vec4(normal.xyz, 0.0f);
+			 gn = shadowModelView * gn;
+			 gn.xyz = normalize(gn.xyz);
+
+		vec3 shadowSpaceNormal = gn.xyz;
+
+		vec4 screenSpacePosition 	= GetScreenSpacePosition(coord.st); 			//Gets the screen-space position
+		vec3 viewVector 			= normalize(screenSpacePosition.xyz);
+
+
+		float distance = sqrt(  screenSpacePosition.x * screenSpacePosition.x 	//Get surface distance in meters
+							  + screenSpacePosition.y * screenSpacePosition.y 
+							  + screenSpacePosition.z * screenSpacePosition.z);
+
+		float materialIDs = texture(colortex1, coord).r * 255.0f;
+
+		vec4 upVectorShadowSpace = shadowModelView * vec4(0.0f, 1.0, 0.0, 0.0);
+
+		
+		vec4 worldposition = gbufferModelViewInverse * screenSpacePosition;		//Transform from screen space to world space
+			 worldposition = shadowModelView * worldposition;							//Transform from world space to shadow space
+		float comparedepth = -worldposition.z;											//Surface distance from sun to be compared to the shadow map
+		
+		worldposition = shadowProjection * worldposition;								//Transform from shadow space to shadow projection space					
+		worldposition /= worldposition.w;
+
+		float d = sqrt(worldposition.x * worldposition.x + worldposition.y * worldposition.y);
+		float distortFactor = (1.0f - SHADOW_MAP_BIAS) + d * SHADOW_MAP_BIAS;
+		//worldposition.xy /= distortFactor;
+		//worldposition.z = mix(worldposition.z, 0.5, 0.8);
+		worldposition = worldposition * 0.5f + 0.5f;		//Transform from shadow projection space to shadow map coordinates
+
+		float shadowMult = 0.0f;														//Multiplier used to fade out shadows at distance
+		float shad = 0.0f;
+		vec3 fakeIndirect = vec3(0.0f);
+
+		float fakeLargeAO = 0.0;
+
+
+		float mcSkylight = GetSkylight(coord) * 0.8 + 0.2;
+
+		float fademult = 0.15f;
+
+		shadowMult = clamp((shadowDistance * 41.4f * fademult) - (distance * fademult), 0.0f, 1.0f);	//Calculate shadowMult to fade shadows out
+
+
+		if (	shadowMult > 0.0) 
+		{
+			 
+
+			//big shadow
+			float rad = range;
+
+			int c = 0;
+			float s = 2.0f * rad / 2048;
+
+			vec2 dither = noisePattern.xy - 0.5f;
+			//vec2 dither = vec2(0.0f);
+
+			float step = 1.0f / quality;
+
+			for (float i = -2.0f; i <= 2.0f; i += step) {
+				for (float j = -2.0f; j <= 2.0f; j += step) {
+
+					vec2 offset = (vec2(i, j) + dither * step) * s;
+
+					offset *= length(offset) * 15.0;
+					offset *= GI_RADIUS * 1.0;
+
+					vec2 coord =  worldposition.st + offset;
+					vec2 lookupCoord = DistortShadowSpace(coord);
+
+					#ifdef GI_ARTIFACT_REDUCTION
+					float depthSample = textureLod(shadowtex1, lookupCoord, 0).x;
+					#else
+					float depthSample = textureLod(shadowtex1, lookupCoord, 2).x;
+					#endif
+
+					/*
+					depthSample = depthSample * 2.0 - 1.0;
+					depthSample -= 0.4;
+					depthSample /= 0.2;
+					depthSample = depthSample * 0.5 + 0.5;
+					*/
+
+					depthSample = -3 + 5.0 * depthSample;
+					vec3 samplePos = vec3(coord.x, coord.y, depthSample);
+
+
+					vec3 lightVector = normalize(samplePos.xyz - worldposition.xyz);
+
+					vec4 normalSample = textureLod(shadowcolor1, lookupCoord, 5);
+					vec3 surfaceNormal = normalSample.rgb * 2.0f - 1.0f;
+						 surfaceNormal.x = -surfaceNormal.x;
+						 surfaceNormal.y = -surfaceNormal.y;
+
+					float surfaceSkylight = normalSample.a;
+
+					if (surfaceSkylight < 0.2)
+					{
+						surfaceSkylight = mcSkylight;
+					}
+
+					float NdotL = max(0.0f, dot(shadowSpaceNormal.xyz, lightVector * vec3(1.0, 1.0, -1.0)));
+						  // NdotL = NdotL * 0.9f + 0.1f;
+
+					if (abs(materialIDs - 3.0f) < 0.1f || abs(materialIDs - 2.0f) < 0.1f || abs(materialIDs - 11.0f) < 0.1f)
+					{
+						NdotL = 1.0f;
+					}
+
+					if (NdotL > 0.0)
+					{
+						bool isTranslucent = length(surfaceNormal) < 0.5f;
+
+						if (isTranslucent)
+						{
+							surfaceNormal.xyz = vec3(0.0f, 0.0f, 1.0f);
+						}
+
+						//float leafMix = clamp(-surfaceNormal.b * 10.0f, 0.0f, 1.0f);
+
+
+						float weight = dot(lightVector, surfaceNormal);
+						float rawdot = weight;
+						// float aoWeight = abs(weight);
+							  // aoWeight *= clamp(dot(lightVector, upVectorShadowSpace.xyz), 0.0, 1.0);
+						//weight = mix(weight, 1.0f, leafMix);
+						if (isTranslucent)
+						{
+							weight = abs(weight) * 0.25f;
+						}
+
+						if (normalSample.a < 0.2)
+						{
+							weight = 0.5;
+						}
+
+						weight = max(weight, 0.0f);
+
+						float dist = length(samplePos.xyz - worldposition.xyz - vec3(0.0f, 0.0f, 0.0f));
+						if (dist < 0.0005f)
+						{
+							dist = 10000000.0f;
+						}
+						// float aoDist = length(samplePos.xyz - worldposition.xyz);
+						// aoDist = aoDist < 0.001f ? 10000000.0f : aoDist;
+
+						const float falloffPower = 2.0f;
+						float distanceWeight = (1.0f / (pow(dist * (62260.0f / rad), falloffPower) + 100.1f));
+							  //distanceWeight = max(0.0f, distanceWeight - 0.000009f);
+							  distanceWeight *= pow(length(offset), 2.0) * 50000.0 + 1.01;
+						
+						// float aoDistanceWeight = (1.0f / (pow(aoDist * (13600.0f / rad), falloffPower) + 0.0001f * step));
+							  // aoDistanceWeight = max(0.0f, aoDistanceWeight - 0.00009f);
+
+						//Leaves self-occlusion
+						if (rawdot < 0.0f)
+						{
+							distanceWeight = max(distanceWeight * 30.0f - 0.13f, 0.0f);
+							distanceWeight *= 0.04f;
+						}
+							  
+
+						//float skylightWeight = clamp(1.0 - abs(surfaceSkylight - mcSkylight) * 10.0, 0.0, 1.0);
+						float skylightWeight = 1.0 / (max(0.0, surfaceSkylight - mcSkylight) * 50.0 + 1.0);
+
+
+						vec3 colorSample = pow(textureLod(shadowcolor, lookupCoord, 5).rgb, vec3(2.2f));
+						//colorSample 				= pow(colorSample, vec3(1.2f));
+
+						//colorSample = Contrast(colorSample, 0.8f);
+
+						//colorSample = normalize(colorSample) * pow(length(colorSample), 1.2f);
+
+						//colorSample = mix(colorSample, vec3(dot(colorSample, vec3(0.3333f))), vec3(0.035f));
+						//float colorMagnitude = dot(colorSample, vec3(0.3333f));
+						//vec3 normalized = normalize(colorSample);
+						// if (surfaceNormal.b < -0.1f && abs(materialIDs - 3.0f) < 0.1f)
+						// {
+						// 	float crossfade = clamp(1.0f - dist / 5.0f, 0.0f, 1.0f);
+						// 	normalized = pow(normalized, vec3(mix(1.0f, 2.0f, crossfade)));
+						// }
+						//colorSample = normalized * colorMagnitude;
+
+
+						fakeIndirect += colorSample * weight * distanceWeight * NdotL * skylightWeight;
+						//fakeIndirect += skylightWeight * weight * distanceWeight * NdotL;
+					// fakeLargeAO += aoDistanceWeight * NdotL;
+					}
+					c += 1;
+				}
+			}
+
+			fakeIndirect /= c;
+			// fakeLargeAO /= c;
+			// fakeLargeAO = clamp(1.0 - fakeLargeAO * 500.0, 0.0, 1.0);
+			// fakeLargeAO = pow(fakeLargeAO, 2.0);
+		}
+
+		fakeIndirect = mix(vec3(0.0f), fakeIndirect, vec3(shadowMult));
+
+
+		float ao = 1.0f;
+		// ao *= fakeLargeAO;
+		bool isSky = GetSkyMask(coord.st);
+		#ifdef ENABLE_SSAO
+		if (!isSky)
+		{
+			ao *= GetAO(screenSpacePosition.xyzw, normal.xyz, coord.st, noisePattern.xyz);
+		}
+		#endif
+
+		//fakeIndirect.rgb = vec3(mcSkylight / 1150.0);
+
+		return vec4(fakeIndirect.rgb * 1400.0f * GI_RADIUS, ao);
+	}
+	else {
+		return vec4(0.0f);
+	}
+}
+
+
+
+vec4 	GetCloudSpacePosition(in vec2 coord, in float depth, in float distanceMult)
 {
 	// depth *= 30.0f;
 
@@ -425,108 +563,14 @@ vec4	GetCloudSpacePosition(in vec2 coord, in float depth, in float distanceMult)
 	return worldPos;
 }
 
-vec4	ScreenSpaceFromWorldSpace(in vec4 worldPosition)
-{
-	worldPosition.xyz -= cameraPosition;
-	worldPosition = gbufferModelView * worldPosition;
-	return worldPosition;
-}
-
-
-
-void	DoNightEye(inout vec3 color) {			//Desaturates any color input at night, simulating the rods in the human eye
-
-	float amount = LOW_SATURATION_NIGHT;						//How much will the new desaturated and tinted image be mixed with the original image
-	vec3 rodColor = vec3(0.2f, 0.5f, 1.0f);		//Cyan color that humans percieve when viewing extremely low light levels via rod cells in the eye
-	float colorDesat = dot(color, vec3(1.0f));	//Desaturated color
-
-	color = mix(color, vec3(colorDesat) * rodColor, timeMidnight * amount);
-	//color.rgb = color.rgb;
-}
-
-
-float	ExponentialToLinearDepth(in float depth)
-{
-	vec4 worldposition = vec4(depth);
-	worldposition = gbufferProjection * worldposition;
-	return worldposition.z;
-}
-
-float	LinearToExponentialDepth(in float linDepth)
-{
-	float expDepth = (far * (linDepth - near)) / (linDepth * (far - near));
-	return expDepth;
-}
-
-void	DoLowlightEye(inout vec3 color) {			//Desaturates any color input at night, simulating the rods in the human eye
-
-	float amount = 0.8f;						//How much will the new desaturated and tinted image be mixed with the original image
-	vec3 rodColor = vec3(0.2f, 0.5f, 1.0f);		//Cyan color that humans percieve when viewing extremely low light levels via rod cells in the eye
-	float colorDesat = dot(color, vec3(1.0f));	//Desaturated color
-
-	color = mix(color, vec3(colorDesat) * rodColor, amount);
-	// color.rgb = color.rgb;
-}
-
-void	FixLightFalloff(inout float lightmap) { //Fixes the ugly lightmap falloff and creates a nice linear one
-	float additive = 5.35f;
-	float exponent = 40.0f;
-
-	lightmap += additive;							//Prevent ugly fast falloff
-	lightmap = pow(lightmap, exponent);			//Curve light falloff
-	lightmap = max(0.0f, lightmap);		//Make sure light properly falls off to zero
-	lightmap /= pow(1.0f + additive, exponent);
-}
-
-
-float	CalculateLuminance(in vec3 color) {
-	return (color.r * 0.2126f + color.g * 0.7152f + color.b * 0.0722f);
-}
-
-vec3	Glowmap(in vec3 albedo, in bool mask, in float curve, in vec3 emissiveColor) {
-	vec3 color = albedo * float(mask);
-		 color = pow(color, vec3(curve));
-		 color = vec3(CalculateLuminance(color));
-		 color *= emissiveColor;
-
-	return color;
-}
-
-
-float	ChebyshevUpperBound(in vec2 moments, in float distance) {
-	if (distance <= moments.x)
-		return 1.0f;
-
-	float variance = moments.y - (moments.x * moments.x);
-		  variance = max(variance, 0.000002f);
-
-	float d = distance - moments.x;
-	float pMax = variance / (variance + d*d);
-
-	return pMax;
-}
-
-float	CalculateDitherPattern() {
-	const int[4] ditherPattern = int[4] (0, 2, 1, 4);
-
-	vec2 count = vec2(0.0f);
-		 count.x = floor(mod(texcoord.s * viewWidth, 2.0f));
-		 count.y = floor(mod(texcoord.t * viewHeight, 2.0f));
-
-	int dither = ditherPattern[int(count.x) + int(count.y) * 2];
-
-	return float(dither) / 4.0f;
-}
-
-
-float	CalculateDitherPattern1() {
+float  	CalculateDitherPattern1() {
 	const int[16] ditherPattern = int[16] (0 , 8 , 2 , 10,
-										   12, 4 , 14, 6 ,
-										   3 , 11, 1,  9 ,
-										   15, 7 , 13, 5 );
+									 	   12, 4 , 14, 6 ,
+									 	   3 , 11, 1,  9 ,
+									 	   15, 7 , 13, 5 );
 
 	vec2 count = vec2(0.0f);
-		 count.x = floor(mod(texcoord.s * viewWidth, 4.0f));
+	     count.x = floor(mod(texcoord.s * viewWidth, 4.0f));
 		 count.y = floor(mod(texcoord.t * viewHeight, 4.0f));
 
 	int dither = ditherPattern[int(count.x) + int(count.y) * 4];
@@ -534,1022 +578,27 @@ float	CalculateDitherPattern1() {
 	return float(dither) / 16.0f;
 }
 
-float	CalculateDitherPattern2() {
-	const int[64] ditherPattern = int[64] ( 1, 49, 13, 61,	4, 52, 16, 64,
-										   33, 17, 45, 29, 36, 20, 48, 32,
-											9, 57,	5, 53, 12, 60,	8, 56,
-										   41, 25, 37, 21, 44, 28, 40, 24,
-											3, 51, 15, 63,	2, 50, 14, 62,
-										   35, 19, 47, 31, 34, 18, 46, 30,
-										   11, 59,	7, 55, 10, 58,	6, 54,
-										   43, 27, 39, 23, 42, 26, 38, 22);
-
-	vec2 count = vec2(0.0f);
-		 count.x = floor(mod(texcoord.s * viewWidth, 8.0f));
-		 count.y = floor(mod(texcoord.t * viewHeight, 8.0f));
-
-	int dither = ditherPattern[int(count.x) + int(count.y) * 8];
-
-	return float(dither) / 65.0f;
-}
-
-vec3	CalculateNoisePattern1(vec2 offset, float size) {
-	vec2 coord = texcoord.st;
-
-	coord *= vec2(viewWidth, viewHeight);
-	coord = mod(coord + offset, vec2(size));
-	coord /= noiseTextureResolution;
-
-	return texture2D(noisetex, coord).xyz;
-}
-
-
-void DrawDebugSquare(inout vec3 color) {
-
-	vec2 pix = vec2(1.0f / viewWidth, 1.0f / viewHeight);
-
-	vec2 offset = vec2(0.5f);
-	vec2 size = vec2(0.0f);
-		 size.x = 1.0f / 2.0f;
-		 size.y = 1.0f / 2.0f;
-
-	vec2 padding = pix * 0.0f;
-		 size += padding;
-
-	if ( texcoord.s + offset.s / 2.0f + padding.x / 2.0f > offset.s &&
-		 texcoord.s + offset.s / 2.0f + padding.x / 2.0f < offset.s + size.x &&
-		 texcoord.t + offset.t / 2.0f + padding.y / 2.0f > offset.t &&
-		 texcoord.t + offset.t / 2.0f + padding.y / 2.0f < offset.t + size.y
-		)
-	{
-
-		int[16] ditherPattern = int[16] (0, 3, 0, 3,
-										 2, 1, 2, 1,
-										 0, 3, 0, 3,
-										 2, 1, 2, 1);
-
-		vec2 count = vec2(0.0f);
-			 count.x = floor(mod(texcoord.s * viewWidth, 4.0f));
-			 count.y = floor(mod(texcoord.t * viewHeight, 4.0f));
-
-		int dither = ditherPattern[int(count.x) + int(count.y) * 4];
-		color.rgb = vec3(float(dither) / 3.0f);
-
-
-	}
-
-}
-
-float R2_dither(){
-	vec2 alpha = vec2(0.75487765, 0.56984026);
+void 	DoNightEye(inout vec3 color) {			//Desaturates any color input at night, simulating the rods in the human eye
 	
-	return fract(alpha.x * gl_FragCoord.x + alpha.y * gl_FragCoord.y);
+	float amount = 0.8f; 						//How much will the new desaturated and tinted image be mixed with the original image
+	vec3 rodColor = vec3(0.2f, 0.4f, 1.0f); 	//Cyan color that humans percieve when viewing extremely low light levels via rod cells in the eye
+	float colorDesat = dot(color, vec3(1.0f)); 	//Desaturated color
+	
+	color = mix(color, vec3(colorDesat) * rodColor, timeMidnight * amount);
+	//color.rgb = color.rgb;	
 }
 
-vec3 rand(vec2 coord)
-{
-	float noiseX = saturate(fract(sin(dot(coord, vec2(12.9898, 78.223))) * 43758.5453));
-	float noiseY = saturate(fract(sin(dot(coord, vec2(12.9898, 78.223)*2.0)) * 43758.5453));
-	float noiseZ = saturate(fract(sin(dot(coord, vec2(12.9898, 78.223)*3.0)) * 43758.5453));
 
-	return vec3(noiseX, noiseY, noiseZ);
-}
-
-float BlueNoise(vec2 coord)
-{
-	vec2 noiseCoord = vec2(coord.st * vec2(viewWidth, viewHeight)) / 64.0;
-	noiseCoord += vec2(sin(frameTimeCounter * 0.75), cos(frameTimeCounter * 0.75));
-
-	noiseCoord = (floor(noiseCoord * 64.0) + 0.5) / 64.0;
-
-	float blueNoise = texture2DLod(noisetex, noiseCoord.st, 0).b;
-
-	return blueNoise;
-}
-
-vec2 BlueNoiseXY(vec2 coord)
-{
-	return vec2(BlueNoise(coord.st), BlueNoise(coord.st + 32.0 / vec2(viewWidth, viewHeight)));
-}
-
-float BlueNoiseStatic(vec2 coord)
-{
-	vec2 noiseCoord = vec2(coord.st * vec2(viewWidth, viewHeight)) / 64.0;
-
-	noiseCoord = (floor(noiseCoord * 64.0) + 0.5) / 64.0;
-
-	float blueNoise = texture2DLod(noisetex, noiseCoord.st, 0).b;
-
-	return blueNoise;
-}
-
-/////////////////////////STRUCTS///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////STRUCTS///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct MCLightmapStruct {		//Lightmaps directly from MC engine
-	float torch;				//Light emitted from torches and other emissive blocks
-	float sky;					//Light coming from the sky
-	float lightning;			//Light coming from lightning
-
-	vec3 torchVector;			//Vector in screen space that represents the direction of average light transfered
-	vec3 skyVector;
-} mcLightmap;
-
-
-
-struct DiffuseAttributesStruct {			//Diffuse surface shading attributes
-	float roughness;			//Roughness of surface. More roughness will use Oren Nayar reflectance.
-	float translucency;			//How translucent the surface is. Translucency represents how much energy will be transfered through the surface
-	vec3  translucencyColor;	//Color that will be multiplied with sunlight for backsides of translucent materials.
-};
-
-struct SpecularAttributesStruct {			//Specular surface shading attributes
-	float specularity;			//How reflective a surface is
-	float extraSpecularity;		//Additional reflectance for specular reflections from sun only
-	float glossiness;			//How smooth or rough a specular surface is
-	float metallic;				//from 0 - 1. 0 representing non-metallic, 1 representing fully metallic.
-	float gain;					//Adjust specularity further
-	float base;					//Reflectance when the camera is facing directly at the surface normal. 0 allows only the fresnel effect to add specularity
-	float fresnelPower;			//Curve of fresnel effect. Higher values mean the surface has to be viewed at more extreme angles to see reflectance
-};
-
-struct SkyStruct {				//All sky shading attributes
-	vec3	albedo;				//Diffuse texture aka "color texture" of the sky
-	vec3	tintColor;			//Color that will be multiplied with the sky to tint it
-	vec3	sunglow;			//Color that will be added to the sky simulating scattered light arond the sun/moon
-	vec3	sunSpot;			//Actual sun surface
-};
-
-struct WaterStruct {
-	vec3 albedo;
-};
-
-struct MaskStruct {
-
-	float matIDs;
-
-	bool sky;
-	bool land;
-	bool grass;
-	bool leaves;
-	bool ice;
-	bool hand;
-	bool translucent;
-	bool glow;
-	bool sunspot;
-	bool goldBlock;
-	bool ironBlock;
-	bool diamondBlock;
-	bool emeraldBlock;
-	bool sand;
-	bool sandstone;
-	bool stone;
-	bool cobblestone;
-	bool wool;
-	bool clouds;
-
-	bool torch;
-	bool lava;
-	bool glowstone;
-	bool fire;
-
-	bool water;
-
-	bool volumeCloud;
-
-};
-
-struct CloudsStruct {
-	vec3 albedo;
-};
-
-struct AOStruct {
-	float skylight;
-	float scatteredUpLight;
-	float bouncedSunlight;
-	float scatteredSunlight;
-	float constant;
-};
-
-struct Ray {
-	vec3 dir;
-	vec3 origin;
-};
-
-struct Plane {
-	vec3 normal;
-	vec3 origin;
-};
-
-struct SurfaceStruct {			//Surface shading properties, attributes, and functions
-
-	//Attributes that change how shading is applied to each pixel
-		DiffuseAttributesStruct	 diffuse;			//Contains all diffuse surface attributes
-		SpecularAttributesStruct specular;			//Contains all specular surface attributes
-
-	SkyStruct		sky;			//Sky shading attributes and properties
-	WaterStruct		water;			//Water shading attributes and properties
-	MaskStruct		mask;			//Material ID Masks
-	CloudsStruct	clouds;
-	AOStruct		ao;				//ambient occlusion
-
-	//Properties that are required for lighting calculation
-		vec3	albedo;					//Diffuse texture aka "color texture"
-		vec3	normal;					//Screen-space surface normals
-		float	depth;					//Scene depth
-		float	linearDepth;			//Linear depth
-
-		vec4	screenSpacePosition;	//Vector representing the screen-space position of the surface
-		vec3	viewVector;				//Vector representing the viewing direction
-		vec3	lightVector;			//Vector representing sunlight direction
-		Ray		viewRay;
-		vec3	worldLightVector;
-		vec3	upVector;				//Vector representing "up" direction
-		float	NdotL;					//dot(normal, lightVector). used for direct lighting calculation
-		vec3	debug;
-
-		float	shadow;
-		float	cloudShadow;
-
-		float	cloudAlpha;
-} surface;
-
-struct LightmapStruct {			//Lighting information to light the scene. These are untextured colored lightmaps to be multiplied with albedo to get the final lit and textured image.
-	vec3 sunlight;				//Direct light from the sun
-	vec3 skylight;				//Ambient light from the sky
-	vec3 bouncedSunlight;		//Fake bounced light, coming from opposite of sun direction and adding to ambient light
-	vec3 scatteredSunlight;		//Fake scattered sunlight, coming from same direction as sun and adding to ambient light
-	vec3 scatteredUpLight;		//Fake GI from ground
-	vec3 torchlight;			//Light emitted from torches and other emissive blocks
-	vec3 lightning;				//Light caused by lightning
-	vec3 nolight;				//Base ambient light added to everything. For lighting caves so that the player can barely see even when no lights are present
-	vec3 specular;				//Reflected direct light from sun
-	vec3 translucent;			//Light on the backside of objects representing thin translucent materials
-	vec3 sky;					//Color and brightness of the sky itself
-	vec3 underwater;			//underwater lightmap
-	vec3 heldLight;
-} lightmap;
-
-struct ShadingStruct {			//Shading calculation variables
-	float	direct;
-	float	waterDirect;
-	float	bounced;			//Fake bounced sunlight
-	float	skylight;			//Light coming from sky
-	float	scattered;			//Fake scattered sunlight
-	float	scatteredUp;		//Fake GI from ground
-	float	specular;			//Reflected direct light
-	float	translucent;		//Backside of objects lit up from the sun via thin translucent materials
-	float	sunlightVisibility; //Shadows
-	float	heldLight;
-} shading;
-
-struct GlowStruct {
-	vec3 torch;
-	vec3 lava;
-	vec3 glowstone;
-	vec3 fire;
-};
-
-struct FinalStruct {			//Final textured and lit images sorted by what is illuminating them.
-
-	GlowStruct		glow;		//Struct containing emissive material final images
-
-	vec3 sunlight;				//Direct light from the sun
-	vec3 skylight;				//Ambient light from the sky
-	vec3 bouncedSunlight;		//Fake bounced light, coming from opposite of sun direction and adding to ambient light
-	vec3 scatteredSunlight;		//Fake scattered sunlight, coming from same direction as sun and adding to ambient light
-	vec3 scatteredUpLight;		//Fake GI from ground
-	vec3 torchlight;			//Light emitted from torches and other emissive blocks
-	vec3 lightning;				//Light caused by lightning
-	vec3 nolight;				//Base ambient light added to everything. For lighting caves so that the player can barely see even when no lights are present
-	vec3 translucent;			//Light on the backside of objects representing thin translucent materials
-	vec3 sky;					//Color and brightness of the sky itself
-	vec3 underwater;			//underwater colors
-	vec3 heldLight;
-
-
-} final;
-
-struct Intersection {
-	vec3 pos;
-	float distance;
-	float angle;
-};
-
-
-
-
-/////////////////////////STRUCT FUNCTIONS//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////STRUCT FUNCTIONS//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//Mask
-void	CalculateMasks(inout MaskStruct mask) {
-		if (isEyeInWater > 0)
-			mask.sky = false;
-		else
-			mask.sky			= GetMaterialMask(texcoord.st, 0, mask.matIDs);
-
-		mask.land			= GetMaterialMask(texcoord.st, 1, mask.matIDs);
-		mask.grass			= GetMaterialMask(texcoord.st, 2, mask.matIDs);
-		mask.leaves			= GetMaterialMask(texcoord.st, 3, mask.matIDs);
-		mask.ice			= GetMaterialMask(texcoord.st, 4, mask.matIDs);
-		mask.hand			= GetMaterialMask(texcoord.st, 5, mask.matIDs);
-		mask.translucent	= GetMaterialMask(texcoord.st, 6, mask.matIDs);
-
-		mask.glow			= GetMaterialMask(texcoord.st, 10, mask.matIDs);
-		mask.sunspot		= GetMaterialMask(texcoord.st, 11, mask.matIDs);
-
-		mask.goldBlock		= GetMaterialMask(texcoord.st, 20, mask.matIDs);
-		mask.ironBlock		= GetMaterialMask(texcoord.st, 21, mask.matIDs);
-		mask.diamondBlock	= GetMaterialMask(texcoord.st, 22, mask.matIDs);
-		mask.emeraldBlock	= GetMaterialMask(texcoord.st, 23, mask.matIDs);
-		mask.sand			= GetMaterialMask(texcoord.st, 24, mask.matIDs);
-		mask.sandstone		= GetMaterialMask(texcoord.st, 25, mask.matIDs);
-		mask.stone			= GetMaterialMask(texcoord.st, 26, mask.matIDs);
-		mask.cobblestone	= GetMaterialMask(texcoord.st, 27, mask.matIDs);
-		mask.wool			= GetMaterialMask(texcoord.st, 28, mask.matIDs);
-		mask.clouds			= GetMaterialMask(texcoord.st, 29, mask.matIDs);
-
-		mask.torch			= GetMaterialMask(texcoord.st, 30, mask.matIDs);
-		mask.lava			= GetMaterialMask(texcoord.st, 31, mask.matIDs);
-		mask.glowstone		= GetMaterialMask(texcoord.st, 32, mask.matIDs);
-		mask.fire			= GetMaterialMask(texcoord.st, 33, mask.matIDs);
-
-		mask.water			= GetWaterMask(texcoord.st, mask.matIDs);
-
-		mask.volumeCloud	= false;
-}
-
-//Surface
-void	CalculateNdotL(inout SurfaceStruct surface) {		//Calculates direct sunlight without visibility check
-	float direct = dot(surface.normal.rgb, surface.lightVector);
-		  direct = direct * 1.0f + 0.0f;
-		  //direct = clamp(direct, 0.0f, 1.0f);
-
-	surface.NdotL = direct;
-}
-
-float	CalculateDirectLighting(in SurfaceStruct surface) {
-
-	//Tall grass translucent shading
-	if (surface.mask.grass) {
-		return 1.0f;
-
-
-	//Leaves
-	} else if (surface.mask.leaves) {
-
-		// if (surface.NdotL > -0.01f) {
-		//	return surface.NdotL * 0.99f + 0.01f;
-		// } else {
-		//	return abs(surface.NdotL) * 0.25f;
-		// }
-
-		return 1.0f;
-
-
-	//clouds
-	} else if (surface.mask.clouds) {
-
-		return 0.5f;
-
-
-	} else if (surface.mask.ice) {
-
-		return pow(surface.NdotL * 0.5 + 0.5, 2.0f);
-
-	//Default lambert shading
-	} else {
-		return max(0.0f, surface.NdotL * 0.99f + 0.01f);
-	}
-}
-
-float	CalculateSunlightVisibility(inout SurfaceStruct surface, in ShadingStruct shadingStruct) {				//Calculates shadows
-	if (rainStrength >= 0.99f)
-		return 1.0f;
-
-
-	if (shadingStruct.direct > 0.0f) {
-		float distance = sqrt(	surface.screenSpacePosition.x * surface.screenSpacePosition.x	//Get surface distance in meters
-							  + surface.screenSpacePosition.y * surface.screenSpacePosition.y
-							  + surface.screenSpacePosition.z * surface.screenSpacePosition.z);
-
-		vec4 worldposition = vec4(0.0f);
-			 worldposition = gbufferModelViewInverse * surface.screenSpacePosition;		//Transform from screen space to world space
-
-		float yDistanceSquared	= worldposition.y * worldposition.y;
-
-		worldposition = shadowModelView * worldposition;	//Transform from world space to shadow space
-		float comparedepth = -worldposition.z;				//Surface distance from sun to be compared to the shadow map
-
-		worldposition = shadowProjection * worldposition;
-		worldposition /= worldposition.w;
-
-		float dist = sqrt(worldposition.x * worldposition.x + worldposition.y * worldposition.y);
-		float distortFactor = (1.0f - SHADOW_MAP_BIAS) + dist * SHADOW_MAP_BIAS;
-		worldposition.xy *= 1.0f / distortFactor;
-		worldposition = worldposition * 0.5f + 0.5f;		//Transform from shadow space to shadow map coordinates
-
-		float shadowMult = 0.0f;																			//Multiplier used to fade out shadows at distance
-		float shading = 0.0f;
-
-		if (distance < shadowDistance && comparedepth > 0.0f &&											//Avoid computing shadows past the shadow map projection
-			 worldposition.s < 1.0f && worldposition.s > 0.0f && worldposition.t < 1.0f && worldposition.t > 0.0f) {
-
-			float fademult = 0.15f;
-				shadowMult = clamp((shadowDistance * 0.85f * fademult) - (distance * fademult), 0.0f, 1.0f);	//Calculate shadowMult to fade shadows out
-
-			float diffthresh = dist * 1.0f + 0.10f;
-				  diffthresh *= 3.0f / (shadowMapResolution / 2048.0f);
-				  //diffthresh /= shadingStruct.direct + 0.1f;
-
-			#if defined ENABLE_SOFT_SHADOWS
-
-				int count = 0;
-				float spread = SHADOWS_SOFTNESS / shadowMapResolution;
-
-				for (float i = -1.0f; i <= 1.0f; i += 1.0f) {
-					for (float j = -1.0f; j <= 1.0f; j += 1.0f) {
-						 shading += shadow2D(shadow, vec3(worldposition.st + vec2(i, j) * spread, worldposition.z - 0.0018f * diffthresh)).x;
-						count += 1;
-					}
-				}
-				shading /= count;
-
-			#else
-				diffthresh *= 3.0f;
-				shading = shadow2D(shadow, vec3(worldposition.st, worldposition.z - 0.0008f * diffthresh), 3).x;
-			#endif
-
-
-		}
-
-		shading = mix(1.0f, shading, shadowMult);
-
-		surface.shadow = shading;
-
-		return shading;
-	} else {
-		return 0.0f;
-	}
-}
-
-float	CalculateBouncedSunlight(in SurfaceStruct surface) {
-
-	float NdotL = surface.NdotL;
-	float bounced = clamp(-NdotL + 0.95f, 0.0f, 1.95f) / 1.95f;
-		  bounced = bounced * bounced * bounced;
-
-	return bounced;
-}
-
-float	CalculateScatteredSunlight(in SurfaceStruct surface) {
-
-	float NdotL = surface.NdotL;
-	float scattered = clamp(NdotL * 0.75f + 0.25f, 0.0f, 1.0f);
-		  //scattered *= scattered * scattered;
-
-	return scattered;
-}
-
-float	CalculateSkylight(in SurfaceStruct surface) {
-
-	if (surface.mask.clouds) {
-		return 1.0f;
-
-	// } else if (surface.mask.leaves) {
-
-	//	return 1.0f;
-
-	} else if (surface.mask.grass) {
-
-		return 1.0f;
-
-	} else {
-
-		float skylight = dot(surface.normal, surface.upVector);
-			  skylight = skylight * 0.4f + 0.6f;
-
-		return skylight;
-	}
-}
-
-float	CalculateScatteredUpLight(in SurfaceStruct surface) {
-	float scattered = dot(surface.normal, surface.upVector);
-		  scattered = scattered * 0.5f + 0.5f;
-		  scattered = 1.0f - scattered;
-
-	return scattered;
-}
-
-float CalculateHeldLightShading(in SurfaceStruct surface)
-{
-	vec3 lightPos = vec3(0.0f);
-	vec3 lightVector = normalize(lightPos - surface.screenSpacePosition.xyz);
-	float lightDist = length(lightPos.xyz - surface.screenSpacePosition.xyz);
-
-	float atten = 1.0f / (pow(lightDist, 2.0f) + 0.001f);
-	float NdotL = 1.0f;
-
-	return atten * NdotL;
-}
-
-float	CalculateSunglow(in SurfaceStruct surface) {
+float   CalculateSunglow(vec4 screenSpacePosition, vec3 lightVector) {
 
 	float curve = 4.0f;
 
-	vec3 npos = normalize(surface.screenSpacePosition.xyz);
-	vec3 halfVector2 = normalize(-surface.lightVector + npos);
+	vec3 npos = normalize(screenSpacePosition.xyz);
+	vec3 halfVector2 = normalize(-lightVector + npos);
 	float factor = 1.0f - dot(halfVector2, npos);
 
 	return factor * factor * factor * factor;
 }
-
-float	CalculateAntiSunglow(in SurfaceStruct surface) {
-
-	float curve = 4.0f;
-
-	vec3 npos = normalize(surface.screenSpacePosition.xyz);
-	vec3 halfVector2 = normalize(surface.lightVector + npos);
-	float factor = 1.0f - dot(halfVector2, npos);
-
-	return factor * factor * factor * factor;
-}
-
-bool   CalculateSunspot(in SurfaceStruct surface) {
-
-	//circular sun
-	float curve = 1.0f;
-
-	vec3 npos = normalize(surface.screenSpacePosition.xyz);
-	vec3 halfVector2 = normalize(-surface.lightVector + npos);
-
-	float sunProximity = 1.0f - dot(halfVector2, npos);
-
-	if (sunProximity > 0.96f && sunAngle > 0.0f && sunAngle < 0.5f) {
-		return true;
-	} else {
-		return false;
-	}
-
-	//Sun based on matID
-
-	// if (surface.mask.sunspot)
-	//	return true;
-	// else
-	//	return false;
-}
-
-void	GetLightVectors(inout MCLightmapStruct mcLightmap, in SurfaceStruct surface) {
-
-	vec2 torchDiff = vec2(0.0f);
-		 torchDiff.x = GetLightmapTorch(texcoord.st) - GetLightmapTorch(texcoord.st + vec2(1.0f / viewWidth, 0.0f));
-		 torchDiff.y = GetLightmapTorch(texcoord.st) - GetLightmapTorch(texcoord.st + vec2(0.0f, 1.0f / viewWidth));
-
-		 //torchDiff /= GetDepthLinear(texcoord.st);
-
-	mcLightmap.torchVector.x = torchDiff.x * 200.0f;
-	//mcLightmap.torchVector.x *= 1.0f - surface.viewVector.x;
-
-	mcLightmap.torchVector.y = torchDiff.y * 200.0f;
-
-	mcLightmap.torchVector.x = 1.0f;
-	mcLightmap.torchVector.y = 0.0f;
-	mcLightmap.torchVector.z = sqrt(1.0f - mcLightmap.torchVector.x * mcLightmap.torchVector.x + mcLightmap.torchVector.y + mcLightmap.torchVector.y);
-
-
-
-
-	float torchNormal = dot(surface.normal.rgb, mcLightmap.torchVector.rgb);
-
-	mcLightmap.torchVector.x = torchNormal;
-
-
-	//mcLightmap.torchVector = mcLightmap.torchVector * 0.5f + 0.5f;
-}
-
-void	AddSkyGradient(inout SurfaceStruct surface) {
-	float curve = 5.0f;
-	vec3 npos = normalize(surface.screenSpacePosition.xyz);
-	vec3 halfVector2 = normalize(-surface.upVector + npos);
-	float skyGradientFactor = dot(halfVector2, npos);
-	float skyDirectionGradient = skyGradientFactor;
-
-	if (dot(halfVector2, npos) > 0.75)
-		skyGradientFactor = 1.5f - skyGradientFactor;
-
-	skyGradientFactor = pow(skyGradientFactor, curve);
-
-	surface.sky.albedo = CalculateLuminance(surface.sky.albedo) * colorSkylight;
-
-	surface.sky.albedo *= mix(skyGradientFactor, 1.0f, clamp((0.12f - (timeNoon * 0.1f)) + rainStrength, 0.0f, 1.0f));
-	surface.sky.albedo *= pow(skyGradientFactor, 2.5f) + 0.2f;
-	surface.sky.albedo *= (pow(skyGradientFactor, 1.1f) + 0.425f) * 0.5f;
-	surface.sky.albedo.g *= skyGradientFactor * 1.0f + 1.0f;
-
-
-	vec3 linFogColor = pow(gl_Fog.color.rgb, vec3(2.2f));
-
-	float fogLum = max(max(linFogColor.r, linFogColor.g), linFogColor.b);
-
-
-	float fade1 = clamp(skyGradientFactor - 0.05f, 0.0f, 0.2f) / 0.2f;
-		  fade1 = fade1 * fade1 * (3.0f - 2.0f * fade1);
-	vec3 color1 = vec3(12.0f, 8.0, 4.7f) * 0.15f;
-		 color1 = mix(color1, vec3(2.0f, 0.55f, 0.2f), vec3(timeSunrise + timeSunset));
-
-	surface.sky.albedo *= mix(vec3(1.0f), color1, vec3(fade1));
-
-	float fade2 = clamp(skyGradientFactor - 0.11f, 0.0f, 0.2f) / 0.2f;
-	vec3 color2 = vec3(2.7f, 1.0f, 2.8f) / 20.0f;
-		 color2 = mix(color2, vec3(1.0f, 0.15f, 0.5f), vec3(timeSunrise + timeSunset));
-
-	surface.sky.albedo *= mix(vec3(1.0f), color2, vec3(fade2 * 0.5f));
-
-
-
-	float horizonGradient = 1.0f - distance(skyDirectionGradient, 0.72f) / 0.72f;
-		  horizonGradient = pow(horizonGradient, 10.0f);
-		  horizonGradient = max(0.0f, horizonGradient);
-
-	float sunglow = CalculateSunglow(surface);
-		  horizonGradient *= sunglow * 2.0f + (0.65f - timeSunrise * 0.55f - timeSunset * 0.55f);
-
-	vec3 horizonColor1 = vec3(1.5f, 1.5f, 1.5f);
-		 horizonColor1 = mix(horizonColor1, vec3(1.5f, 1.95f, 1.5f) * 2.0f, vec3(timeSunrise + timeSunset));
-	vec3 horizonColor2 = vec3(1.5f, 1.2f, 0.8f) * 1.0f;
-		 horizonColor2 = mix(horizonColor2, vec3(1.9f, 0.6f, 0.4f) * 10.0f, vec3(timeSunrise + timeSunset));
-
-	surface.sky.albedo *= mix(vec3(1.0f), horizonColor1, vec3(horizonGradient) * (1.0f - timeMidnight));
-	surface.sky.albedo *= mix(vec3(1.0f), horizonColor2, vec3(pow(horizonGradient, 2.0f)) * (1.0f - timeMidnight));
-
-	float grayscale = fogLum / 10.0f;
-		  grayscale /= 3.0f;
-
-	surface.sky.albedo = mix(surface.sky.albedo, vec3(grayscale * colorSkylight.r) * 0.06f * vec3(0.85f, 0.85f, 1.0f), vec3(rainStrength));
-
-
-	surface.sky.albedo /= fogLum;
-
-
-	surface.sky.albedo *= mix(1.0f, 4.5f, timeNoon);
-
-
-
-	// //Fake land
-	// vec3 fakeLandColor = vec3(0.2f, 0.5f, 1.0f) * 0.006f;
-	// surface.sky.albedo = mix(surface.sky.albedo, fakeLandColor, vec3(clamp(skyGradientFactor * 8.0f - 0.7f, 0.0f, 1.0f)));
-
-
-	surface.sky.albedo *= float(surface.mask.sky);
-}
-
-void	AddSunglow(inout SurfaceStruct surface) {
-	float sunglowFactor = CalculateSunglow(surface);
-	float antiSunglowFactor = CalculateAntiSunglow(surface);
-
-	surface.sky.albedo *= 1.0f + pow(sunglowFactor, 1.1f) * (7.0f + timeNoon * 1.0f) * (1.0f - rainStrength);
-	surface.sky.albedo *= mix(vec3(1.0f), colorSunlight * 11.0f, pow(clamp(vec3(sunglowFactor) * (1.0f - timeMidnight) * (1.0f - rainStrength), vec3(0.0f), vec3(1.0f)), vec3(2.0f)));
-
-	surface.sky.albedo *= 1.0f + antiSunglowFactor * 2.0f * (1.0f - rainStrength);
-	//surface.sky.albedo *= mix(vec3(1.0f), colorSunlight, antiSunglowFactor);
-}
-
-
-void	AddCloudGlow(inout vec3 color, in SurfaceStruct surface) {
-	float glow = CalculateSunglow(surface);
-		  glow = pow(glow, 1.0f);
-
-	float mult = mix(50.0f, 800.0f, timeSkyDark);
-
-	color.rgb *= 1.0f + glow * mult * float(surface.mask.clouds);
-}
-
-
-void	CalculateUnderwaterFog(in SurfaceStruct surface, inout vec3 finalComposite) {
-	vec3 fogColor = colorWaterMurk * vec3(colorSkylight.b);
-	// float fogDensity = 0.045f;
-	// float fogFactor = exp(GetDepthLinear(texcoord.st) * fogDensity) - 1.0f;
-	//	  fogFactor = min(fogFactor, 1.0f);
-	 #ifdef UNDERWATERFOG
-	 float fogFactor = GetDepthLinear(texcoord.st) / 100.0f;
-	 #else
-	 float fogFactor = 0.000001;
-	 #endif
-		  fogFactor = min(fogFactor, 0.7f);
-		  fogFactor = sin(fogFactor * 3.1415 / 2.0f);
-		  fogFactor = pow(fogFactor, 0.5f);
-
-
-	finalComposite.rgb = mix(finalComposite.rgb, fogColor * 0.002f, vec3(fogFactor));
-	finalComposite.rgb *= mix(vec3(1.0f), colorWaterBlue * colorWaterBlue * colorWaterBlue * colorWaterBlue, vec3(fogFactor));
-	//finalComposite.rgb = vec3(0.1f);
-}
-
-void	TestRaymarch(inout vec3 color, in SurfaceStruct surface)
-{
-
-	//visualize march steps
-	float rayDepth = 0.0f;
-	float rayIncrement = 0.05f;
-	float fogFactor = 0.0f;
-
-	while (rayDepth < 1.0f)
-	{
-		vec4 rayPosition = GetScreenSpacePosition(texcoord.st, pow(rayDepth, 0.002f));
-
-
-
-		if (abs(rayPosition.z - surface.screenSpacePosition.z) < 0.025f)
-		{
-			color.rgb = vec3(0.01f, 0.0f, 0.0f);
-		}
-
-		// if (SphereTestDistance(vec3(surface.screenSpacePosition.x, surface.screenSpacePosition.y, surface.screenSpacePosition.z)) <= 0.001f)
-		//	fogFactor += 0.001f;
-
-		rayDepth += rayIncrement;
-
-	}
-
-	// color.rgb = mix(color.rgb, vec3(1.0f) * 0.01f, fogFactor);
-
-	// vec4 newPosition = surface.screenSpacePosition;
-
-	// color.rgb = vec3(distance(newPosition.rgb, vec3(0.0f, 0.0f, 0.0f)) * 0.00001f);
-
-}
-
-void InitializeAO(inout SurfaceStruct surface)
-{
-	surface.ao.skylight = 1.0f;
-	surface.ao.bouncedSunlight = 1.0f;
-	surface.ao.scatteredUpLight = 1.0f;
-	surface.ao.constant = 1.0f;
-}
-
-void CalculateAO(inout SurfaceStruct surface)
-{
-	const int numSamples = 20;
-	vec3[numSamples] kernel;
-
-	vec3 stochastic = texture2D(noisetex, texcoord.st * vec2(viewWidth, viewHeight) / noiseTextureResolution).rgb;
-
-	//Generate positions for sample points in hemisphere
-	for (int i = 0; i < numSamples; i++)
-	{
-		//Random direction
-		kernel[i] = vec3(texture2D(noisetex, vec2(0.0f + (i * 1.0f) / noiseTextureResolution)).r * 2.0f - 1.0f,
-						 texture2D(noisetex, vec2(0.0f + (i * 1.0f) / noiseTextureResolution)).g * 2.0f - 1.0f,
-						 texture2D(noisetex, vec2(0.0f + (i * 1.0f) / noiseTextureResolution)).b * 2.0f - 1.0f);
-		//kernel[i] += (stochastic * vec3(2.0f, 2.0f, 1.0f) - vec3(1.0f, 1.0f, 0.0f)) * 0.0f;
-		kernel[i] = normalize(kernel[i]);
-
-		//scale randomly to distribute within hemisphere;
-		kernel[i] *= pow(texture2D(noisetex, vec2(0.3f + (i * 1.0f) / noiseTextureResolution)).r * CalculateNoisePattern1(vec2(43.0f), 64.0f).x * 1.0f, 1.2f);
-	}
-
-	//Determine origin position and normal
-	vec3 origin = surface.screenSpacePosition.xyz;
-	vec3 normal = surface.normal.xyz;
-		 //normal = lightVector;
-
-	//Create matrix to orient hemisphere according to surface normal
-	//vec3 randomRotation = texture2D(noisetex, texcoord.st * vec2(viewWidth / noiseTextureResolution, viewHeight / noiseTextureResolution)).rgb * 2.0f - 1.0f;
-		//float dither1 = CalculateDitherPattern1() * 2.0f - 1.0f;
-		//randomRotation = vec3(dither1, mod(dither1 + 0.5f, 2.0f), mod(dither1 + 1.0f, 2.0f));
-	vec3	randomRotation = CalculateNoisePattern1(vec2(0.0f), 64.0f).xyz * 2.0f - 1.0f;
-	//vec3	randomRotation = vec3(1.0f, 0.0f, 0.0f);
-
-
-	vec3 tangent = normalize(randomRotation - upVector * dot(randomRotation, upVector));
-	vec3 bitangent = cross(upVector, tangent);
-	mat3 tbn = mat3(tangent, bitangent, upVector);
-
-	float ao = 0.0f;
-	float aoSkylight	= 0.0f;
-	float aoUp			= 0.0f;
-	float aoBounced		= 0.0f;
-	float aoScattered	= 0.0f;
-
-
-	float aoRadius	 = 0.35f * -surface.screenSpacePosition.z;
-		  //aoRadius   = 3.0f;
-	float zThickness = 0.35f * -surface.screenSpacePosition.z;
-		  zThickness = 6.0f;
-
-
-	vec3	samplePosition		= vec3(0.0f);
-	float	intersect			= 0.0f;
-	vec4	sampleScreenSpace	= vec4(0.0f);
-	float	sampleDepth			= 0.0f;
-	float	distanceWeight		= 0.0f;
-	float	finalRadius			= 0.0f;
-
-	float skylightWeight = 0.0f;
-	float bouncedWeight	 = 0.0f;
-	float scatteredUpWeight = 0.0f;
-	float scatteredSunWeight = 0.0f;
-	vec3 bentNormal = vec3(0.0f);
-
-	for (int i = 0; i < numSamples; i++)
-	{
-		samplePosition = tbn * kernel[i];
-		samplePosition = samplePosition * aoRadius + origin;
-
-		intersect = dot(normalize(samplePosition - origin), surface.normal);
-
-		if (intersect > 0.2f) {
-			//Convert camera space to screen space
-			sampleScreenSpace = gbufferProjection * vec4(samplePosition, 1.0f);
-			sampleScreenSpace.xyz /= sampleScreenSpace.w;
-			sampleScreenSpace.xyz = sampleScreenSpace.xyz * 0.5f + 0.5f;
-
-			//Check depth at sample point
-			sampleDepth = GetScreenSpacePosition(sampleScreenSpace.xy).z;
-
-			//If point is behind geometry, buildup AO
-			if (sampleDepth >= samplePosition.z && !surface.mask.sky)
-			{
-				//Reduce halo
-				float sampleLength = length(samplePosition - origin) * 4.0f;
-				//distanceWeight = 1.0f - clamp(distance(sampleDepth, origin.z) - (sampleLength * 0.5f), 0.0f, sampleLength * 0.5f) / (sampleLength * 0.5f);
-				distanceWeight = 1.0f - step(sampleLength, distance(sampleDepth, origin.z));
-
-				//Weigh samples based on light direction
-				skylightWeight			= clamp(dot(normalize(samplePosition - origin), upVector)		* 1.0f - 0.0f , 0.0f, 0.01f) / 0.01f;
-				//skylightWeight		   += clamp(dot(normalize(samplePosition - origin), upVector), 0.0f, 1.0f);
-				bouncedWeight			= clamp(dot(normalize(samplePosition - origin), -lightVector)	* 1.0f - 0.0f , 0.0f, 0.51f) / 0.51f;
-				scatteredUpWeight		= clamp(dot(normalize(samplePosition - origin), -upVector)		* 1.0f - 0.0f , 0.0f, 0.51f) / 0.51f;
-				scatteredSunWeight		= clamp(dot(normalize(samplePosition - origin), lightVector)	* 1.0f - 0.25f, 0.0f, 0.51f) / 0.51f;
-
-					  //buildup occlusion more for further facing surfaces
-					  skylightWeight			/= clamp(dot(normal, upVector)			* 0.5f + 0.501f, 0.01f, 1.0f);
-					  bouncedWeight				/= clamp(dot(normal, -lightVector)		* 0.5f + 0.501f, 0.01f, 1.0f);
-					  scatteredUpWeight			/= clamp(dot(normal, -upVector)			* 0.5f + 0.501f, 0.01f, 1.0f);
-					  scatteredSunWeight		/= clamp(dot(normal, lightVector)		* 0.75f + 0.25f, 0.01f, 1.0f);
-
-
-				//Accumulate ao
-				ao			+= 2.0f * distanceWeight;
-				aoSkylight	+= 2.0f * distanceWeight * skylightWeight		;
-				aoUp		+= 2.0f * distanceWeight * scatteredUpWeight	;
-				aoBounced	+= 2.0f * distanceWeight * bouncedWeight		;
-				aoScattered += 2.0f * distanceWeight * scatteredSunWeight	;
-			} else {
-				bentNormal.rgb += normalize(samplePosition - origin);
-			}
-		}
-	}
-
-	bentNormal.rgb /= numSamples;
-
-	ao			/= numSamples;
-	aoSkylight	/= numSamples;
-	aoUp		/= numSamples;
-	aoBounced	/= numSamples;
-	aoScattered /= numSamples;
-
-	ao			= 1.0f - ao;
-	aoSkylight	= 1.0f - aoSkylight;
-	aoUp		= 1.0f - aoUp;
-	aoBounced	= 1.0f - aoBounced;
-	aoScattered = 1.0f - aoScattered;
-
-	ao			= clamp(ao,				0.0f, 1.0f);
-	aoSkylight	= clamp(aoSkylight,		0.0f, 1.0f);
-	aoUp		= clamp(aoUp,			0.0f, 1.0f);
-	aoBounced	= clamp(aoBounced,		0.0f, 1.0f);
-	aoScattered = clamp(aoScattered,	0.0f, 1.0f);
-
-	surface.ao.constant					= pow(ao,			1.0f);
-	surface.ao.skylight					= pow(aoSkylight,	3.0f);
-	surface.ao.bouncedSunlight			= pow(aoBounced,	6.0f);
-	surface.ao.scatteredUpLight			= pow(aoUp,			6.0f);
-	surface.ao.scatteredSunlight		= pow(aoScattered,	1.0f);
-
-	surface.debug = vec3(pow(aoSkylight, 2.0f) * clamp((dot(surface.normal, upVector) * 0.75f + 0.25f), 0.0f, 1.0f));
-	//surface.debug = vec3(dot(normalize(bentNormal), upVector));
-}
-
-
-void	CalculateRainFog(inout vec3 color, in SurfaceStruct surface)
-{
-	vec3 fogColor = colorSkylight * 0.055f;
-
-	float fogDensity = 0.00018f * rainStrength;
-		  fogDensity *= mix(0.0f, 1.0f, pow(eyeBrightnessSmooth.y / 240.0f, 6.0f));
-	float visibility = 1.0f / (pow(exp(distance(surface.screenSpacePosition.xyz, vec3(0.0f)) * fogDensity), 1.0f));
-	float fogFactor = 1.0f - visibility;
-		  fogFactor = clamp(fogFactor, 0.0f, 1.0f);
-		  fogFactor = mix(fogFactor, 1.0f, float(surface.mask.sky) * 0.8f * rainStrength);
-		  fogFactor = mix(fogFactor, 1.0f, float(surface.mask.clouds) * 0.8f * rainStrength);
-		  fogFactor *= mix(1.0f, 0.0f, float(surface.mask.sky));
-
-	color = mix(color, fogColor, vec3(fogFactor));
-}
-
-void AtmosphericScattering(inout vec3 color, in SurfaceStruct surface)
-{
-	vec3 fogColor = colorSkylight * 0.05f;
-	
-		if (isEyeInWater > 0)
-		vec3 fogColor = colorSkylight * -0.1f;
-
-	float sat = 0.5f;
-		 fogColor.r = fogColor.r * (0.0f + sat) - (fogColor.g + fogColor.b) * 0.0f * sat;
-		 fogColor.g = fogColor.g * (0.0f + sat) - (fogColor.r + fogColor.b) * 0.0f * sat;
-		 fogColor.b = fogColor.b * (0.0f + sat) - (fogColor.r + fogColor.g) * 0.0f * sat;
-
-	float sunglow = CalculateSunglow(surface);
-	vec3 sunColor = colorSunlight;
-
-	fogColor += mix(vec3(0.0f), sunColor, sunglow * 0.6f);
-	
-		if (isEyeInWater > 0)
-		fogColor += mix(vec3(0.01f, 0.04f, 0.06f), sunColor, sunglow * 0.0f);
-		
-	float morning_fog_density = 0.014;
-	float noon_fog_density    = 0.008;
-	float sunset_fog_density  = 0.018;
-	float evening_fog_density = 0.016;
-
-	float fogDensity = morning_fog_density * timeSunrise + noon_fog_density * timeNoon + sunset_fog_density * timeSunset + sunset_fog_density * timeMidnight;
-
-		if (isEyeInWater > 0)
-		fogDensity = 0.04;
-		
-		fogDensity *= ATM_SCATTING_STRENGTH*(1+AAA*timeMidnight);
-	
-	float visibility = 1.25f / (pow(exp(surface.linearDepth * fogDensity), 1.0f));
-	float fogFactor = 1.0f - visibility;
-		  fogFactor = clamp(fogFactor, 0.0f, 1.0f);
-
-	fogFactor = pow(fogFactor, 2.7f);
-	fogFactor = mix(fogFactor, 0.0f, min(1.0f, surface.sky.sunSpot.r));
-	fogFactor *= mix(1.0f, 0.25f, float(surface.mask.sky));
-	fogFactor *= mix(1.0f, 0.75f, float(surface.mask.clouds));
-	
-	fogFactor *= mix(0.0f, 1.0f, pow(eyeBrightnessSmooth.y / 240.0f, 3.0f));
-
-		if (isEyeInWater < 1)
-		fogFactor *= mix(0.0f, 1.0f, pow(eyeBrightnessSmooth.y / 240.0f, 6.0f));
-	
-	//add scattered low frequency light
-	color += fogColor * fogFactor*(1-timeNoon);
-
-}
-
-Intersection	RayPlaneIntersectionWorld(in Ray ray, in Plane plane)
-{
-	float rayPlaneAngle = dot(ray.dir, plane.normal);
-
-	float planeRayDist = 100000000.0f;
-	vec3 intersectionPos = ray.dir * planeRayDist;
-
-	if (rayPlaneAngle > 0.0001f || rayPlaneAngle < -0.0001f)
-	{
-		planeRayDist = dot((plane.origin), plane.normal) / rayPlaneAngle;
-		intersectionPos = ray.dir * planeRayDist;
-		intersectionPos = -intersectionPos;
-
-		intersectionPos += cameraPosition.xyz;
-	}
-
-	Intersection i;
-
-	i.pos = intersectionPos;
-	i.distance = planeRayDist;
-	i.angle = rayPlaneAngle;
-
-	return i;
-}
-
-Intersection	RayPlaneIntersection(in Ray ray, in Plane plane)
-{
-	float rayPlaneAngle = dot(ray.dir, plane.normal);
-
-	float planeRayDist = 100000000.0f;
-	vec3 intersectionPos = ray.dir * planeRayDist;
-
-	if (rayPlaneAngle > 0.0001f || rayPlaneAngle < -0.0001f)
-	{
-		planeRayDist = dot((plane.origin - ray.origin), plane.normal) / rayPlaneAngle;
-		intersectionPos = ray.origin + ray.dir * planeRayDist;
-		// intersectionPos = -intersectionPos;
-
-		// intersectionPos += cameraPosition.xyz;
-	}
-
-	Intersection i;
-
-	i.pos = intersectionPos;
-	i.distance = planeRayDist;
-	i.angle = rayPlaneAngle;
-
-	return i;
-}
-
 
 float Get3DNoise(in vec3 pos)
 {
@@ -1560,9 +609,9 @@ float Get3DNoise(in vec3 pos)
 	vec3 p = floor(pos);
 	vec3 f = fract(pos);
 
-	f.x = f.x * f.x * (3.0f - 2.0f * f.x);
-	f.y = f.y * f.y * (3.0f - 2.0f * f.y);
-	f.z = f.z * f.z * (3.0f - 2.0f * f.z);
+	// f.x = f.x * f.x * (3.0f - 2.0f * f.x);
+	// f.y = f.y * f.y * (3.0f - 2.0f * f.y);
+	// f.z = f.z * f.z * (3.0f - 2.0f * f.z);
 
 	vec2 uv =  (p.xy + p.z * vec2(17.0f)) + f.xy;
 	vec2 uv2 = (p.xy + (p.z + 1.0f) * vec2(17.0f)) + f.xy;
@@ -1572,62 +621,16 @@ float Get3DNoise(in vec3 pos)
 
 	vec2 coord =  (uv  + 0.5f) / noiseTextureResolution;
 	vec2 coord2 = (uv2 + 0.5f) / noiseTextureResolution;
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord2).x;
+	float xy1 = texture(noisetex, coord).x;
+	float xy2 = texture(noisetex, coord2).x;
 	return mix(xy1, xy2, f.z);
 }
-
-////////体积云///////
-float Get3DNoise2(in vec3 pos)
-{
-	pos.z += 0.0f;
-	
-	vec3 p = floor(pos);
-	vec3 f = fract(pos);
-
-	vec2 uv =  (p.xy + p.z * vec2(17.0f)) + f.xy;
-	vec2 uv2 = (p.xy + (p.z + 1.0f) * vec2(17.0f)) + f.xy;
-	
-	vec2 coord =  (uv  + 0.5f) / noiseTextureResolution;
-	vec2 coord2 = (uv2 + 0.5f) / noiseTextureResolution;
-	
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord2).x;
-	return mix(xy1, xy2, f.z);
-}
-
-float Get3DNoise3(in vec3 pos)
-{
-	pos.z += 0.0f;
-
-	pos.xyz += 0.5f;
-
-	vec3 p = floor(pos);
-	vec3 f = fract(pos);
-
-	 f.x = f.x * f.x * (3.0f - 2.0f * f.x);
-	 f.y = f.y * f.y * (3.0f - 2.0f * f.y);
-	 f.z = f.z * f.z * (3.0f - 2.0f * f.z);
-
-	vec2 uv =  (p.xy + p.z * vec2(17.0f)) + f.xy;
-	vec2 uv2 = (p.xy + (p.z + 1.0f) * vec2(17.0f)) + f.xy;
-
-	uv -= 0.5f;
-	uv2 -= 0.5f;
-
-	vec2 coord =  (uv  + 0.5f) / noiseTextureResolution;
-	vec2 coord2 = (uv2 + 0.5f) / noiseTextureResolution;
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord2).x;
-	return mix(xy1, xy2, f.z);
-}
-
 
 float GetCoverage(in float coverage, in float density, in float clouds)
 {
 	clouds = clamp(clouds - (1.0f - coverage), 0.0f, 1.0f -density) / (1.0f - density);
 		clouds = max(0.0f, clouds * 1.1f - 0.1f);
-	 // clouds = clouds = clouds * clouds * (3.0f - 2.0f * clouds);
+	 clouds = clouds = clouds * clouds * (3.0f - 2.0f * clouds);
 	 // clouds = pow(clouds, 1.0f);
 	return clouds;
 }
@@ -1635,29 +638,8 @@ float GetCoverage(in float coverage, in float density, in float clouds)
 vec4 CloudColor(in vec4 worldPosition, in float sunglow, in vec3 worldLightVector)
 {
 
-	float cloudHeight = CLOUDHEIGHT3;
-	
-	if (weather(texcoord.st)==8){
-	cloudHeight *=0;
-	cloudHeight +=500;
-	}
-	
-	if (weather(texcoord.st)==5){
-	cloudHeight *=0;
-	cloudHeight +=350;
-	}
-	
-	#ifdef NOCALCULATECLOUDSNIGHT
-	float cloudDepth  = CALCULATECLOUDDEPTH - 3 * CALCULATECLOUDDEPTH * timeMidnight - 0.5 * CALCULATECLOUDDEPTH * (timeSunrise + timeSunset) * (1-1.5*rainStrength);
-	#else
-	float cloudDepth  = CALCULATECLOUDDEPTH;
-	#endif
-	
-	if (weather(texcoord.st)==8){
-	cloudDepth *=0;
-	cloudDepth += 1400 - 3 * CALCULATECLOUDDEPTH * timeMidnight - 0.5 * CALCULATECLOUDDEPTH * (timeSunrise + timeSunset);
-	}
-	
+	float cloudHeight = 220.0f;
+	float cloudDepth  = 190.0f;
 	float cloudUpperHeight = cloudHeight + (cloudDepth / 2.0f);
 	float cloudLowerHeight = cloudHeight - (cloudDepth / 2.0f);
 
@@ -1670,11 +652,7 @@ vec4 CloudColor(in vec4 worldPosition, in float sunglow, in vec3 worldLightVecto
 
 			
 
-		float t = frameTimeCounter * PLANE_CLOUD_SPEED3;
-		
-		if (weather(texcoord.st)==5){
-		t *=2.5;}
-		
+		float t = frameTimeCounter * 5.0f;
 			  //t *= 0.001;
 		p.x -= t * 0.02f;
 
@@ -1691,7 +669,7 @@ vec4 CloudColor(in vec4 worldPosition, in float sunglow, in vec3 worldLightVecto
 
 
 
-		float lightOffset = 0.3f - timeMidnight;
+		const float lightOffset = 0.3f;
 
 
 		float heightGradient = clamp(( - (cloudLowerHeight - worldPosition.y) / (cloudDepth * 1.0f)), 0.0f, 1.0f);
@@ -1712,16 +690,7 @@ vec4 CloudColor(in vec4 worldPosition, in float sunglow, in vec3 worldLightVecto
 		noise *= cloudAltitudeWeight;
 
 		//cloud edge
-		float coverage = 0.25f + 0.001 * CALCULATECLOUDSDENSITY;
-		if (weather(texcoord.st)==4){
-		coverage *=0;
-		coverage +=0.36;
-		}
-		
-		#ifdef ABC
-		coverage *=1+0.1*timeSunset;
-		#endif
-		
+		float coverage = 0.45f;
 			  coverage = mix(coverage, 0.77f, rainStrength);
 
 			  float dist = length(worldPosition.xz - cameraPosition.xz);
@@ -1774,26 +743,13 @@ vec4 CloudColor(in vec4 worldPosition, in float sunglow, in vec3 worldLightVecto
 	
 
 
-	#ifdef NOCALCULATECLOUDSNIGHT
-	vec3 colorDirect = colorSunlight * CALCULATECLOUDSCONCENTRATION * (1.0 - timeMidnight);
-	#else
-	vec3 colorDirect = colorSunlight * CALCULATECLOUDSCONCENTRATION * (1.2 - timeMidnight);
-	#endif
+	vec3 colorDirect = colorSunlight * 2.515f;
 		 // colorDirect = mix(colorDirect, colorDirect * vec3(0.2f, 0.5f, 1.0f), timeMidnight);
 		 DoNightEye(colorDirect);
 		 colorDirect *= 1.0f + pow(sunglow, 4.0f) * 2400.0f * pow(firstOrder, 1.1f) * (1.0f - rainStrength);
 
-		
-		  #ifdef MOREVOLUMETRIC_CLOUDS
-	vec3 colorAmbient = colorSkylight * 0.16f * WHITECLOUDS;
-	#else
-	vec3 colorAmbient = colorSkylight * 0.0065f * WHITECLOUDS * WHITECLOUDS;
-	#endif
-	
-	 if (weather(texcoord.st)==2||weather(texcoord.st)==6){
-	 colorAmbient = colorSkylight * 0.16f * WHITECLOUDS;
-		 }
-	
+
+	vec3 colorAmbient = colorSkylight * 0.065f;
 		 colorAmbient *= mix(1.0f, 0.3f, timeMidnight);
 		 colorAmbient = mix(colorAmbient, colorAmbient * 2.0f + colorSunlight * 0.05f, vec3(clamp(pow(1.0f - noise, 2.0f) * 1.0f, 0.0f, 1.0f)));
 		 colorAmbient *= heightGradient * heightGradient + 0.05f;
@@ -1835,874 +791,242 @@ vec4 CloudColor(in vec4 worldPosition, in float sunglow, in vec3 worldLightVecto
 	}
 }
 
-void CalculateClouds (inout vec3 color, inout SurfaceStruct surface)
+void 	CalculateClouds2 (inout vec4 color, vec4 screenSpacePosition, vec4 worldSpacePosition, vec3 worldLightVector)
 {
-	surface.cloudAlpha = 0.0f;
-
-	vec2 coord = texcoord.st * 2.0f;
-
-	vec4 worldPosition = gbufferModelViewInverse * surface.screenSpacePosition;
-		 worldPosition.xyz += cameraPosition.xyz;
-
-	float cloudHeight = 180.0f;
-	float cloudDepth  = 150.0f;
-	float cloudDensity = 2.0f;
-
-	float startingRayDepth = far - 5.0f;
-	float rayDepth = startingRayDepth;
-	#ifdef LOW_QUALITY_CALCULATECLOUDS
-	float rayIncrement = far / 15;
-	#else
-	#ifdef LOW_QUALITY_CALCULATECLOUDS2
-	float rayIncrement = far / TEST;
-	#else
-	float rayIncrement = far / CALCULATECLOUDSQUALITY;
-	#endif
-	#endif
-		  rayDepth += CalculateDitherPattern1() * rayIncrement;
-
-		int i = 0;
-
-	vec3 cloudColor = colorSunlight;
-	vec4 cloudSum = vec4(0.0f);
-		 cloudSum.rgb = colorSkylight * 9.2f;
-		 cloudSum.rgb = color.rgb;
-
-	float sunglow = CalculateSunglow(surface);
-
-	float cloudDistanceMult = 400.0f / far;
-
-	float surfaceDistance = length(worldPosition.xyz - cameraPosition.xyz);
-
-	while (rayDepth > 0.0f)
+	if (texcoord.s < 0.25f && texcoord.t < 0.25f)
 	{
-	//determine worldspace ray position
-		vec4 rayPosition = GetCloudSpacePosition(texcoord.st, rayDepth, cloudDistanceMult);
+		// surface.cloudAlpha = 0.0f;
+		vec2 coord = texcoord.st * 4.0f;
 
-		float rayDistance = length((rayPosition.xyz - cameraPosition.xyz) / cloudDistanceMult);
 
-		vec4 proximity =  CloudColor(rayPosition, sunglow, surface.worldLightVector);
-			 proximity.a *= cloudDensity;
+		vec4 screenPosition = GetScreenSpacePosition(coord);
 
-		 //proximity.a *=  clamp(surfaceDistance - rayDistance, 0.0f, 1.0f);
-		 if (surfaceDistance < rayDistance * cloudDistanceMult && !surface.mask.sky)
-			proximity.a = 0.0f;
+		bool isSky = GetSkyMask(coord);
 
-		color.rgb = mix(color.rgb, proximity.rgb, vec3(min(1.0f, proximity.a * cloudDensity)));
+		float sunglow = CalculateSunglow(screenPosition, lightVector);
 
-		surface.cloudAlpha += proximity.a;
-
-	//Increment ray
-		rayDepth -= rayIncrement;
-		i++;
-
-		if (rayDepth * cloudDistanceMult  < ((cloudHeight - (cloudDepth * 0.5)) - cameraPosition.y))
-		{
-			break;
-		}
-	}
-}
-
-vec4 CloudColor(in vec4 worldPosition, in float sunglow, in vec3 worldLightVector, in float altitude, in float thickness)
-{
-
-	float cloudHeight = altitude;
-	float cloudDepth  = thickness;
-	float cloudUpperHeight = cloudHeight + (cloudDepth / 2.0f);
-	float cloudLowerHeight = cloudHeight - (cloudDepth / 2.0f);
-
-	worldPosition.xz /= 1.0f + max(0.0f, length(worldPosition.xz - cameraPosition.xz) / 3000.0f);
-
-	vec3 p = worldPosition.xyz / 300.0f;
-
-
-
-
-	float t = frameTimeCounter * 1.0f;
-		  //t *= 0.001;
-	p.x -= t * 0.01f;
-
-	 p += (Get3DNoise(p * 1.0f + vec3(0.0f, t * 0.01f, 0.0f)) * 2.0f - 1.0f) * 0.3f;
-
-	vec3 p1 = p * vec3(1.0f, 0.5f, 1.0f)  + vec3(0.0f, t * 0.01f, 0.0f);
-	float noise	 =	Get3DNoise(p * vec3(1.0f, 0.5f, 1.0f) + vec3(0.0f, t * 0.01f, 0.0f));	p *= 2.0f;	p.x -= t * 0.057f;	vec3 p2 = p;
-		  noise += (1.0f - abs(Get3DNoise(p) * 1.0f - 0.5f)) * 0.15f;						p *= 3.0f;	p.xz -= t * 0.035f; vec3 p3 = p;
-		  noise += (1.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * 0.045f;						p *= 3.0f;	p.xz -= t * 0.035f; vec3 p4 = p;
-		  noise += (1.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * 0.015f;						p *= 3.0f;	p.xz -= t * 0.035f;
-		  noise += ((Get3DNoise(p))) * 0.015f;												p *= 3.0f;
-		  noise += ((Get3DNoise(p))) * 0.006f;
-		  noise /= 1.175f;
-
-
-
-	const float lightOffset = 0.2f;
-
-
-	float heightGradient = clamp(( - (cloudLowerHeight - worldPosition.y) / (cloudDepth * 1.0f)), 0.0f, 1.0f);
-	float heightGradient2 = clamp(( - (cloudLowerHeight - (worldPosition.y + worldLightVector.y * lightOffset * 50.0f)) / (cloudDepth * 1.0f)), 0.0f, 1.0f);
-
-	float cloudAltitudeWeight = 1.0f;
-
-	float cloudAltitudeWeight2 = 1.0f;
-
-	noise *= cloudAltitudeWeight;
-
-	//cloud edge
-	float coverage = 0.39f;
-		  coverage = mix(coverage, 0.77f, rainStrength);
-
-		  float dist = length(worldPosition.xz - cameraPosition.xz);
-		  coverage *= max(0.0f, 1.0f - dist / 40000.0f);
-	float density = 0.8f;
-	noise = GetCoverage(coverage, density, noise);
-
-
-
-
-	float sundiff = Get3DNoise(p1 + worldLightVector.xyz * lightOffset);
-		  sundiff += Get3DNoise(p2 + worldLightVector.xyz * lightOffset / 2.0f) * 0.15f;
-						float largeSundiff = sundiff;
-							  largeSundiff = -GetCoverage(coverage, 0.0f, largeSundiff * 1.3f);
-		  sundiff += Get3DNoise(p3 + worldLightVector.xyz * lightOffset / 5.0f) * 0.045f;
-		  sundiff += Get3DNoise(p4 + worldLightVector.xyz * lightOffset / 8.0f) * 0.015f;
-		  sundiff *= 1.3f;
-		  sundiff *= cloudAltitudeWeight2;
-		  sundiff = -GetCoverage(coverage * 1.0f, 0.0f, sundiff);
-	float firstOrder	= pow(clamp(sundiff * 1.0f + 1.1f, 0.0f, 1.0f), 12.0f);
-	float secondOrder	= pow(clamp(largeSundiff * 1.0f + 0.9f, 0.0f, 1.0f), 3.0f);
-
-
-
-	float directLightFalloff = mix(firstOrder, secondOrder, 0.1f);
-	float anisoBackFactor = mix(clamp(pow(noise, 1.6f) * 2.5f, 0.0f, 1.0f), 1.0f, pow(sunglow, 1.0f));
-
-		  directLightFalloff *= anisoBackFactor;
-		  directLightFalloff *= mix(11.5f, 1.0f, pow(sunglow, 0.5f));
-
-
-
-	vec3 colorDirect = colorSunlight * 0.815f;
-		 colorDirect = mix(colorDirect, colorDirect * vec3(0.2f, 0.5f, 1.0f), timeMidnight);
-		 colorDirect *= 1.0f + pow(sunglow, 2.0f) * 300.0f * pow(directLightFalloff, 1.1f) * (1.0f - rainStrength);
-
-
-	vec3 colorAmbient = mix(colorSkylight, colorSunlight * 2.0f, vec3(heightGradient * 0.0f + 0.15f)) * 0.36f;
-		 colorAmbient *= mix(1.0f, 0.3f, timeMidnight);
-		 colorAmbient = mix(colorAmbient, colorAmbient * 3.0f + colorSunlight * 0.05f, vec3(clamp(pow(1.0f - noise, 12.0f) * 1.0f, 0.0f, 1.0f)));
-		 colorAmbient *= heightGradient * heightGradient + 0.1f;
-
-	 vec3 colorBounced = colorBouncedSunlight * 0.1f;
-		 colorBounced *= pow((1.0f - heightGradient), 8.0f);
-
-
-	directLightFalloff *= 1.0f;
-	//directLightFalloff += pow(Get3DNoise(p3), 2.0f) * 0.05f + pow(Get3DNoise(p4), 2.0f) * 0.015f;
-
-	vec3 color = mix(colorAmbient, colorDirect, vec3(min(1.0f, directLightFalloff)));
-
-	color *= 1.0f;
-
-	vec4 result = vec4(color.rgb, noise);
-
-	return result;
-
-}
-
-vec4 CloudColor2(in vec4 worldPosition, in float sunglow, in vec3 worldLightVector, in float altitude, in float thickness, const bool isShadowPass)
-{
-
-	float cloudHeight = altitude;
-	float cloudDepth  = thickness;
-	float cloudUpperHeight = cloudHeight + (cloudDepth / 2.0f);
-	float cloudLowerHeight = cloudHeight - (cloudDepth / 2.0f);
-
-	worldPosition.xz /= 1.0f + max(0.0f, length(worldPosition.xz - cameraPosition.xz) / 9001.0f);
-
-	vec3 p = worldPosition.xyz / 100.0f;
-
-
-
-	float t = frameTimeCounter * PLANE_CLOUD_SPEED2;
-		  t *= 0.4;
-
-
-	 p += (Get3DNoise(p * 2.0f + vec3(0.0f, t * 0.01f, 0.0f)) * 2.0f - 1.0f) * 0.10f;
-
-	  p.x -= (Get3DNoise(p * 0.125f + vec3(0.0f, t * 0.01f, 0.0f)) * 2.0f - 1.0f) * 1.2f;
-	// p.xz -= (Get3DNoise(p * 0.0525f + vec3(0.0f, t * 0.01f, 0.0f)) * 2.0f - 1.0f) * 1.7f;
-
-
-	p.x *= 0.25f;
-	p.x -= t * 0.01f;
-
-	vec3 p1 = p * vec3(1.0f, 0.5f, 1.0f)  + vec3(0.0f, t * 0.01f, 0.0f);
-	float noise	 =	Get3DNoise(p * vec3(1.0f, 0.5f, 1.0f) + vec3(0.0f, t * 0.01f, 0.0f));	p *= 2.0f;	p.x -= t * 0.017f;	p.z += noise * 1.35f;	p.x += noise * 0.5f;									vec3 p2 = p;
-		  noise += (2.0f - abs(Get3DNoise(p) * 2.0f - 0.0f)) * (0.25f);						p *= 3.0f;	p.xz -= t * 0.005f; p.z += noise * 1.35f;	p.x += noise * 0.5f;	p.x *= 3.0f;	p.z *= 0.55f;	vec3 p3 = p;
-			 p.z -= (Get3DNoise(p * 0.25f + vec3(0.0f, t * 0.01f, 0.0f)) * 2.0f - 1.0f) * 0.4f;
-		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.035f);					p *= 3.0f;	p.xz -= t * 0.005f;																					vec3 p4 = p;
-		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.025f);					p *= 3.0f;	p.xz -= t * 0.005f;
-		  if (!isShadowPass)
-		  {
-				noise += ((Get3DNoise(p))) * (0.039f);												p *= 3.0f;
-				 noise += ((Get3DNoise(p))) * (0.024f);
-		  }
-		  noise /= 1.575f;
-
-	//cloud edge
-	float rainy = mix(wetness, 1.0f, rainStrength);
-		  //rainy = 0.0f;
-	float coverage = 0.55f + rainy * 0.35f;
-		  //coverage = mix(coverage, 0.97f, rainStrength);
-
-		  float dist = length(worldPosition.xz - cameraPosition.xz);
-		  
-		  if (weather(texcoord.st)==2||weather(texcoord.st)==6){
-		  coverage *= max(0.0f, 1.0f - dist / mix(10000.0f*timeNoon, 3000.0f, rainStrength));
-		  }else{
-		  #ifdef NOCLOUDS2DAYTIME
-		  coverage *= max(0.0f, 1.0f - dist / mix(10000.0f*timeMidnight, 3000.0f, rainStrength));
-		  #else
-		  coverage *= max(0.0f, 1.0f - dist / mix(10000.0f, 3000.0f, rainStrength));
-		  #endif
-		  }
-		  
-	float density = 0.0f;
-
-	if (isShadowPass)
-	{
-		return vec4(GetCoverage(coverage + 0.2f, density + 0.2f, noise));
-	}
-	else
-	{
-
-		noise = GetCoverage(coverage, density, noise);
-		noise = noise * noise * (3.0f - 2.0f * noise);
-
-		const float lightOffset = 0.2f;
-
-
-
-		float sundiff = Get3DNoise(p1 + worldLightVector.xyz * lightOffset);
-			  sundiff += (2.0f - abs(Get3DNoise(p2 + worldLightVector.xyz * lightOffset / 2.0f) * 2.0f - 0.0f)) * (0.55f);
-							float largeSundiff = sundiff;
-								  largeSundiff = -GetCoverage(coverage, 0.0f, largeSundiff * 1.3f);
-			  sundiff += (3.0f - abs(Get3DNoise(p3 + worldLightVector.xyz * lightOffset / 5.0f) * 3.0f - 0.0f)) * (0.065f);
-			  sundiff += (3.0f - abs(Get3DNoise(p4 + worldLightVector.xyz * lightOffset / 8.0f) * 3.0f - 0.0f)) * (0.025f);
-			  sundiff /= 1.5f;
-			  sundiff = -GetCoverage(coverage * 1.0f, 0.0f, sundiff);
-		float secondOrder	= pow(clamp(sundiff * 1.00f + 1.35f, 0.0f, 1.0f), 7.0f);
-		float firstOrder	= pow(clamp(largeSundiff * 1.1f + 1.56f, 0.0f, 1.0f), 3.0f);
-
-
-
-		float directLightFalloff = secondOrder;
-		float anisoBackFactor = mix(clamp(pow(noise, 1.6f) * 2.5f, 0.0f, 1.0f), 1.0f, pow(sunglow, 1.0f));
-
-			  directLightFalloff *= anisoBackFactor;
-			  directLightFalloff *= mix(11.5f, 1.0f, pow(sunglow, 0.5f));
-
-
-
-		vec3 colorDirect = colorSunlight * 0.915f;
-			 colorDirect = mix(colorDirect, colorDirect * vec3(0.2f, 0.5f, 1.0f), timeMidnight);
-			 colorDirect *= 1.0f + pow(sunglow, 2.0f) * 100.0f * pow(directLightFalloff, 1.1f) * (1.0f - rainStrength);
-			 // colorDirect *= 1.0f + pow(1.0f - sunglow, 2.0f) * 30.0f * pow(directLightFalloff, 1.1f) * (1.0f - rainStrength);
-
-
-		vec3 colorAmbient = mix(colorSkylight, colorSunlight * 2.0f, vec3(0.15f)) * 0.04f;
-			 colorAmbient *= mix(1.0f, 0.3f, timeMidnight);
-			 colorAmbient *= mix(1.0f, ((1.0f - noise) + 0.5f) * 1.4f, rainStrength);
-			 // colorAmbient = mix(colorAmbient, colorAmbient * 3.0f + colorSunlight * 0.05f, vec3(clamp(pow(1.0f - noise, 12.0f) * 1.0f, 0.0f, 1.0f)));
-
-
-		directLightFalloff *= 1.0f - rainStrength * 0.75f;
-
-
-		//directLightFalloff += (pow(Get3DNoise(p3), 2.0f) * 0.5f + pow(Get3DNoise(p3 * 1.5f), 2.0f) * 0.25f) * 0.02f;
-		//directLightFalloff *= Get3DNoise(p2);
-
-		vec3 color = mix(colorAmbient, colorDirect, vec3(min(1.0f, directLightFalloff)));
-
-		color *= 1.0f;
-
-		// noise *= mix(1.0f, 5.0f, sunglow);
-
-		vec4 result = vec4(color, noise);
-
-		return result;
-	}
-
-}
-
-vec4 CloudColor4(in vec4 worldPosition, in float sunglow, in vec3 worldLightVector)
-{
-	float cloudHeight = Cloud3Height2;
-
-	float cloudDepth  = Cloud3Depth2;
-
-	float cloudUpperHeight = cloudHeight + (cloudDepth / 2.0f);
-	float cloudLowerHeight = cloudHeight - (cloudDepth / 2.0f);
-
-	if (worldPosition.y < cloudLowerHeight || worldPosition.y > cloudUpperHeight)
-		return vec4(0.0f);
-	else
-	{
-
-		vec3 p = worldPosition.xyz / 150.0f;
-
-		float t = frameTimeCounter * VOLUMETRIC_CLOUD_SPEED2 ;
-		
-		
-	#ifdef Volumetric_Cloud_Type2	 
-		p.x -= t * 0.02f;
-
-		vec3 p1 = p * vec3(1.0f, 0.5f, 1.0f)  + vec3(0.0f, t * 0.01f, 0.0f);
-		float noise  = 			   Get3DNoise2(p) 				 * 1.0f;	p *= 4.0f;	p.x += t * 0.02f; vec3 p2 = p;
-			  noise += (1.0f - abs(Get3DNoise2(p) * 3.0f - 1.0f)) * 0.20f;	p *= 3.0f;	p.xz += t * 0.05f;
-			  noise += (1.0f - abs(Get3DNoise2(p) * 3.0f - 1.5f)-0.2) * 0.065f;	p.xz -=t * 0.165f;	p.xz += t * 0.05f;
-			  noise += (1.0f - abs(Get3DNoise2(p) * 3.0f - 1.0f)) * 0.05f;	p *= 2.0f;
-			  noise += (1.0 - abs(Get3DNoise3(p) * 2.0 - 1.0)) * 0.015f;
-			  noise /= 1.2f;
-		
-		#else	  
-		
-	t *= 0.0095;
-
-	p.x *= 0.5f;
-	p.x -= t * 0.01f;
-
-	vec3 p1 = p * vec3(1.0f, 0.5f, 1.0f)  + vec3(0.0f, t * 0.01f, 0.0f);
-
-	float noise  = 	Get3DNoise(p * vec3(1.0f, 0.5f, 1.0f) + vec3(0.0f, t * 0.01f, 0.0f)) * 1.3;		p *= 2.0f;	p.x -= t * 0.557f;	vec3 p2 = p;	
-		  noise += (2.0f - abs(Get3DNoise(p) * 2.0f - 0.0f)) * (0.35f);								p *= 3.0f;	p.xz -= t * 0.905f;	p.x *= 2.0f;	vec3 p3 = p; 	float largeNoise = noise;
-		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.085f);							p *= 3.0f;	p.xz -= t * 3.905f;	vec3 p4 = p;
-		  noise += (3.0f - abs(Get3DNoise(p) * 3.0f - 0.0f)) * (0.035f);							p *= 3.0f;	p.xz -= t * 3.905f;
-		  noise += ((Get3DNoise(p))) * (0.04f);												p *= 3.0f;
-		  noise /= 2.375f;	  
-	
-	#endif	  
-
-		const float lightOffset = 0.3f;
-
-		float heightGradient = clamp(( - (cloudLowerHeight - worldPosition.y) / (cloudDepth * 1.0f)), 0.0f, 1.0f);
-		float heightGradient2 = clamp(( - (cloudLowerHeight - (worldPosition.y + worldLightVector.y * lightOffset * 150.0f)) / (cloudDepth * 1.0f)), 0.0f, 1.0f);
-
-		float cloudAltitudeWeight = 1.0f - clamp(distance(worldPosition.y, cloudHeight) / (cloudDepth / 2.0f), 0.0f, 1.0f);
-			  cloudAltitudeWeight = (-cos(cloudAltitudeWeight * 3.1415f)) * 0.5 + 0.5;
-			  cloudAltitudeWeight = pow(cloudAltitudeWeight, mix(0.33f, 0.8f, rainStrength));
-
-		float cloudAltitudeWeight2 = 1.0f - clamp(distance(worldPosition.y + worldLightVector.y * lightOffset * 150.0f, cloudHeight) / (cloudDepth / 2.0f), 0.0f, 1.0f);
-			  cloudAltitudeWeight2 = (-cos(cloudAltitudeWeight2 * 3.1415f)) * 0.5 + 0.5;
-			  cloudAltitudeWeight2 = pow(cloudAltitudeWeight2, mix(0.33f, 0.8f, rainStrength));
-
-		noise *= cloudAltitudeWeight;
-	
-	
-	//cloud edge
-		float rainy = mix(wetness, 1.0f, rainStrength);
-		float coverage = Vol_Cloud_Coverage2 + rainy * 0.335;		
-			  coverage = mix(coverage, 0.77f, rainStrength);
-	
-		float dist = length(worldPosition.xz - cameraPosition.xz);
-		coverage *= max(0.0f, 1.0f - dist / 40000.0f); 
-		
-		float density = 0.90f;
-		noise = GetCoverage(coverage, density, noise);
-		noise = pow(noise, 1.5);
-		
-		if (noise <= 0.001f)
-		{
-			return vec4(0.0f, 0.0f, 0.0f, 0.0f);
-		}
-
-	float sundiff = Get3DNoise2(p1 + worldLightVector.xyz * lightOffset);
-		  sundiff += (1.0 - abs(Get3DNoise2(p2 + worldLightVector.xyz * lightOffset / 2.0f) * 1.0f - 0.5f) - 0.1) * 0.55f;
-		  sundiff *= 0.955f;
-		  sundiff *= cloudAltitudeWeight2;
-	float preCoverage = sundiff;
-		  sundiff = -GetCoverage(coverage * 1.0f, density * 0.5, sundiff);
-	
-	float sundiff2 = -GetCoverage(coverage * 1.0f, 0.0, preCoverage);
-	float firstOrder 	= pow(clamp(sundiff * 1.2f + 1.7f, 0.0f, 1.0f), 8.0f);
-	float secondOrder 	= pow(clamp(sundiff2 * 1.2f + 1.1f, 0.0f, 1.0f), 4.0f);
-
-	float anisoBackFactor = mix(clamp(pow(noise, 1.6f) * 2.5f, 0.0f, 1.0f), 1.0f, pow(sunglow, 1.0f));
-		  firstOrder *= anisoBackFactor * 0.99 + 0.01;
-		  secondOrder *= anisoBackFactor * 1.19 + 0.9;
-
-	float directLightFalloff = clamp(pow(-(cloudLowerHeight - worldPosition.y) / cloudDepth, 3.5f), 0.0f, 1.0f);
-		  directLightFalloff *= mix(	clamp(pow(noise, 0.9f), 0.0f, 1.0f), 	clamp(pow(1.0f - noise, 10.3f), 0.0f, 0.5f), 	pow(sunglow, 0.2f));
-
-	vec3 colorDirect = colorSunlight * 1.0f + vec3(0.5, 0.5, 0.5);
-	     colorDirect *= VOLUMETRIC_CLOUD_LIGHTING2 * (1.25 - timeMidnight) * 0.8;
-		 colorDirect = mix(colorDirect, colorDirect * vec3(0.1f, 0.2f, 0.3f), timeMidnight);
-		 colorDirect = mix(colorDirect, colorDirect * vec3(0.2f, 0.2f, 0.2f), rainStrength);
-		 colorDirect *= 1.0f + pow(sunglow, 2.0f) * 50.0f;
-
-	vec3 colorAmbient = mix(colorSkylight, colorSunlight* 0.001, 0.15f) * 0.26f;
-		 colorAmbient *= mix(1.0f, 0.3f, timeMidnight);
-
-	 vec3 colorBounced = colorBouncedSunlight * 0.35f;
-	 	  colorBounced *= pow((1.0f - heightGradient), 12.0f);
-	 	  colorBounced *= anisoBackFactor + 0.5;
-	 	  colorBounced *= 1.0 - rainStrength;
-
-		vec3 color = mix(colorAmbient, colorDirect, vec3(directLightFalloff));
-			 color += colorBounced;
-
-		//color *= 1.0f;
-
-		vec4 result = vec4(color.rgb, noise);
-
-		return result;
-	}
-}
-
-void 	CalculateCloud (inout vec3 color, inout SurfaceStruct surface) 
-{
-		surface.cloudAlpha = 0.0f;
-
-		vec2 coord = texcoord.st * 2.0f;
-
-		vec4 worldPosition = gbufferModelViewInverse * surface.screenSpacePosition;
+		vec4 worldPosition = gbufferModelViewInverse * GetScreenSpacePosition(coord);
 			 worldPosition.xyz += cameraPosition.xyz;
 
-		float cloudHeight = 150.0f;
+		float cloudHeight = 220.0f;
 		float cloudDepth  = 140.0f;
-		
-        float cloudDensity;
-		
-	#ifdef VFCWWT
+		float cloudDensity = 1.0f;
 
-        cloudDensity = 0.16 * (FOGDENS_SUNRISE * timeSunrise + FOGDENS_NOON * timeNoon + FOGDENS_SUNSET * timeSunset + FOGDENS_MIDNIGHT * timeMidnight);
-	#else
-		cloudDensity = 0.16;
-	#endif
-
-        
-		
-        cloudDensity = cloudDensity * VFDensityStrength  * ( 1.0 - rainStrength  * 0.3 ) / CLOUD_PRECISION2;
-		
 		float startingRayDepth = far - 5.0f;
 
 		float rayDepth = startingRayDepth;
-			  
-		float rayIncrement = far / CLOUD_DISPERSE2;
+			  //rayDepth += CalculateDitherPattern1() * 0.85f;
+			  //rayDepth += texture(noisetex, texcoord.st * (viewWidth / noiseTextureResolution, viewHeight / noiseTextureResolution)).x * 0.1f;
+			  //rayDepth += CalculateDitherPattern2() * 0.1f;
+		float rayIncrement = far / 10.0f;
 
-		#ifdef SOFT_FLUFFY_CLOUDS2
-			  //rayDepth += rand(texcoord.st + sin(frameTimeCounter)).x * rayIncrement;
-			  //rayDepth += BlueNoiseStatic(texcoord.st + sin(frameTimeCounter)) * rayIncrement;
-			  //rayDepth += rand(BlueNoiseXY(texcoord.st + sin(frameTimeCounter))).x * rayIncrement;
-			  //rayDepth += BlueNoiseStatic(rand(texcoord.st + sin(frameTimeCounter)).xy) * rayIncrement;
-			  
-			  rayDepth += R2_dither() * rayIncrement;
-			  
-			#else
-			  rayDepth += CalculateDitherPattern1() * rayIncrement;
-		#endif
+			  //rayDepth += CalculateDitherPattern1() * rayIncrement;
+
+		// float dither = CalculateDitherPattern1();
 
 		int i = 0;
 
-		vec3 cloudColor4 = colorSunlight;
+		vec3 cloudColor = colorSunlight;
 		vec4 cloudSum = vec4(0.0f);
+			 cloudSum.rgb = colorSkylight * 0.2f;
 			 cloudSum.rgb = color.rgb;
 
-		float sunglow = min(CalculateSunglow(surface), 2.0);
-		
-		float cloudDistanceMult = 400.0f / far;
 
-		//float surfaceDistance = length(worldPos);
+		float cloudDistanceMult = 800.0f / far;
+
+
 		float surfaceDistance = length(worldPosition.xyz - cameraPosition.xyz);
 
+		vec4 toEye = gbufferModelView * vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
-		while (rayDepth > 0.0f) {
+		vec4 startPosition = GetCloudSpacePosition(coord, rayDepth, cloudDistanceMult);
+
+		const int numSteps = 800;
+		const float numStepsF = 800.0f;
+
+		// while (rayDepth > 0.0f)
+		for (int i = 0; i < numSteps; i++)
+		{
 			//determine worldspace ray position
-			vec4 rayPosition = GetCloudSpacePosition(texcoord.st, rayDepth, cloudDistanceMult);
+			// vec4 rayPosition = GetCloudSpacePosition(texcoord.st, rayDepth, cloudDistanceMult);
+			float inormalized = i / numStepsF;
+				  // inormalized += dither / numStepsF;
+				  // inormalized = pow(inormalized, 0.5);
+			vec4 rayPosition = vec4(0.0);
+			     rayPosition.xyz = mix(startPosition.xyz, cameraPosition.xyz, inormalized);
 
 			float rayDistance = length((rayPosition.xyz - cameraPosition.xyz) / cloudDistanceMult);
 
-			vec4 proximity =  CloudColor4(rayPosition, sunglow/1.2, surface.worldLightVector);
+			// if (surfaceDistance < rayDistance * cloudDistanceMult && isSky)
+			// {
+			// 	continue; TODO re-enable
+			// }
+
+			vec4 proximity =  CloudColor(rayPosition, sunglow, worldLightVector);
 				 proximity.a *= cloudDensity;
 
-				 if (surfaceDistance < rayDistance * cloudDistanceMult  && !surface.mask.sky)
-				 	proximity.a = 0.0f;
+				 //proximity.a *=  clamp(surfaceDistance - rayDistance, 0.0f, 1.0f);
+				 // if (surfaceDistance < rayDistance * cloudDistanceMult && surface.mask.sky < 0.5f)
+				 // 	proximity.a = 0.0f;
 
-			cloudSum.rgb = mix( cloudSum.rgb, proximity.rgb, vec3(min(1.0f, proximity.a * cloudDensity)) );
-			cloudSum.a += proximity.a * cloudDensity;
+				 if (!isSky)
+				 proximity.a *= clamp((surfaceDistance - (rayDistance * cloudDistanceMult)) / rayIncrement, 0.0f, 1.0f);
 
-            cloudSum.r *= CUSTOM_VLFC_R * 0.00390625;
-			cloudSum.g *= CUSTOM_VLFC_G * 0.00390625;
-			cloudSum.b *= CUSTOM_VLFC_B * 0.00390625;
+			//cloudSum.rgb = mix( cloudSum.rgb, proximity.rgb, vec3(min(1.0f, proximity.a * cloudDensity)) );
+			//cloudSum.a += proximity.a * cloudDensity;
+			color.rgb = mix(color.rgb, proximity.rgb, vec3(min(1.0f, proximity.a * cloudDensity)));
 
-			surface.cloudAlpha += proximity.a;
+			color.a += proximity.a;
 
 			//Increment ray
-			rayDepth -= rayIncrement / CLOUD_PRECISION2;
-			i++;
+			rayDepth -= rayIncrement;
+
+			// if (surface.cloudAlpha >= 1.0)
+			// {
+			// 	break;
+			// }
+
+			 // if (rayDepth * cloudDistanceMult  < ((cloudHeight - (cloudDepth * 0.5)) - cameraPosition.y))
+			 // {
+			 // 	break;
+			 // }
 		}
 
-	color.rgb = mix(color.rgb, cloudSum.rgb, vec3(min(1.0f, cloudSum.a * 50.0f)));
-
-	if (cloudSum.a > 0.00f)
-	{
-		surface.mask.volumeCloud = true;
+		//color.rgb = mix(color.rgb, cloudSum.rgb, vec3(min(1.0f, cloudSum.a * 20.0f)));
+		//color.rgb = cloudSum.rgb;
 	}
 }
 
-void CloudPlane(inout SurfaceStruct surface)
+vec4 textureSmooth(in sampler2D tex, in vec2 coord)
 {
-	//Initialize view ray
-	vec4 worldVector = gbufferModelViewInverse * (-GetScreenSpacePosition(texcoord.st, 1.0f));
+	vec2 res = vec2(64.0f, 64.0f);
 
-	surface.viewRay.dir = normalize(worldVector.xyz);
-	surface.viewRay.origin = vec3(0.0f);
+	coord *= res;
+	coord += 0.5f;
 
-	float sunglow = CalculateSunglow(surface);
+	vec2 whole = floor(coord);
+	vec2 part  = fract(coord);
 
+	part.x = part.x * part.x * (3.0f - 2.0f * part.x);
+	part.y = part.y * part.y * (3.0f - 2.0f * part.y);
+	// part.x = 1.0f - (cos(part.x * 3.1415f) * 0.5f + 0.5f);
+	// part.y = 1.0f - (cos(part.y * 3.1415f) * 0.5f + 0.5f);
 
+	coord = whole + part;
 
-	float cloudsAltitude = CLOUDHEIGHT2;
-	float cloudsThickness = 150.0f;
+	coord -= 0.5f;
+	coord /= res;
 
-	float cloudsUpperLimit = cloudsAltitude + cloudsThickness * 0.5f;
-	float cloudsLowerLimit = cloudsAltitude - cloudsThickness * 0.5f;
-
-	float density = 1.0f;
-
-	if (cameraPosition.y < cloudsLowerLimit)
-	{
-		float planeHeight = cloudsUpperLimit;
-
-		float stepSize = 25.5f;
-		planeHeight -= cloudsThickness * 0.85f;
-		//planeHeight += CalculateDitherPattern1() * stepSize;
-		//planeHeight += CalculateDitherPattern() * stepSize;
-
-		//while(planeHeight > cloudsLowerLimit)
-		///{
-			Plane pl;
-			pl.origin = vec3(0.0f, cameraPosition.y - planeHeight, 0.0f);
-			pl.normal = vec3(0.0f, 1.0f, 0.0f);
-
-			Intersection i = RayPlaneIntersectionWorld(surface.viewRay, pl);
-
-			if (i.angle < 0.0f)
-			{
-				if (i.distance < surface.linearDepth || surface.mask.sky)
-				{
-					 vec4 cloudSample = CloudColor2(vec4(i.pos.xyz * 0.5f + vec3(30.0f), 1.0f), sunglow, surface.worldLightVector, cloudsAltitude, cloudsThickness, false);
-						 cloudSample.a = min(1.0f, cloudSample.a * density);
-
-					surface.sky.albedo.rgb = mix(surface.sky.albedo.rgb, cloudSample.rgb, cloudSample.a);
-
-					cloudSample = CloudColor2(vec4(i.pos.xyz * 0.65f + vec3(10.0f) + vec3(i.pos.z * 0.5f, 0.0f, 0.0f), 1.0f), sunglow, surface.worldLightVector, cloudsAltitude, cloudsThickness, false);
-					cloudSample.a = min(1.0f, cloudSample.a * density);
-
-					surface.sky.albedo.rgb = mix(surface.sky.albedo.rgb, cloudSample.rgb, cloudSample.a);
-
-				}
-			}
-
-	}
+	return texture(tex, coord);
 }
 
-float CloudShadow(in SurfaceStruct surface)
+float AlmostIdentity(in float x, in float m, in float n)
 {
-	float cloudsAltitude = 540.0f;
-	float cloudsThickness = 150.0f;
+	if (x > m) return x;
 
-	float cloudsUpperLimit = cloudsAltitude + cloudsThickness * 0.5f;
-	float cloudsLowerLimit = cloudsAltitude - cloudsThickness * 0.5f;
+	float a = 2.0f * n - m;
+	float b = 2.0f * m - 3.0f * n;
+	float t = x / m;
 
-	float planeHeight = cloudsUpperLimit;
-
-	planeHeight -= cloudsThickness * 0.85f;
-
-	Plane pl;
-	pl.origin = vec3(0.0f, planeHeight, 0.0f);
-	pl.normal = vec3(0.0f, 1.0f, 0.0f);
-
-	//Cloud shadow
-	Ray surfaceToSun;
-	vec4 sunDir = gbufferModelViewInverse * vec4(surface.lightVector, 0.0f);
-	surfaceToSun.dir = normalize(sunDir.xyz);
-	vec4 surfacePos = gbufferModelViewInverse * surface.screenSpacePosition;
-	surfaceToSun.origin = surfacePos.xyz + cameraPosition.xyz;
-
-	Intersection i = RayPlaneIntersection(surfaceToSun, pl);
-
-	float cloudShadow = CloudColor2(vec4(i.pos.xyz * 0.5f + vec3(30.0f), 1.0f), 0.0f, vec3(1.0f), cloudsAltitude, cloudsThickness, true).x;
-		  cloudShadow += CloudColor2(vec4(i.pos.xyz * 0.65f + vec3(10.0f) + vec3(i.pos.z * 0.5f, 0.0f, 0.0f), 1.0f), 0.0f, vec3(1.0f), cloudsAltitude, cloudsThickness, true).x;
-
-		  cloudShadow = min(cloudShadow, 1.0f);
-		  cloudShadow = 1.0f - cloudShadow;
-
-	return cloudShadow;
-	// return 1.0f;
+	return (a * t + b) * t * t + n;
 }
 
 
-
-void	SnowShader(inout SurfaceStruct surface)
-{
-	float snowFactor = dot(surface.normal, upVector);
-		  snowFactor = clamp(snowFactor - 0.1f, 0.0f, 0.05f) / 0.05f;
-	surface.albedo = mix(surface.albedo.rgb, vec3(1.0f), vec3(snowFactor));
-}
-
-void	Test(inout vec3 color, inout SurfaceStruct surface)
-{
-	vec4 rayScreenSpace = GetScreenSpacePosition(texcoord.st, 1.0f);
-		 rayScreenSpace = -rayScreenSpace;
-		 rayScreenSpace = gbufferModelViewInverse * rayScreenSpace;
-
-	float planeAltitude = 100.0f;
-
-	vec3 rayDir = normalize(rayScreenSpace.xyz);
-	vec3 planeOrigin = vec3(0.0f, 1.0f, 0.0f);
-	vec3 planeNormal = vec3(0.0f, 1.0f, 0.0f);
-	vec3 rayOrigin = vec3(0.0f);
-
-	float denom = dot(rayDir, planeNormal);
-
-	vec3 intersectionPos = vec3(0.0f);
-
-	if (denom > 0.0001f || denom < -0.0001f)
-	{
-		float planeRayDist = dot((planeOrigin - rayOrigin), planeNormal) / denom;	//How far along the ray that the ray intersected with the plane
-
-		//if (planeRayDist > 0.0f)
-		intersectionPos = rayDir * planeRayDist;
-		intersectionPos = -intersectionPos;
-
-		intersectionPos.xz *= cameraPosition.y - 100.0f;
-
-		intersectionPos += cameraPosition.xyz;
-
-		intersectionPos.x = mod(intersectionPos.x, 1.0f);
-		intersectionPos.y = mod(intersectionPos.y, 1.0f);
-		intersectionPos.z = mod(intersectionPos.z, 1.0f);
-	}
-
-
-	color += intersectionPos.xyz * 0.1f;
-}
-float getnoise(vec2 pos) {
-	return abs(fract(sin(dot(pos ,vec2(18.9898f,28.633f))) * 4378.5453f));
-}
-
-#ifdef NSL
-vec3 NewSkyLight(float p){
-	float a = -1.;
-	float b = -0.24;
-	float c = 6.0;
-	float d = -0.8;
-	float e = 0.45;
-	
-	vec3 sunVec = normalize(sunPosition);
-	vec3 moonVec = normalize(-sunPosition);
-	vec3 upVec = normalize(upPosition);
-
-	vec3 sVector = GetScreenSpacePosition(texcoord.xy, texture2D(depthtex0, texcoord.st).x).xyz;
-		 sVector = normalize(sVector);
-	
-	float cosT = dot(sVector, upVec); 
-	float absCosT = max(cosT, 0.0);
-	float cosS = dot(sunVec, upVec);		
-	float cosY = dot(sunVec, sVector);
-	float Y = acos(cosY);
-
-	float SdotU = dot(sunVec, upVec);
-	float MdotU = dot(moonVec, upVec);
-	float sunVisibility = pow(clamp(SdotU+0.1, 0.0, 0.1) / 0.1, 2.0);	
-	
-	float L = (1 + -(exp(b / (absCosT + 0.01)))) * (1 + c * exp(d * Y) + e * cosY * cosY); 
-		  //L = pow(L, 1.0 - rainStrength * 0.8)*(1.0 - rainStrength * 0.83);  
-		  
-	vec3 lightColor	= vec3(0.0);
-		 lightColor += vec3(1.0, 0.6, 0.0) * 3.0 * timeSunrise;
-		 lightColor += vec3(5.5, 2.1, 0.0) * 1.5 * timeSunset;
-		 
-		 lightColor += vec3(0.0, 1.1, 5.0) * timeMidnight;
-		 
-		 lightColor *= 1-rainStrength;
-		 
-		 lightColor = pow(lightColor, vec3(2.2));
-		 lightColor *= 1.0 - exp(-0.005 * pow(L, 4.0) * (1.0 - rainStrength * 0.985));	
-		 lightColor *= p;
-		 //lightColor = min(lightColor, vec3(p / 10.0));
-		 lightColor *= sunVisibility;
-		 
-	return lightColor;
-}
+float GetWaves(vec3 position) {
+	float speed = 0.9f;
+	float waveWaterSpeed = WATER_SPEED;
+#ifdef WATER_SPEED_LIGHT_BAR_LINKER
+      waveWaterSpeed *= pow(screenBrightness * 2.0f, 4.0);
 #endif
+#define FRAME_TIME frameTimeCounter * waveWaterSpeed
+  vec2 p = position.xz / 20.0f;
 
-float triNoise2d(in vec2 p, float spd)
-{
-    float z=1.8;
-    float z2=2.5;
-	float rz = 0.0;
-    p *= mm2(p.x*0.06);
-    vec2 bp = p;
-	for (float i=0.0; i<5.; i++ )
-	{
-        vec2 dg = tri2(bp*1.85)*.75;
-        dg *= mm2(frameTimeCounter*spd);
-        p -= dg/z2;
+  p.xy -= position.y / 20.0f;
 
-        bp *= 1.3;
-        z2 *= 0.45;
-        z *= 0.442;
-		p *= 1.21 + (rz-1.0)*.02;
-        
-        rz += tri(p.x+tri(p.y))*z;
-        p*= -m2;
-	}
-    return clamp(1.0/pow(rz*29.0, 1.3),0.0,.55);
-}
+  p.x = -p.x;
 
-float hash21(in vec2 n){ 
-    return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453); 
-}
+  p.x += (FRAME_TIME / 40.0f) * speed;
+  p.y -= (FRAME_TIME / 40.0f) * speed;
 
-vec4 blueAurora = vec4(0.5, 2.0, 4.0,1.5);
-vec4 purpleAurora = vec4(4.0, 0.5, 3.0,1.5);
-vec4 greenAurora = vec4(0.2, 2.0, 1.5,1.5);
+  float weight = 1.0f;
+  float weights = weight;
 
-vec4 aurora(vec3 ro, vec3 rd)
-{
-	
-#ifdef	RGB_AURORA
+  float allwaves = 0.0f;
 
-	float red=0.0;
-	float blue=0.0;
-	float green=0.0;
-	
-	
-		float n=frameTimeCounter * 256;
-		while(n>=51*6){
-			n=n-51*6;
-		}
-		
-		if(n<=51){red=255;blue=5*n;green=0;}
-		else{
-			if(n>51&&n<=51*2){red=255-5*(n-51);blue=255;green=0;}
-			else{
-				if(n>51*2&&n<=51*3){red=0;blue=255;green=(n-51*2)*5;}
-				else{
-					if(n>51*3&&n<=51*4){red=0;blue=255-5*(n-51*3);green=255;}
-					else{
-						if(n>51*4&&n<=51*5){red=(n-51*4)*5;blue=0;green=255;}
-						else{
-							if(n>51*5&&n<51*6){red=255;blue=0;green=255-5*(n-51*5);}
-						}
-					}
-				}
-			}
-		}
-		
-    vec4 col = vec4(0);
-	vec4 avgCol = vec4(red/64.0, green/128.0, blue/128.0 , 1.5);
-    vec4 excolor = vec4(red/64.0, green/128.0, blue/128.0 , 1.5);
-	
-#else
-	
-	vec4 col = vec4(0);
-	
-	
-	//颜色
-#ifdef AURORA_PRESET_COL
-    vec4 avgCol = vec4(.7,.4,.6,1.);
-	vec4 excolor = vec4(4);
-#else
-	vec4 avgCol = AURORA_COLOR;
-	vec4 excolor = AURORA_COLOR;
-#endif
-	
-#endif
+  float wave = 0.0;
+	//wave = textureSmooth(noisetex, (p * vec2(2.0f, 1.2f))  + vec2(0.0f,  p.x * 2.1f) ).x;
+	p /= 2.1f; 	/*p *= pow(2.0f, 1.0f);*/ 	p.y -= (FRAME_TIME / 20.0f) * speed; p.x -= (FRAME_TIME / 30.0f) * speed;
+  //allwaves += wave;
 
-    if(worldTime<23501&&worldTime>12499){
-    for(float i=0.;i<aurora_flash;i++)
-    {
-        float of = 0.06*hash21(gl_FragCoord.xy)*smoothstep(0.,15., i);
-        float pt = ((.8+pow(i,1.4)*.002)-ro.y)/(rd.y*2.+0.4);
-        pt -= of;
-		
-        vec3 bpos = ro + pt*rd;
-        vec2 p = bpos.zx;
-		
-        float rzt = triNoise2d(p, aurora_speed * 0.1);
-		
-		#ifdef AURORA_PRESET_COL
-		    vec4 col2 = vec4(0);
-		    col2 = vec4(2.5*(i-0.25*aurora_flash), 1.0*(aurora_flash*0.6-i), i*1.3, 1.0) / aurora_flash * rzt;
-			avgCol =  mix(avgCol, col2, 0.5);
-		#else
-            vec4 col2 = vec4(0,0,0, rzt);
-            col2.rgb = (sin(1.-vec3(2.15,-.5, 1.2)+i*0.043)*0.5+0.5)*rzt;
-            avgCol =  mix(avgCol, col2, 0.5);
-		#endif
-		
-		col += avgCol*exp2(-i*0.065 - 2.5)*smoothstep(0.0 ,5.0 , i);
-        }
-    }    
-    col *= (clamp(rd.y * 15.0 + 0.4 , 0.0 , 1.0));
-    col *= excolor;
-	
-#ifdef AURORA_PRESET_COL
-   
-	if(col.r>=0.8)
-		col.r=0.8;
-	if(col.g>=0.5)
-		col.g=0.5;
-	if(col.b>=0.7)
-		col.b=0.7;
+  weight = 4.1f;
+  weights += weight;
+      wave = textureSmooth(noisetex, (p * vec2(2.0f, 1.4f))  + vec2(0.0f,  -p.x * 2.1f) ).x;
+			p /= 1.5f;/*p *= pow(2.0f, 2.0f);*/ 	p.x += (FRAME_TIME / 20.0f) * speed;
+      wave *= weight;
+  allwaves += wave;
 
-#endif
+  weight = 17.25f;
+  weights += weight;
+      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  p.x * 1.1f) ).x);		p /= 1.5f; 	p.x -= (FRAME_TIME / 55.0f) * speed;
+      wave *= weight;
+  allwaves += wave;
 
-    float tmp=(worldTime>23500&&worldTime<12500)?0:1;
-	
-    float timetmp=smoothstep(0.0 ,1.0 ,tmp);
-	
-        return col*aurora_power*timeMidnight*timetmp;
-	
+  weight = 15.25f;
+  weights += weight;
+      wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f))  + vec2(0.0f,  -p.x * 1.7f) ).x);		p /= 1.9f; 	p.x += (FRAME_TIME / 155.0f) * speed;
+      wave *= weight;
+  allwaves += wave;
+
+  weight = 29.25f;
+  weights += weight;
+      wave = abs(textureSmooth(noisetex, (p * vec2(1.0f, 0.8f))  + vec2(0.0f,  -p.x * 1.7f) ).x * 2.0f - 1.0f);		p /= 2.0f; 	p.x += (FRAME_TIME / 155.0f) * speed;
+      wave = 1.0f - AlmostIdentity(wave, 0.2f, 0.1f);
+      wave *= weight;
+  allwaves += wave;
+
+  weight = 15.25f;
+  weights += weight;
+      wave = abs(textureSmooth(noisetex, (p * vec2(1.0f, 0.8f))  + vec2(0.0f,  p.x * 1.7f) ).x * 2.0f - 1.0f);
+      wave = 1.0f - AlmostIdentity(wave, 0.2f, 0.1f);
+      wave *= weight;
+  allwaves += wave;
+
+  // weight = 10.0f;
+  // weights += weight;
+  // 	wave = sin(length(position.xz * 5.0 + FRAME_TIME));
+  //   wave *= weight;
+  // allwaves += wave;
+
+  allwaves /= weights;
+
+  return allwaves;
 }
 
 
-void NightAurora(inout vec3 color,vec3 fposition)
-{
-    vec3 sVector = normalize(fposition);
-	
-    float cosT = dot(sVector,upVector);
-	vec3 upVec = normalize(upPosition);
-    vec3 tpos = vec3(gbufferModelViewInverse * vec4(fposition,1.0));
+vec3 GetWavesNormal(vec3 position) {
 
-    vec3 wVector = normalize(tpos);
-    vec3 intersection = wVector*(50.0/(wVector.y));
-         intersection *= mix(1.0, cosT, 0.70 - cosT);
-	vec2 wind = vec2(abs(frameTimeCounter/10.-0.5),abs(frameTimeCounter/10.-0.5));
-	intersection.xz = intersection.xz*40. + 5.0*cosT*intersection.xz;
-	vec3 iSpos = (gbufferModelView*vec4(intersection,1.0)).rgb;
-	float cosT2 = max(dot(normalize(iSpos),upVec),0.0);
+	const float sampleDistance = 11.0f;
 
-	float position = dot(normalize(fposition.xyz), upPosition);
-	float horizonPos = max(1.0 - abs(position) * 0.03, 0.0);
+	position -= vec3(0.005f, 0.0f, 0.005f) * sampleDistance;
 
-	float horizonBorder = min((1.0 - clamp(position + length(position), 0.0, 1.0)) + horizonPos, 1.0);
-	
-	vec3 col = vec3(0.);
-    vec3 ro = vec3(0,0,0);
-    vec3 rd = intersection/12392.0f;
-    vec3 brd = rd;
-    float fade = smoothstep(0.,0.01,abs(brd.y))*0.1+0.9;
-	
-    vec4 aur = smoothstep(0.,1.5,aurora(ro,rd))*fade;
-	
-         col = col*(1.-aur.a) + aur.rgb * pow(cosT2, 0.18) * (1.0 - horizonBorder);
-	if(worldTime<=23500&&worldTime>12500)
-	color += col * 0.4 * AURORA_STRENGTH * timeMidnight * (1-rainStrength * 0.75);	
-	if(worldTime<=12500&&worldTime>23500)
-	color += col * 0.4 * AURORA_STRENGTH * (timeNoon - 1.0) * (1-rainStrength * 0.75);
+	float wavesCenter = GetWaves(position);
+	float wavesLeft = GetWaves(position + vec3(0.01f * sampleDistance, 0.0f, 0.0f));
+	float wavesUp   = GetWaves(position + vec3(0.0f, 0.0f, 0.01f * sampleDistance));
+
+	vec3 wavesNormal;
+		 wavesNormal.r = wavesCenter - wavesLeft;
+		 wavesNormal.g = wavesCenter - wavesUp;
+
+		 wavesNormal.r *= 30.0f * WAVE_HEIGHT / sampleDistance;
+		 wavesNormal.g *= 30.0f * WAVE_HEIGHT / sampleDistance;
+
+		//  wavesNormal.b = sqrt(1.0f - wavesNormal.r * wavesNormal.r - wavesNormal.g * wavesNormal.g);
+		 wavesNormal.b = 1.0;
+		 wavesNormal.rgb = normalize(wavesNormal.rgb);
+
+
+
+	return wavesNormal.rgb;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2710,796 +1034,44 @@ void NightAurora(inout vec3 color,vec3 fposition)
 /////////////////////////////////////////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float AlmostIdentity(in float x, in float m, in float n)
-{
-if (x > m) return x;
-
-
-float a = 2.0f * n - m;
-float b = 2.0f * m - 3.0f * n;
-float t = x / m;
-
-
-return (a * t + b) * t * t + n;
-}
-
-
-vec4 textureSmooth(in sampler2D tex, in vec2 coord)
-{
-vec2 res = vec2(64.0f, 64.0f);
-
-
-coord *= res;
-coord += 0.5f;
-
-
-vec2 whole = floor(coord);
-vec2 part = fract(coord);
-
-
-part.x = part.x * part.x * (3.0f - 2.0f * part.x);
-part.y = part.y * part.y * (3.0f - 2.0f * part.y);
-// part.x = 1.0f - (cos(part.x * 3.1415f) * 0.5f + 0.5f);
-// part.y = 1.0f - (cos(part.y * 3.1415f) * 0.5f + 0.5f);
-
-
-coord = whole + part;
-
-
-coord -= 0.5f;
-coord /= res;
-
-
-return texture2D(tex, coord);
-
-
-}
-
-
-float GetWaves(vec3 position) {
-float speed = 0.9f;
-
-
-vec2 p = position.xz / 20.0f;
-
-
-p.xy -= position.y / 20.0f;
-
-
-p.x = -p.x;
-
-
-p.x += (frameTimeCounter / 40.0f) * speed;
-p.y -= (frameTimeCounter / 40.0f) * speed;
-
-
-float weight = 1.0f;
-float weights = weight;
-
-
-float allwaves = 0.0f;
-
-
-float wave = 0.0;
-//wave = textureSmooth(noisetex, (p * vec2(2.0f, 1.2f)) + vec2(0.0f, p.x * 2.1f) ).x;
-p /= 2.1f; /*p *= pow(2.0f, 1.0f);*/ p.y -= (frameTimeCounter / 20.0f) * speed; p.x -= (frameTimeCounter / 30.0f) * speed;
-//allwaves += wave;
-
-
-weight = 4.1f;
-weights += weight;
-wave = textureSmooth(noisetex, (p * vec2(2.0f, 1.4f)) + vec2(0.0f, -p.x * 2.1f) ).x;
-p /= 1.5f;/*p *= pow(2.0f, 2.0f);*/ p.x += (frameTimeCounter / 20.0f) * speed;
-wave *= weight;
-allwaves += wave;
-
-
-weight = 17.25f;
-weights += weight;
-wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f)) + vec2(0.0f, p.x * 1.1f) ).x);p /= 1.5f; p.x -= (frameTimeCounter / 55.0f) * speed;
-wave *= weight;
-allwaves += wave;
-
-
-weight = 15.25f;
-weights += weight;
-wave = (textureSmooth(noisetex, (p * vec2(1.0f, 0.75f)) + vec2(0.0f, -p.x * 1.7f) ).x);p /= 1.9f; p.x += (frameTimeCounter / 155.0f) * speed;
-wave *= weight;
-allwaves += wave;
-
-
-weight = 29.25f;
-weights += weight;
-wave = abs(textureSmooth(noisetex, (p * vec2(1.0f, 0.8f)) + vec2(0.0f, -p.x * 1.7f) ).x * 2.0f - 1.0f);p /= 2.0f; p.x += (frameTimeCounter / 155.0f) * speed;
-wave = 1.0f - AlmostIdentity(wave, 0.2f, 0.1f);
-wave *= weight;
-allwaves += wave;
-
-
-weight = 15.25f;
-weights += weight;
-wave = abs(textureSmooth(noisetex, (p * vec2(1.0f, 0.8f)) + vec2(0.0f, p.x * 1.7f) ).x * 2.0f - 1.0f);
-wave = 1.0f - AlmostIdentity(wave, 0.2f, 0.1f);
-wave *= weight;
-allwaves += wave;
-
-
-allwaves /= weights;
-
-
-return allwaves;
-}
-
-
-
-
-vec3 GetWavesNormal(vec3 position) {
-
-
-
-float WAVE_HEIGHT = 1.5;
-
-
-const float sampleDistance = 3.0f;
-
-
-position -= vec3(0.005f, 0.0f, 0.005f) * sampleDistance;
-
-
-float wavesCenter = GetWaves(position);
-float wavesLeft = GetWaves(position + vec3(0.01f * sampleDistance, 0.0f, 0.0f));
-float wavesUp = GetWaves(position + vec3(0.0f, 0.0f, 0.01f * sampleDistance));
-
-
-vec3 wavesNormal;
-wavesNormal.r = wavesCenter - wavesLeft;
-wavesNormal.g = wavesCenter - wavesUp;
-
-
-wavesNormal.r *= 30.0f * WAVE_HEIGHT / sampleDistance;
-wavesNormal.g *= 30.0f * WAVE_HEIGHT / sampleDistance;
-
-
-// wavesNormal.b = sqrt(1.0f - wavesNormal.r * wavesNormal.r - wavesNormal.g * wavesNormal.g);
-wavesNormal.b = 1.0;
-wavesNormal.rgb = normalize(wavesNormal.rgb);
-
-
-
-
-
-
-return wavesNormal.rgb;
-
-
-}
-
-
-
-
-vec3 FakeRefract(vec3 vector, vec3 normal, float ior)
-{
-return refract(vector, normal, ior);
-//return vector + normal * 0.5;
-}
-
-
-float CalculateWaterCaustics(SurfaceStruct surface, ShadingStruct shading)
-{
-//if (shading.direct <= 0.0)
-//{
-//return 0.0;
-//}
-if (isEyeInWater == 1)
-{
-if (surface.mask.water)
-{
-return 1.0;
-}
-}
-vec4 worldPos = gbufferModelViewInverse * surface.screenSpacePosition;
-worldPos.xyz += cameraPosition.xyz;
-
-
-vec2 dither = CalculateNoisePattern1(vec2(0.0), 2.0).xy;
-// float waterPlaneHeight = worldPos.y + 8.0;
-float waterPlaneHeight = 63.0;
-
-
-// vec4 wlv = shadowModelViewInverse * vec4(0.0, 0.0, 1.0, 0.0);
-vec4 wlv = gbufferModelViewInverse * vec4(lightVector.xyz, 0.0);
-vec3 worldLightVector = -normalize(wlv.xyz);
-// worldLightVector = normalize(vec3(-1.0, 1.0, 0.0));
-
-
-float pointToWaterVerticalLength = min(abs(worldPos.y - waterPlaneHeight), 2.0);
-vec3 flatRefractVector = FakeRefract(worldLightVector, vec3(0.0, 1.0, 0.0), 1.0 / 1.3333);
-float pointToWaterLength = pointToWaterVerticalLength / -flatRefractVector.y;
-vec3 lookupCenter = worldPos.xyz - flatRefractVector * pointToWaterLength;
-
-
-
-
-float distanceThreshold = 0.55;
-distanceThreshold +=-0.13*HEAVIER_WATER;
-
-
-const int numSamples = 1;
-int c = 0;
-
-
-float caustics = 0.0;
-
-
-for (int i = -numSamples; i <= numSamples; i++)
-{
-for (int j = -numSamples; j <= numSamples; j++)
-{
-vec2 offset = vec2(i + dither.x, j + dither.y) * 0.2;
-vec3 lookupPoint = lookupCenter + vec3(offset.x, 0.0, offset.y);
-// vec3 wavesNormal = normalize(GetWavesNormal(lookupPoint).xzy + vec3(0.0, 1.0, 0.0) * 100.0);
-vec3 wavesNormal = GetWavesNormal(lookupPoint).xzy;
-vec3 refractVector = FakeRefract(worldLightVector.xyz, wavesNormal.xyz, 1.0 / 1.3333);
-float rayLength = pointToWaterVerticalLength / refractVector.y;
-vec3 collisionPoint = lookupPoint - refractVector * rayLength;
-
-
-float dist = distance(collisionPoint, worldPos.xyz);
-
-
-caustics += 1.0 - saturate(dist / distanceThreshold);
-
-
-c++;
-}
-}
-
-
-caustics /= c;
-
-
-caustics /= distanceThreshold;
-
-
-
-
-return pow(caustics, 2.0) * 3.0;
-}
-
-
-void WaterFog(inout vec3 color, in SurfaceStruct surface, in MCLightmapStruct mcLightmap)
-{
-// return;
-if (surface.mask.water || isEyeInWater > 0)
-{
-float depth = texture2D(depthtex1, texcoord.st).x;
-float depthSolid = texture2D(gdepthtex, texcoord.st).x;
-
-
-vec4 viewSpacePosition = GetScreenSpacePosition(texcoord.st, depth);
-vec4 viewSpacePositionSolid = GetScreenSpacePosition(texcoord.st, depthSolid);
-
-
-vec3 viewVector = normalize(viewSpacePosition.xyz);
-
-
-
-
-float waterDepth = distance(viewSpacePosition.xyz, viewSpacePositionSolid.xyz);
-if (isEyeInWater > 0)
-{
-waterDepth = length(viewSpacePosition.xyz) * (1.0 - UNDERWATERVISIBILITY);
-if (surface.mask.water)
-{
-waterDepth = length(viewSpacePositionSolid.xyz) * (1.0 - UNDERWATERVISIBILITY);
-}
-}
-
-
-
-
-float fogDensity = 0.07 - 0.065 * isEyeInWater;
-float visibility = 1.0f / (pow(exp(waterDepth * fogDensity), 1.0f));
-float visibility2 = 1.0f / (pow(exp(waterDepth * fogDensity), 1.0f));
-
-
-vec3 waterNormal = normalize(GetWaterNormals(texcoord.st));
-
-
-
-
-vec3 waterFogColor;
-
-
-//It will change waterfog color in different time.
-//waterFogColor = vec3(0.1f+0.7*timeSunset*(1-isEyeInWater)+0.9*timeSunrise*(1-isEyeInWater), 1.0f-0.4*timeSunset*(1-isEyeInWater), 1.2f + isEyeInWater * 3-0.8*timeSunset*(1-isEyeInWater)-0.3*timeSunrise*(1-isEyeInWater))* 0.01 * WATERFOGCOLOR_STRENGTH-0.35*(timeSunset+timeSunrise)*(1-isEyeInWater); //clear water
-
-//Now you can change it by button.
-waterFogColor =vec3(WATER_FOG_COLOR_R, WATER_FOG_COLOR_G, WATER_FOG_COLOR_B) * WATERFOGCOLOR_STRENGTH / 120.0f;
-waterFogColor *= 0.01 * dot(vec3(0.33333), colorSunlight);
-waterFogColor *= (1.0 - rainStrength * 0.95);
-waterFogColor *= isEyeInWater * 2.0 + 1.0;
-
-
-if (isEyeInWater == 0)
-{
-waterFogColor *= mcLightmap.sky;
-}
-else
-{
-waterFogColor *= pow(eyeBrightnessSmooth.y / 240.0f, 6.0f);
-}
-
-
-// float scatter = CalculateSunglow(surface);
-
-
-vec3 viewVectorRefracted = refract(viewVector, waterNormal, 1.0 / 1.3333);
-float scatter = 1.0 / (pow(saturate(dot(-lightVector, viewVectorRefracted) * 0.5 + 0.5) * 20.0, 2.0) + 0.1);
-//vec3 reflectedLightVector = reflect(lightVector, upVector);
-//scatter += (1.0 / (pow(saturate(dot(-reflectedLightVector, viewVectorRefracted) * 0.5 + 0.5) * 30.0, 2.0) + 0.1)) * saturate(1.0 - dot(lightVector, upVector) * 1.4);
-
-
-// scatter += pow(saturate(dot(-lightVector, viewVectorRefracted) * 0.5 + 0.5), 3.0) * 0.02;
-if (isEyeInWater < 1)
-{
-waterFogColor = mix(waterFogColor, colorSunlight * 21.0 * waterFogColor, vec3(scatter * (1.0 - rainStrength)));
-}
-
-
-// color *= pow(vec3(0.7, 0.88, 1.0) * 0.99, vec3(waterDepth * 0.45 + 0.2));
-// color *= pow(vec3(0.7, 0.88, 1.0) * 0.99, vec3(waterDepth * 0.45 + 1.0));
-color *= pow(vec3(0.2, 0.5, 0.7) * 0.6, vec3(waterDepth * (0.1+0.075*HEAVIER_WATER)*(1+2*isEyeInWater) + 0.35));
-// color *= pow(vec3(0.7, 1.0, 0.2) * 0.8, vec3(waterDepth * 0.15 + 0.1));
-color = mix(waterFogColor, color, saturate(visibility));
-
-
-
-
-
-
-}
-}
-
-void CalStar(in SurfaceStruct surface, inout vec3 finalComposite) {
-
-
-vec4 worldPos = gbufferModelViewInverse * surface.screenSpacePosition;
-
-
-float cosT2 = pow(0.89, distance(vec2(0.0), worldPos.xz) / 100.0); // Curved plane.
-vec2 starsCoord = worldPos.xz / worldPos.y / 20.0 * (1.0 + cosT2 * cosT2 * 3.5) + vec2(frameTimeCounter / 800.0 / 16 * 2);
-
-
-float stars = max(texture2D(noisetex, starsCoord * 16).x - 0.94, 0.0) * 10.0;
-
-
-float position = abs(worldPos.y + cameraPosition.y - 65);
-float horizonPos= max(exp(1.0 - position / 50.0), 0.0);
-stars = mix(stars * timeMidnight, 0.0, horizonPos);
-float calcSun = min(pow(max(dot(normalize(surface.screenSpacePosition).xyz, surface.lightVector), 0.0), 2000.0), 0.2) * 3.0;
-stars = mix(stars, 0.0, calcSun);
-
-
-finalComposite.rgb = mix(finalComposite.rgb , vec3(0.8,1.2,1.2) * 0.02 - 0.02 * rainStrength, stars * float(surface.mask.sky));
-
-}
-
 void main() {
 
-	//Initialize surface properties required for lighting calculation for any surface that is not part of the sky
-	surface.albedo				= GetAlbedoLinear(texcoord.st);					//Gets the albedo texture
-	surface.albedo				= pow(surface.albedo, vec3(1.4f));
+	vec3 noisePattern = CalculateNoisePattern1(vec2(0.0f), 4);
+	vec4 screenSpacePosition = GetScreenSpacePosition(texcoord.st);
+	vec4 worldSpacePosition = gbufferModelViewInverse * screenSpacePosition;
+	vec4 worldLightVector = shadowModelViewInverse * vec4(0.0f, 0.0f, 1.0f, 0.0f);
+	vec3 normal = GetNormals(texcoord.st);
 
-	surface.albedo = mix(surface.albedo, vec3(dot(surface.albedo, vec3(0.3333f))), vec3(0.035f));
-
-	//surface.albedo				= vec3(0.8f);
-	surface.normal				= GetNormals(texcoord.st);						//Gets the screen-space normals
-	surface.depth				= GetDepth(texcoord.st);						//Gets the scene depth
-	surface.linearDepth			= ExpToLinearDepth(surface.depth);				//Get linear scene depth
-	surface.screenSpacePosition = GetScreenSpacePosition(texcoord.st);			//Gets the screen-space position
-	surface.viewVector			= normalize(surface.screenSpacePosition.rgb);	//Gets the view vector
-	surface.lightVector			= lightVector;									//Gets the sunlight vector
-	//vec4 wlv					= gbufferModelViewInverse * vec4(surface.lightVector, 1.0f);
-	vec4 wlv					= shadowModelViewInverse * vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	surface.worldLightVector	= normalize(wlv.xyz);
-	surface.upVector			= upVector;										//Store the up vector
-
-
-
-
-
-	surface.mask.matIDs			= GetMaterialIDs(texcoord.st);					//Gets material ids
-	CalculateMasks(surface.mask);
-
-
-
-	surface.albedo *= 1.0f - float(surface.mask.sky);						//Remove the sky from surface albedo, because sky will be handled separately
-
-	//surface.water.albedo = surface.albedo * float(surface.mask.water);		//Store underwater albedo
-	//surface.albedo *= 1.0f - float(surface.mask.water);						//Remove water from surface albedo to handle water separately
-
-
-
-	//Initialize sky surface properties
-	surface.sky.albedo		= GetAlbedoLinear(texcoord.st) * (min(1.0f, float(surface.mask.sky) + float(surface.mask.sunspot)));							//Gets the albedo texture for the sky
-
-	surface.sky.tintColor	= vec3(1.0f);
-	//surface.sky.tintColor		= mix(colorSunlight, vec3(colorSunlight.r), vec3(0.8f));									//Initializes the defualt tint color for the sky
-	//surface.sky.tintColor		*= mix(1.0f, 500.0f, timeSkyDark);													//Boost sky color at night																		//Scale sunglow back to be less intense
-
-	surface.sky.sunSpot		= vec3(float(CalculateSunspot(surface))) * vec3((min(1.0f, float(surface.mask.sky) + float(surface.mask.sunspot)))) * colorSunlight;
-	surface.sky.sunSpot		*= 1.0f - timeMidnight;
-	surface.sky.sunSpot		*= SUNLIGHTSTRENGTH;
-	surface.sky.sunSpot		*= 1.0f - rainStrength;
-	//surface.sky.sunSpot	  *= 1.0f - timeMidnight;
-
-	AddSkyGradient(surface);
-	
-	#ifdef ADDSUNGLOW
-	AddSunglow(surface);
-#endif
-
-
-	//Initialize MCLightmap values
-	mcLightmap.torch		= GetLightmapTorch(texcoord.st);	//Gets the lightmap for light coming from emissive blocks
-
-
-	mcLightmap.sky			= GetLightmapSky(texcoord.st);		//Gets the lightmap for light coming from the sky
-	// mcLightmap.sky		= 1.0f / pow((1.0f - mcLightmap.sky + 0.00001f), 2.0f);
-	// mcLightmap.sky		-= 1.0f;
-	// mcLightmap.sky		= max(0.0f, mcLightmap.sky);
-
-	mcLightmap.lightning	= 0.0f;								//gets the lightmap for light coming from lightning
-
-
-	//Initialize default surface shading attributes
-	surface.diffuse.roughness			= 0.0f;					//Default surface roughness
-	surface.diffuse.translucency		= 0.0f;					//Default surface translucency
-	surface.diffuse.translucencyColor	= vec3(1.0f);			//Default translucency color
-
-	surface.specular.specularity		= GetSpecularity(texcoord.st);	//Gets the reflectance/specularity of the surface
-	surface.specular.extraSpecularity	= 0.0f;							//Default value for extra specularity
-	surface.specular.glossiness			= GetGlossiness(texcoord.st);
-	surface.specular.metallic			= 0.0f;							//Default value of how metallic the surface is
-	surface.specular.gain				= 1.0f;							//Default surface specular gain
-	surface.specular.base				= 0.0f;							//Default reflectance when the surface normal and viewing normal are aligned
-	surface.specular.fresnelPower		= 5.0f;							//Default surface fresnel power
-
-
-
-
-	//Calculate surface shading
-	CalculateNdotL(surface);
-	shading.direct				= CalculateDirectLighting(surface);				//Calculate direct sunlight without visibility check (shadows)
-	shading.direct				= mix(shading.direct, 1.0f, float(surface.mask.water)); //Remove shading from water
-	shading.sunlightVisibility	= CalculateSunlightVisibility(surface, shading);					//Calculate shadows and apply them to direct lighting
-	shading.direct				*= shading.sunlightVisibility;
-	shading.direct				*= mix(1.0f, 0.0f, rainStrength);
-	float caustics = SUNLIGHTONBLOCKS + 0.25 * (timeSunrise + timeSunset);
-if (surface.mask.water || isEyeInWater > 0)
-caustics = CalculateWaterCaustics(surface, shading);
-shading.direct *= caustics;
-	shading.waterDirect			= shading.direct;
-	shading.direct				*= pow(mcLightmap.sky, 0.1f);
-	shading.bounced		= CalculateBouncedSunlight(surface);			//Calculate fake bounced sunlight
-	shading.scattered	= CalculateScatteredSunlight(surface);			//Calculate fake scattered sunlight
-	shading.skylight	= CalculateSkylight(surface);					//Calculate scattered light from sky
-	shading.scatteredUp = CalculateScatteredUpLight(surface);
-	shading.heldLight	= CalculateHeldLightShading(surface);
-
-
-	InitializeAO(surface);
-	//if (texcoord.s < 0.5f && texcoord.t < 0.5f)
-	//CalculateAO(surface);
-
-
-	//Colorize surface shading and store in lightmaps
-	lightmap.sunlight			= vec3(shading.direct) * colorSunlight;
-	AddCloudGlow(lightmap.sunlight, surface);
-	//lightmap.sunlight				*= 2.0f - AO;
-
-	lightmap.skylight			= vec3(mcLightmap.sky);
-	lightmap.skylight			*= mix(colorSkylight, colorBouncedSunlight, vec3(max(0.2f, (1.0f - pow(mcLightmap.sky + 0.13f, 1.0f) * 1.0f)))) + colorBouncedSunlight * (mix(0.4f, 2.8f, wetness)) * (1.0f - rainStrength);
-	//lightmap.skylight				*= mix(colorSkylight, colorBouncedSunlight, vec3(0.2f));
-	lightmap.skylight			*= shading.skylight;
-	lightmap.skylight			*= mix(1.0f, 5.0f, float(surface.mask.clouds));
-	lightmap.skylight			*= mix(1.0f, 50.0f, float(surface.mask.clouds) * timeSkyDark);
-	lightmap.skylight			*= surface.ao.skylight;
-	//lightmap.skylight				*= surface.ao.constant * 0.5f + 0.5f;
-	lightmap.skylight			+= mix(colorSkylight, colorSunlight, vec3(0.2f)) * vec3(mcLightmap.sky) * surface.ao.constant * 0.05f;
-	lightmap.skylight			*= mix(1.0f, 1.2f, rainStrength);
-
-	lightmap.bouncedSunlight	= vec3(shading.bounced) * colorBouncedSunlight;
-	lightmap.bouncedSunlight	*= pow(vec3(mcLightmap.sky), vec3(1.75f));
-	lightmap.bouncedSunlight	*= mix(1.0f, 0.25f, timeSunrise + timeSunset);
-	lightmap.bouncedSunlight	*= mix(1.0f, 0.0f, rainStrength);
-	lightmap.bouncedSunlight	*= surface.ao.bouncedSunlight;
-	//lightmap.bouncedSunlight	*= surface.ao.constant * 0.5f + 0.5f;
-
-
-	lightmap.scatteredSunlight	= vec3(shading.scattered) * colorScatteredSunlight * (1.0f - rainStrength);
-	lightmap.scatteredSunlight	*= pow(vec3(mcLightmap.sky), vec3(1.0f));
-	//lightmap.scatteredSunlight  *= surface.ao.constant * 0.5f + 0.5f;
-
-	lightmap.underwater			= vec3(mcLightmap.sky) * colorSkylight;
-
-	lightmap.torchlight			= mcLightmap.torch * colorTorchlight;
-	lightmap.torchlight			*= surface.ao.constant * surface.ao.constant;
-
-	lightmap.nolight			= vec3(0.05f);
-	lightmap.nolight			*= surface.ao.constant;
-
-	lightmap.scatteredUpLight	= vec3(shading.scatteredUp) * mix(colorSunlight, colorSkylight, vec3(0.3f));
-	lightmap.scatteredUpLight	*= pow(mcLightmap.sky, 0.5f);
-	lightmap.scatteredUpLight	*= surface.ao.scatteredUpLight;
-	lightmap.scatteredUpLight	*= mix(1.0f, 0.1f, rainStrength);
-	//lightmap.scatteredUpLight	  *= surface.ao.constant * 0.5f + 0.5f;
-
-	lightmap.heldLight			= vec3(shading.heldLight);
-	lightmap.heldLight			*= colorTorchlight;
-	lightmap.heldLight			*= heldBlockLightValue / 16.0f;
-
-
-
-
-	//If eye is in water
-	if (isEyeInWater > 0) {
-		vec3 halfColor = mix(colorWaterMurk, vec3(1.0f), vec3(0.5f));
-		lightmap.sunlight *= mcLightmap.sky * halfColor;
-		lightmap.skylight *= halfColor;
-		lightmap.bouncedSunlight *= 0.0f;
-		lightmap.scatteredSunlight *= halfColor;
-		lightmap.nolight *= halfColor;
-		lightmap.scatteredUpLight *= halfColor;
-	}
-
-	surface.albedo.rgb = mix(surface.albedo.rgb, pow(surface.albedo.rgb, vec3(2.0f)), vec3(float(surface.mask.fire)));
-
-	#ifdef NSL
-	vec3 sL = NewSkyLight(0.045) * float(surface.mask.sky);
+	vec4 light = vec4(0.0, 0.0, 0.0, 1.0);
+	#ifdef GI
+		 light = GetLight(GI_RENDER_RESOLUTION, 		vec2(0.0f			), 16.0,  GI_QUALITY, noisePattern);
 	#endif
-	
-	//Apply lightmaps to albedo and generate final shaded surface
-	final.nolight			= surface.albedo * lightmap.nolight;
-	final.sunlight			= surface.albedo * lightmap.sunlight;
-	final.skylight			= surface.albedo * lightmap.skylight;
-	final.bouncedSunlight	= surface.albedo * lightmap.bouncedSunlight;
-	final.scatteredSunlight = surface.albedo * lightmap.scatteredSunlight;
-	final.scatteredUpLight	= surface.albedo * lightmap.scatteredUpLight;
-	final.torchlight		= surface.albedo * lightmap.torchlight;
-	final.underwater		= surface.water.albedo * colorWaterBlue;
-	// final.underwater			*= GetUnderwaterLightmapSky(texcoord.st);
-	// final.underwater			+= vec3(0.9f, 1.00f, 0.35f) * float(surface.mask.water) * 0.065f;
-	 final.underwater		*= (lightmap.sunlight * 0.3f) + (lightmap.skylight * 0.06f) + (lightmap.torchlight * 0.0165) + (lightmap.nolight * 0.002f);
+	//light += GetLight(0, vec2(0.0f), 2.0f, 0.5f);
+
+	if (light.r >= 1.0f)
+	{
+		light.r = 0.0f;
+	}
+
+	if (light.g >= 1.0f)
+	{
+		light.g = 0.0f;
+	}
+
+	if (light.b >= 1.0f)
+	{
+		light.b = 0.0f;
+	}
+
+	light.a = mix(light.a, 1.0, GetMaterialMask(texcoord.st * (GI_RENDER_RESOLUTION + 1.0), 5));
 
 
-	//final.glow.torch				= pow(surface.albedo, vec3(4.0f)) * float(surface.mask.torch);
-	final.glow.lava					= Glowmap(surface.albedo, surface.mask.lava,	  4.0f, vec3(1.0f, 0.05f, 0.001f));
-
-	final.glow.glowstone			= Glowmap(surface.albedo, surface.mask.glowstone, 2.0f, colorTorchlight);
-	//final.glow.glowstone		   *= (sin(frameTimeCounter * 3.1415f / 3.0f) * 0.5f + 0.5f) * 3.0f + 1.0f;
-	final.torchlight			   *= 1.0f - float(surface.mask.glowstone);
-
-	final.glow.fire					= surface.albedo * float(surface.mask.fire);
-	final.glow.fire					= pow(final.glow.fire, vec3(2.0f));
-
-	//final.glow.torch				= Glowmap(surface.albedo, surface.mask.torch,	 16.0f, vec3(1.0f, 0.07f, 0.001f));
-
-	//final.glow.torch				= surface.albedo * float(surface.mask.torch);
-	//final.glow.torch				*= pow(vec3(CalculateLuminance(final.glow.torch)), vec3(6.0f));
-	//final.glow.torch				= pow(final.glow.torch, vec3(1.4f));
-
-
-	final.glow.torch				= pow(surface.albedo * float(surface.mask.torch), vec3(4.4f));
-
-
-
-	//Remove glow items from torchlight to keep control
-	final.torchlight *= 1.0f - float(surface.mask.lava);
-
-	final.heldLight = lightmap.heldLight * surface.albedo;
-
-
-	//Do night eye effect on outdoor lighting and sky
-	DoNightEye(final.sunlight);
-	DoNightEye(final.skylight);
-	DoNightEye(final.bouncedSunlight);
-	DoNightEye(final.scatteredSunlight);
-	DoNightEye(surface.sky.albedo);
-	DoNightEye(final.underwater);
-
-	DoLowlightEye(final.nolight);
-
-	surface.cloudShadow = 1.0f;
-	float sunlightMult = 1.2f;
-
-	//Apply lightmaps to albedo and generate final shaded surface
-	vec3 finalComposite = final.sunlight			* 0.65f		* sunlightMult				//Add direct sunlight
-						+ final.skylight			* 0.05f				//Add ambient skylight
-						+ final.nolight				* 0.0005f			//Add base ambient light
-						+ final.bouncedSunlight		* 0.005f	* sunlightMult				//Add fake bounced sunlight
-						+ final.scatteredSunlight	* 0.02f		* (1.0f - sunlightMult)					//Add fake scattered sunlight
-						+ final.scatteredUpLight	* 0.0015f	* sunlightMult
-						+ final.torchlight			* 5.0f			//Add light coming from emissive blocks
-						+ final.glow.lava			* 8.6f
-						+ final.glow.glowstone		* 1.1f
-						+ final.glow.fire			* 0.025f
-						+ final.glow.torch			* 1.15f
-						+ final.heldLight			* HELDLIGHTBRIGHTNESS
-						;
-
-
-	//Apply sky to final composite
-		 surface.sky.albedo *= 8.0f;
-		 
-		 #ifdef NSL
-		 surface.sky.albedo = surface.sky.albedo * surface.sky.tintColor + surface.sky.sunglow + surface.sky.sunSpot + sL;
-		 #else
-		 surface.sky.albedo = surface.sky.albedo * surface.sky.tintColor + surface.sky.sunglow + surface.sky.sunSpot;
-		 #endif
-		 
-		 if (weather(texcoord.st)==0){
-		 #ifdef CLOUD_PLANE2
-		 #ifdef NOCLOUDS2DAYTIME
-		 if (timeMidnight > 0)
-		 CloudPlane(surface);
-		 #else
-		 CloudPlane(surface);
-		 #endif
-		 #endif
-		 }
-		 
-		#ifdef TRUE_VOLUMETRIC_CLOUDS2
-	   			if(!(isEyeInWater > 0.0)){
-		    		CalculateCloud(finalComposite.rgb, surface);
-			}
-	    #endif
-		 
-		 if (weather(texcoord.st)==2||weather(texcoord.st)==6){
-		 if (timeNoon > 0)
-		 CloudPlane(surface);
-		 }
-		 
-		 if (weather(texcoord.st)==2){
-		 CloudPlane(surface);
-		 }
-		 
-		 
-	#ifdef ATMOSPHERIC_SCATTERING
-	AtmosphericScattering(finalComposite.rgb, surface);
-	#endif
-		 
-		 WaterFog(finalComposite,surface,mcLightmap);
-		 
-		 if (weather(texcoord.st)==0){
-		 #ifdef MOREVOLUMETRIC_CLOUDS
-		 //
-		 #else
-		 #ifdef CALCULATECLOUDS
-		 #ifdef NOCALCULATECLOUDSNIGHT
-		 if (CALCULATECLOUDDEPTH - 3 * CALCULATECLOUDDEPTH * timeMidnight > 0)
-	CalculateClouds(finalComposite.rgb, surface);
-	#else
-	CalculateClouds(finalComposite.rgb, surface);
-#endif
-#endif
-#endif
+	gl_FragData[0] = vec4(texture(colortex0, texcoord.st).rgb, texture(colortex4, texcoord.st).g);
+	gl_FragData[1] = vec4(pow(light.rgb, vec3(1.0 / 2.2)), light.a);
+	gl_FragData[2] = vec4(texture(colortex5, texcoord.st).rgb, texture(colortex4, texcoord.st).b);
+	gl_FragData[3] = vec4(GetWavesNormal(vec3(texcoord.s * 50.0, 1.0, texcoord.t * 50.0)).xy * 0.5 + 0.5, texture(colortex6, texcoord.st).gb);
+	// gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);
 }
 
-if (weather(texcoord.st)==1||weather(texcoord.st)==4||weather(texcoord.st)==5||weather(texcoord.st)==8){
-	if (CALCULATECLOUDDEPTH - 3 * CALCULATECLOUDDEPTH * timeMidnight > 0)
-	CalculateClouds(finalComposite.rgb, surface);}
-
-		 //DoNightEye(surface.sky.albedo);
-		 finalComposite		+= surface.sky.albedo;		//Add sky to final image
-
-
-	//if eye is in water, do underwater fog
-	if (isEyeInWater > 0) {
-		CalculateUnderwaterFog(surface, finalComposite);
-	}
-	
-	//CalculateRainFog(finalComposite.rgb, surface);
-	
-
-	if (weather(texcoord.st)==0){
-	 #ifdef MOREVOLUMETRIC_CLOUDS
-		 #ifdef CALCULATECLOUDS
-		 #ifdef NOCALCULATECLOUDSNIGHT
-		 if (CALCULATECLOUDDEPTH - 3 * CALCULATECLOUDDEPTH * timeMidnight > 0)
-	CalculateClouds(finalComposite.rgb, surface);
-	#else
-	CalculateClouds(finalComposite.rgb, surface);
-#endif
-#endif
-#endif
-}
-	
-	if (weather(texcoord.st)==2||weather(texcoord.st)==6){
-	if (CALCULATECLOUDDEPTH - 3 * CALCULATECLOUDDEPTH * timeMidnight > 0)
-	CalculateClouds(finalComposite.rgb, surface);}
-
-	//CalculateCloudsSemiPlanar(finalComposite.rgb, surface);
-
-
-
-	//finalComposite.rgb = texture2D(shadowcolor, texcoord.st).rgb * 0.05f;
-	//finalComposite.rgb = vec3(AO) * 0.2f;
-
-
-	//Test(finalComposite.rgb, surface);
-
-	
-	finalComposite *= 0.001f;												//Scale image down for HDR
-	finalComposite.b *= 1.0f;
-
-	vec3 sP = sunPosition * timeNoon + -sunPosition * timeMidnight;
-	vec4 tpos = vec4(sP,1.0)*gbufferProjection;
-	tpos = vec4(tpos.xyz/tpos.w,1.0);
-	vec2 pos1 = tpos.xy/tpos.z;
-	vec2 lightPos = pos1*0.5+0.5;
-
-	float gr = 0.0;
-
-		vec2 deltaTextCoord = vec2( texcoord.st - lightPos.xy );
-		vec2 textCoord = texcoord.st;
-			 deltaTextCoord *= 1.0 / float(gr_samples) * gr_density;
-		vec2 noise = vec2(getnoise(textCoord),getnoise(-textCoord.yx+0.05));
-
-		for(int i=0; i < gr_samples ; i++) {
-			textCoord -= deltaTextCoord;
-
-			float sample = step(texture2D(gdepth, textCoord + deltaTextCoord*noise*gr_noise).r,0.001);
-			gr += sample;
-		}
-
-
-	 //TestRaymarch(finalComposite.rgb, surface);
-	  //finalComposite.rgb = surface.debug * 0.00004f;
-
-	 finalComposite = pow(finalComposite, vec3(1.0f / 2.2f));					//Convert final image into gamma 0.45 space to compensate for gamma 2.2 on displays
-	 finalComposite = pow(finalComposite, vec3(1.0f / BANDING_FIX_FACTOR));		//Convert final image into banding fix space to help reduce color banding
-
-
-	if (finalComposite.r > 1.0f) {
-		finalComposite.r = 0.0f;
-	}
-
-	if (finalComposite.g > 1.0f) {
-		finalComposite.g = 0.0f;
-	}
-
-	if (finalComposite.b > 1.0f) {
-		finalComposite.b = 0.0f;
-	}
-
-#ifdef STAR
-if (rainStrength < 1)
-	CalStar(surface,finalComposite);
-#endif
-
-
-      
-if(timeMidnight != 0){
-	float pixeldepth = texture2D(depthtex1,texcoord.st).x;	
-    vec4 fragposition = gbufferProjectionInverse * vec4(texcoord.s * 2.0f - 1.0f, texcoord.t * 2.0f - 1.0f, 2.0f * pixeldepth - 1.0f, 1.0f);
-    fragposition /= fragposition.w;	
-
-#ifdef AURORA  
-	if(mcLightmap.sky >= 0.99 && surface.mask.sky){
-        NightAurora(finalComposite,fragposition.xyz);		
-	}
-#endif
-}
-
-
-
-	gl_FragData[0] = vec4(finalComposite, (gr/gr_samples));
-	gl_FragData[1] = vec4(surface.mask.matIDs, surface.shadow * surface.cloudShadow * pow(mcLightmap.sky, 0.2f), mcLightmap.sky, 1.0f);
-	gl_FragData[2] = vec4(surface.normal.rgb * 0.5f + 0.5f, 1.0f);
-	gl_FragData[3] = vec4(surface.specular.specularity, surface.cloudAlpha, surface.specular.glossiness, 1.0f);
-	// gl_FragData[4] = vec4(surface.albedo, 1.0f);
-	// gl_FragData[5] = vec4(lightmap.)
-
-}
+//change GetWavesNormal
+//change material id getting of transparent blocks

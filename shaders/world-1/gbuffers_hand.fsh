@@ -1,4 +1,4 @@
-#version 120
+#version 330 compatibility
 
 
 
@@ -13,7 +13,7 @@
 /* DRAWBUFFERS:012356 */
 
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D lightmap;
 uniform sampler2D normals;
 uniform sampler2D specular;
@@ -21,16 +21,16 @@ uniform sampler2D specular;
 uniform float wetness;
 
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
+in vec4 color;
+in vec4 texcoord;
+in vec4 lmcoord;
 
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying vec3 globalNormal;
+in vec3 normal;
+in vec3 tangent;
+in vec3 binormal;
+in vec3 globalNormal;
 
-varying float distance;
+in float distance;
 
 const int GL_LINEAR = 9729;
 const int GL_EXP = 2048;
@@ -45,12 +45,12 @@ const float fademult = 0.1f;
 
 void main() {	
 
-if (texture2D(texture, texcoord.st).a == 0.0f){
+if (texture(tex, texcoord.st).a == 0.0f){
 	//discard;
 }
 
 		
-	vec4 spec = texture2D(specular, texcoord.st);
+	vec4 spec = texture(specular, texcoord.st);
 
 	//store lightmap in auxilliary texture. r = torch light. g = lightning. b = sky light.
 	vec4 lightmap = vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -68,7 +68,7 @@ if (texture2D(texture, texcoord.st).a == 0.0f){
 	
 	if (distance < bump_distance) {
 	
-			vec3 bump = texture2D(normals, texcoord.st).rgb * 2.0f - 1.0f;
+			vec3 bump = texture(normals, texcoord.st).rgb * 2.0f - 1.0f;
 			
 			float bumpmult = clamp(bump_distance * fademult - distance * fademult, 0.0f, 1.0f) * NORMAL_MAP_MAX_ANGLE;
 	              bumpmult *= 1.0f - (spec.g * 0.9f * wetness * wetfactor);
@@ -89,7 +89,7 @@ if (texture2D(texture, texcoord.st).a == 0.0f){
 	}
 
 	//Diffuse
-		vec4 albedo = texture2D(texture, texcoord.st) * color;
+		vec4 albedo = texture(tex, texcoord.st) * color;
 		
 		gl_FragData[0] = albedo;
 		

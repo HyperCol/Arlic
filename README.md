@@ -1,6 +1,6 @@
 # Arlic光影
 
-Project Arlic,修改自Sonic Ether's Unbelievable Shader V11光影
+Project Arlic,修改自SEUS V11光影
 针对视频拍摄进行优化
 
 ## 简介
@@ -18,6 +18,6 @@ Arlic为Minecraft创作者提供了一个工具，一种控制这个世界光照
 
 ## 版权
 
-> @HyperCol Studios
+> 2021@HyperCol Studios
 
 > VisionLab is part of HyperCol

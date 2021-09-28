@@ -1,6 +1,8 @@
-#version 130
+#version 330 compatibility
 
-#define WAVING_WATER
+//#define WAVING_WATER
+
+#include "/libs/antialiasing/taaProjection.glsl"
 
 uniform int worldTime;
 
@@ -9,29 +11,31 @@ uniform vec3 cameraPosition;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
-varying vec3 worldPosition;
-varying vec4 vertexPos;
+out vec4 color;
+out vec4 texcoord;
+out vec4 lmcoord;
+out vec3 worldPosition;
+out vec4 vertexPos;
 
-varying vec3 normal;
-varying vec3 globalNormal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying vec3 viewVector;
-varying float distance;
+out vec3 normal;
+out vec3 globalNormal;
+out vec3 tangent;
+out vec3 binormal;
+out vec3 viewVector;
+out vec3 viewVector2;
+out float distance;
 
 attribute vec4 mc_Entity;
 
-varying float iswater;
-varying float isice;
+out float iswater;
+out float isice;
+out float isStainedGlass;
 
 void main() {
 
 	iswater = 0.0f;
 	isice = 0.0f;
-
+	isStainedGlass = 0.0f;
 
 	
 	if (mc_Entity.x == 79) {
@@ -48,6 +52,11 @@ void main() {
 	if (mc_Entity.x == 8 || mc_Entity.x == 9) {
 		iswater = 1.0f;
 	}
+
+	if (mc_Entity.x == 95 || mc_Entity.x == 160 || mc_Entity.x == 90 || mc_Entity.x == 165)
+	{
+		isStainedGlass = 1.0f;
+	}
 	
 		
 	vec4 viewPos = gbufferModelViewInverse * gl_ModelViewMatrix * gl_Vertex;
@@ -61,6 +70,9 @@ void main() {
 
 	gl_Position = gl_ProjectionMatrix * (gbufferModelView * position);
 
+#ifdef Enabled_TemportalAntiAliasing
+	gl_Position.xy += jitter * 2.0 * gl_Position.w;
+#endif
 	
 	color = gl_Color;
 	
@@ -96,7 +108,7 @@ void main() {
 		binormal = normalize(gl_NormalMatrix * vec3( 0.0,  0.0,  1.0));
 	} else if (gl_Normal.z > 0.5) {
 		//  0.0,  0.0,  1.0
-		tangent  = normalize(gl_NormalMatrix * vec3( 91.0,  0.0,  0.0));
+		tangent  = normalize(gl_NormalMatrix * vec3( 1.0,  0.0,  0.0));
 		binormal = normalize(gl_NormalMatrix * vec3( 0.0, -1.0,  0.0));
 	} else if (gl_Normal.z < -0.5) {
 		//  0.0,  0.0, -1.0
@@ -109,6 +121,7 @@ void main() {
                           tangent.z, binormal.z, normal.z);
 
 	viewVector = (gl_ModelViewMatrix * gl_Vertex).xyz;
+	viewVector2 = normalize(viewVector);
 	viewVector = normalize(tbnMatrix * viewVector);
 
 

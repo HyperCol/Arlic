@@ -1,29 +1,18 @@
-#version 130
+#version 330 compatibility
 
-#define ICE_REFELECTION
-
-//#define LINK_ANIMATION_SPEED_TO_BRIGHTNESS_BAR
-
-#define WAVE_HEIGHT 0.35    //[0.0 0.05 0.1 0.2 0.35 0.5 0.65 0.8 1.0 1.2 1.4 1.7 2.0]
-#define WATER_WAVING_SPEED 0.9   //[0.5 0.7 0.9 1.1 1.3]
+#define WATER_WAVE_HEIGHT 0.75 //[0.0 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6 2.65 2.7 2.75 2.8 2.85 2.9 2.95 3.0 3.05 3.1 3.15 3.2 3.25 3.3 3.35 3.4 3.45 3.5 3.55 3.6 3.65 3.7 3.75 3.8 3.85 3.9 3.95 4.0 4.05 4.1] 
+#define WATER_SPEED 1.0        //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.1 2.32.4 2.5 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7 3.8 3.9 4.0]
 
 #define WATER_PARALLAX
 
-#define WATERTRANSPARENCY 50    //[25.6 50 100 150 200 250]
-
-#define WATER_NOFOG_SF_COLOR_R 0.1 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6]  
-#define WATER_NOFOG_SF_COLOR_G 0.3 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6]  
-#define WATER_NOFOG_SF_COLOR_B 0.4 //[0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2.0 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5 2.55 2.6]  
-
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D specular;
 uniform sampler2D normals;
 uniform sampler2D noisetex;
+uniform float screenBrightness;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferPreviousProjection;
-
-uniform float screenBrightness;                 //screen brightness (0.0-1.0)
 
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferPreviousModelView;
@@ -36,37 +25,28 @@ uniform int worldTime;
 
 uniform float rainStrength;
 
-uniform int isEyeInWater;
+in vec3 normal;
+in vec3 globalNormal;
+in vec3 tangent;
+in vec3 binormal;
+in vec3 viewVector;
 
-varying vec3 normal;
-varying vec3 globalNormal;
-varying vec3 tangent;
-varying vec3 binormal;
-varying vec3 viewVector;
+in vec4 color;
+in vec4 texcoord;
+in vec4 lmcoord;
+in vec3 worldPosition;
+in vec4 vertexPos;
+in float distance;
 
-varying vec4 color;
-varying vec4 texcoord;
-varying vec4 lmcoord;
-varying vec3 worldPosition;
-varying vec4 vertexPos;
-varying float distance;
+in float iswater;
+in float isice;
+in float isStainedGlass;
 
-varying float iswater;
-varying float isice;
+//#define WATER_SPEED_LIGHT_BAR_LINKER
 
-//#define ANIMATE_USING_WORLDTIME
 
-//The best way to deal with these pieces of shit, is making more pieces of shit.
-float waveWaterSpeed = WATER_WAVING_SPEED;
-#ifdef LINK_ANIMATION_SPEED_TO_BRIGHTNESS_BAR
-	waveWaterSpeed *= screenBrightness;
-#endif
+/* DRAWBUFFERS:02346 */
 
-#ifdef ANIMATE_USING_WORLDTIME
-#define FRAME_TIME worldTime * waveWaterSpeed / 20.0f
-#else
-#define FRAME_TIME frameTimeCounter * waveWaterSpeed
-#endif
 
 vec4 cubic(float x)
 {
@@ -98,10 +78,10 @@ vec4 BicubicTexture(in sampler2D tex, in vec2 coord)
     vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
     vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
 
-    vec4 sample0 = texture2D(tex, vec2(offset.x, offset.z) / resolution);
-    vec4 sample1 = texture2D(tex, vec2(offset.y, offset.z) / resolution);
-    vec4 sample2 = texture2D(tex, vec2(offset.x, offset.w) / resolution);
-    vec4 sample3 = texture2D(tex, vec2(offset.y, offset.w) / resolution);
+    vec4 sample0 = texture(tex, vec2(offset.x, offset.z) / resolution);
+    vec4 sample1 = texture(tex, vec2(offset.y, offset.z) / resolution);
+    vec4 sample2 = texture(tex, vec2(offset.x, offset.w) / resolution);
+    vec4 sample3 = texture(tex, vec2(offset.y, offset.w) / resolution);
 
     float sx = s.x / (s.x + s.y);
     float sy = s.z / (s.z + s.w);
@@ -119,15 +99,17 @@ vec4 textureSmooth(in sampler2D tex, in vec2 coord)
 	vec2 whole = floor(coord);
 	vec2 part  = fract(coord);
 
-	part.x = 1.0f - (cos(part.x * 3.1416f) * 0.5f + 0.5f);
-	part.y = 1.0f - (cos(part.y * 3.1416f) * 0.5f + 0.5f);
+	part.x = part.x * part.x * (3.0f - 2.0f * part.x);
+	part.y = part.y * part.y * (3.0f - 2.0f * part.y);
+	// part.x = 1.0f - (cos(part.x * 3.1415f) * 0.5f + 0.5f);
+	// part.y = 1.0f - (cos(part.y * 3.1415f) * 0.5f + 0.5f);
 
 	coord = whole + part;
 
 	coord -= 0.5f;
 	coord /= res;
 
-	return texture2D(tex, coord);
+	return texture(tex, coord);
 }
 
 float Parabola(in float x, in float k)
@@ -149,6 +131,12 @@ float AlmostIdentity(in float x, in float m, in float n)
 
 float GetWaves(vec3 position, in float scale) {
   float speed = 0.9f;
+
+float waveWaterSpeed = WATER_SPEED;
+#ifdef WATER_SPEED_LIGHT_BAR_LINKER
+      waveWaterSpeed *= pow(screenBrightness * 2.0f, 4.0);
+#endif
+#define FRAME_TIME frameTimeCounter * waveWaterSpeed
 
   speed = mix(speed, 0.0f, isice);
 
@@ -210,7 +198,7 @@ vec3 GetWaterParallaxCoord(in vec3 position, in vec3 viewVector)
 {
 	vec3 parallaxCoord = position.xyz;
 
-	vec3 stepSize = vec3(0.6f * WAVE_HEIGHT, 0.6f * WAVE_HEIGHT, 0.6f);
+	vec3 stepSize = vec3(0.6f * WATER_WAVE_HEIGHT, 0.6f * WATER_WAVE_HEIGHT, 0.6f);
 
 	float waveHeight = GetWaves(position, 1.0f);
 
@@ -262,8 +250,8 @@ vec3 GetWavesNormal(vec3 position, in float scale, in mat3 tbnMatrix) {
 		 wavesNormal.r = wavesCenter - wavesLeft;
 		 wavesNormal.g = wavesCenter - wavesUp;
 
-		 wavesNormal.r *= 20.0f * WAVE_HEIGHT / sampleDistance;
-		 wavesNormal.g *= 20.0f * WAVE_HEIGHT / sampleDistance;
+		 wavesNormal.r *= 20.0f * WATER_WAVE_HEIGHT / sampleDistance;
+		 wavesNormal.g *= 20.0f * WATER_WAVE_HEIGHT / sampleDistance;
 
 		//  wavesNormal.b = sqrt(1.0f - wavesNormal.r * wavesNormal.r - wavesNormal.g * wavesNormal.g);
      wavesNormal.b = 1.0;
@@ -276,14 +264,14 @@ vec3 GetWavesNormal(vec3 position, in float scale, in mat3 tbnMatrix) {
 
 void main() {
 
-	vec4 tex = texture2D(texture, texcoord.st);
-		 tex.a = 0.85f;
-	
+	vec4 texs = texture(tex, texcoord.st);
+		 texs.a = 0.85f;
+
 	float zero = 1.0f;
 	float transx = 0.0f;
 	float transy = 0.0f;
 	//float iswater = 0.0f;
-	
+
 	float texblock = 0.0625f;
 
 	bool backfacing = false;
@@ -294,35 +282,32 @@ void main() {
 		backfacing = false;
 	}
 
-	
+
 	if (iswater > 0.5f && !backfacing) {
-		vec4 albedo = texture2D(texture, texcoord.st).rgba;
+		vec4 albedo = texture(tex, texcoord.st).rgba;
 		float lum = albedo.r + albedo.g + albedo.b;
-			  lum /= 3.6f;
+			  lum /= 3.0f;
+
+			  lum = pow(lum, 1.0f) * 1.0f;
+			  lum += 0.0f;
 
 		vec3 waterColor = color.rgb;
 
 		waterColor = normalize(waterColor);
 
-		//If you want to let under water in different color, you can enable it. 
-		//But It will make the custom color out of control when you are in the water.
-		/*if (isEyeInWater > 0) {
-			tex = vec4(0.1f, 0.6f, 1.0f, 25.0f/255.0f);
-		}*/
-		
-		tex = vec4(WATER_NOFOG_SF_COLOR_R, WATER_NOFOG_SF_COLOR_G, WATER_NOFOG_SF_COLOR_B, WATERTRANSPARENCY/255.0f);
-		tex.rgb *= 2.0f * waterColor.rgb;
-		tex.rgb *= vec3(lum);
+		texs = vec4(0.1f, 0.7f, 1.0f, 210.0f/255.0f);
+		texs.rgb *= 0.4f * waterColor.rgb;
+		// tex.rgb *= vec3(lum * 2.0);
 
 		// tex = vec4(color.r, color.g, color.b, 0.4f);
 		// tex.rgb *= vec3(0.9f, 1.0f, 0.1f) * 0.8f;
 
 	} else if (iswater > 0.5f && backfacing) {
-		tex = vec4(0.0, 0.0, 0.0f, 30.0f / 255.0f);
+		texs = vec4(0.0, 0.0, 0.0f, 30.0f / 255.0f);
 	}
-	
+
 	//store lightmap in auxilliary texture. r = torch light. g = lightning. b = sky light.
-		
+
 	//Separate lightmap types
 	vec4 lightmap = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	lightmap.r = clamp((lmcoord.s * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
@@ -330,30 +315,41 @@ void main() {
 
 	lightmap.b = pow(lightmap.b, 1.0f);
 	lightmap.r = pow(lightmap.r, 3.0f);
-	
+
+
+
+
+
+
 
 	float matID = 4.0f;
 
-	for (int i = 0; i < 16; i++) {
-		if (iswater > 0.5f && lightmap.b >= i / 16.0f && lightmap.b < (i + 1) / 16.0f)
-			matID = 35.0f + i;
+	if (iswater > 0.5f)
+	{
+			matID = 35.0f;
 	}
-#ifdef ICE_REFELECTION
-	for (int i = 0; i < 16; i++) {
-		if (isice > 0.5f && lightmap.b >= i / 16.0f && lightmap.b < (i + 1) / 16.0f)
-			matID = 35.0f + i;
+
+	if (isice > 0.5)
+	{
+		matID = 4;
 	}
-#endif
+
+	if (isStainedGlass > 0.5)
+	{
+		matID = 55.0;
+	}
+
 
 	matID += 0.1f;
 
-	gl_FragData[0] = vec4(tex.rgb, tex.a);
-	gl_FragData[1] = vec4(matID / 255.0f, lightmap.r, lightmap.b, 1.0);
+  // gl_FragData[0] = vec4(texs.rgb, 0.2);
+	gl_FragData[0] = vec4(vec3(0.0), 0.2);
+	//gl_FragData[1] = vec4(matID / 255.0f, lightmap.r, lightmap.b, 1.0);
 
 
 
+	vec3 transparency = texture(tex, texcoord.st).rgb;
 
-		
 
 	mat3 tbnMatrix = mat3 (tangent.x, binormal.x, normal.x,
 							tangent.y, binormal.y, normal.y,
@@ -367,24 +363,25 @@ void main() {
 
 
 	vec3 waterNormal = wavesNormal * tbnMatrix;
-	vec3 iceNormal = texture2D(normals, texcoord.st).rgb * 2.0f - 1.0f;
-		 iceNormal = iceNormal * tbnMatrix;
+	vec3 texNormal = texture(normals, texcoord.st).rgb * 2.0f - 1.0f;
+		 texNormal = texNormal * tbnMatrix;
 
 
-	waterNormal = mix(waterNormal, iceNormal, isice);
+	waterNormal = mix(waterNormal, texNormal, isice + isStainedGlass);
 
 
-	gl_FragData[2] = vec4(waterNormal.rgb * 0.5 + 0.5, 1.0f);
+	gl_FragData[1] = vec4(waterNormal.rgb * 0.5 + 0.5, 1.0);
 
 
-	vec4 spec = texture2D(specular, texcoord.st);
+	vec4 spec = texture(specular, texcoord.st);
 
-	gl_FragData[3] = vec4(spec.r, spec.b, 0.0f, 1.0);
+	gl_FragData[2] = vec4(spec.r, spec.b, transparency.r, 1.0);
+	gl_FragData[3] = vec4(0.0, transparency.gb, 1.0);
 
-	
-	//gl_FragData[5] = vec4(lightmap.rgb, 0.0f);	
-	//gl_FragData[6] = vec4(0.0f, lightmap.b, iswater, 1.0f);
-	
-	
+
+	//gl_FragData[5] = vec4(lightmap.rgb, 0.0f);
+	gl_FragData[4] = vec4(0.0, lightmap.b, matID / 255.0f, 1.0);
+
+
 	//gl_FragData[7] = vec4(globalNormal * 0.5f + 0.5f, 1.0);
 }

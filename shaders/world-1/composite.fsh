@@ -1,16 +1,37 @@
-#version 120
+#version 330 compatibility
 
 /*
- _______ _________ _______  _______  _ 
-(  ____ \\__   __/(  ___  )(  ____ )( )
-| (    \/   ) (   | (   ) || (    )|| |
-| (_____    | |   | |   | || (____)|| |
-(_____  )   | |   | |   | ||  _____)| |
-      ) |   | |   | |   | || (      (_)
-/\____) |   | |   | (___) || )       _ 
-\_______)   )_(   (_______)|/       (_)
+                                                                
+                       H                                         
+                       HCHCHC                  H                
+                       HCHCHCHCHC            HCH                
+                       HCHCHCHCHCHCHCH    HCHCHCH               
+                      HCHCHCHCHCHCHCHCHCHCHCHCHCHC              
+           HCHCHCHCHCHCHCHCHCHCHCHCH HCHCHCHCHCHCHC             
+     HCHCHCHCHCHCHCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHC             
+        HCHCHCHCHCHCHC HCHCH         HCHCHCHCHCHCHCH            
+          HCHCHCHCHCHC H                     HCHCHCH            
+          HCHCHCHCHCH                      HCHCHCHCHCHCHCHCHCH  
+         HCHCH HCHCH                        HCHCHCHCHCHCHCHC    
+       HCHCHCHCH  HC                          HCHCHCHCHCHCH     
+      HCHCHCHCHCH                              HCHCHCHCHCH      
+     HCHCHCHCHCHCHC                         HCHC HCHCHCH        
+   HCHCHCHCHCHCHCHCH                        HCHCHCHCHCH         
+  HCHCHCHCHCHCHCHCHCHC                     HCHCHCHCHC           
+            HCHCHCHCH                  HC HCHCHCHCHCHCH         
+             HCHCHCHCHCHCHCHCHC   HCHCHCH HCHCHCHCHCHCHCHC      
+             HCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHCHCHCHCHCHCHC     
+              HCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHC                
+              HCHCHCHCHCHCHCHCHCHCHCHCHCH                       
+               HCHCHC        HCHCHCHCHCHC                       
+                HCH             HCHCHCHCH                       
+                                      HCH                       
+										H
 
-Do not modify this code until you have read the LICENSE.txt contained in the root directory of this shaderpack!
+
+2021@HyperCol Studios
+VisionLab is part of HyperCol Studios
+Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
 
@@ -47,10 +68,10 @@ const int 		R8 						= 0;
 const int 		RG8 					= 0;
 const int 		RGB8 					= 1;
 const int 		RGB16 					= 2;
-const int 		gcolorFormat 			= RGB16;
-const int 		gdepthFormat 			= RGB8;
-const int 		gnormalFormat 			= RGB16;
-const int 		compositeFormat 		= RGB8;
+const int 		colortex0Format 			= RGB16;
+const int 		colortex1Format 			= RGB8;
+const int 		colortex2Format 			= RGB16;
+const int 		colortex3Format 		= RGB8;
 
 const float 	eyeBrightnessHalflife 	= 10.0f;
 const float 	wetnessHalflife 		= 300.0f;
@@ -58,7 +79,7 @@ const float 	drynessHalflife 		= 40.0f;
 
 const int 		superSamplingLevel 		= 0;
 
-const float		sunPathRotation 		= -40.0f;
+const float		sunPathRotation 		= 0.0; // [-90.0 -89.5 -89.0 -88.5 -88.0 -87.5 -87.0 -86.5 -86.0 -85.5 -85.0 -84.5 -84.0 -83.5 -83.0 -82.5 -82.0 -81.5 -81.0 -80.5 -80.0 -79.5 -79.0 -78.5 -78.0 -77.5 -77.0 -76.5 -76.0 -75.5 -75.0 -74.5 -74.0 -73.5 -73.0 -72.5 -72.0 -71.5 -71.0 -70.5 -70.0 -69.5 -69.0 -68.5 -68.0 -67.5 -67.0 -66.5 -66.0 -65.5 -65.0 -64.5 -64.0 -63.5 -63.0 -62.5 -62.0 -61.5 -61.0 -60.5 -60.0 -59.5 -59.0 -58.5 -58.0 -57.5 -57.0 -56.5 -56.0 -55.5 -55.0 -54.5 -54.0 -53.5 -53.0 -52.5 -52.0 -51.5 -51.0 -50.5 -50.0 -49.5 -49.0 -48.5 -48.0 -47.5 -47.0 -46.5 -46.0 -45.5 -45.0 -44.5 -44.0 -43.5 -43.0 -42.5 -42.0 -41.5 -41.0 -40.5 -40.0 -39.5 -39.0 -38.5 -38.0 -37.5 -37.0 -36.5 -36.0 -35.5 -35.0 -34.5 -34.0 -33.5 -33.0 -32.5 -32.0 -31.5 -31.0 -30.5 -30.0 -29.5 -29.0 -28.5 -28.0 -27.5 -27.0 -26.5 -26.0 -25.5 -25.0 -24.5 -24.0 -23.5 -23.0 -22.5 -22.0 -21.5 -21.0 -20.5 -20.0 -19.5 -19.0 -18.5 -18.0 -17.5 -17.0 -16.5 -16.0 -15.5 -15.0 -14.5 -14.0 -13.5 -13.0 -12.5 -12.0 -11.5 -11.0 -10.5 -10.0 -9.5 -9.0 -8.5 -8.0 -7.5 -7.0 -6.5 -6.0 -5.5 -5.0 -4.5 -4.0 -3.5 -3.0 -2.5 -2.0 -1.5 -1.0 -0.5 0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 10.5 11.0 11.5 12.0 12.5 13.0 13.5 14.0 14.5 15.0 15.5 16.0 16.5 17.0 17.5 18.0 18.5 19.0 19.5 20.0 20.5 21.0 21.5 22.0 22.5 23.0 23.5 24.0 24.5 25.0 25.5 26.0 26.5 27.0 27.5 28.0 28.5 29.0 29.5 30.0 30.5 31.0 31.5 32.0 32.5 33.0 33.5 34.0 34.5 35.0 35.5 36.0 36.5 37.0 37.5 38.0 38.5 39.0 39.5 40.0 40.5 41.0 41.5 42.0 42.5 43.0 43.5 44.0 44.5 45.0 45.5 46.0 46.5 47.0 47.5 48.0 48.5 49.0 49.5 50.0 50.5 51.0 51.5 52.0 52.5 53.0 53.5 54.0 54.5 55.0 55.5 56.0 56.5 57.0 57.5 58.0 58.5 59.0 59.5 60.0 60.5 61.0 61.5 62.0 62.5 63.0 63.5 64.0 64.5 65.0 65.5 66.0 66.5 67.0 67.5 68.0 68.5 69.0 69.5 70.0 70.5 71.0 71.5 72.0 72.5 73.0 73.5 74.0 74.5 75.0 75.5 76.0 76.5 77.0 77.5 78.0 78.5 79.0 79.5 80.0 80.5 81.0 81.5 82.0 82.5 83.0 83.5 84.0 84.5 85.0 85.5 86.0 86.5 87.0 87.5 88.0 88.5 89.0 89.5 90.0]
 const float 	ambientOcclusionLevel 	= 0.01f;
 
 const int 		noiseTextureResolution  = 64;
@@ -68,15 +89,15 @@ const int 		noiseTextureResolution  = 64;
 
 /* DRAWBUFFERS:46 */
 
-uniform sampler2D gnormal;
+uniform sampler2D colortex2;
 uniform sampler2D depthtex1;
-uniform sampler2D gdepth;
+uniform sampler2D colortex1;
 uniform sampler2D shadowcolor1;
 uniform sampler2D shadowcolor;
 uniform sampler2D shadowtex1;
 uniform sampler2D noisetex;
-uniform sampler2D gaux2;
-uniform sampler2D gaux3;
+uniform sampler2D colortex5;
+uniform sampler2D colortex6;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -86,23 +107,23 @@ uniform mat4 shadowProjection;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferProjection;
 
-varying vec4 texcoord;
-varying vec3 lightVector;
+in vec4 texcoord;
+in vec3 lightVector;
 
-varying float timeSunriseSunset;
-varying float timeNoon;
-varying float timeMidnight;
-varying float timeSkyDark;
+in float timeSunriseSunset;
+in float timeNoon;
+in float timeMidnight;
+in float timeSkyDark;
 
-varying vec3 colorSunlight;
-varying vec3 colorSkylight;
-varying vec3 colorSunglow;
-varying vec3 colorBouncedSunlight;
-varying vec3 colorScatteredSunlight;
-varying vec3 colorTorchlight;
-varying vec3 colorWaterMurk;
-varying vec3 colorWaterBlue;
-varying vec3 colorSkyTint;
+in vec3 colorSunlight;
+in vec3 colorSkylight;
+in vec3 colorSunglow;
+in vec3 colorBouncedSunlight;
+in vec3 colorScatteredSunlight;
+in vec3 colorTorchlight;
+in vec3 colorWaterMurk;
+in vec3 colorWaterBlue;
+in vec3 colorSkyTint;
 
 uniform float near;
 uniform float far;
@@ -120,11 +141,11 @@ uniform vec3 cameraPosition;
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 vec3  	GetNormals(in vec2 coord) {				//Function that retrieves the screen space surface normals. Used for lighting calculations
-	return texture2DLod(gaux2, coord.st, 0).rgb * 2.0f - 1.0f;
+	return textureLod(colortex5, coord.st, 0).rgb * 2.0f - 1.0f;
 }
 
 float 	GetDepth(in vec2 coord) {
-	return texture2D(depthtex1, coord.st).x;
+	return texture(depthtex1, coord.st).x;
 }
 
 vec4  	GetScreenSpacePosition(in vec2 coord) {	//Function that calculates the screen-space position of the objects in the scene using the depth texture and the texture coordinates of the full-screen quad
@@ -142,7 +163,7 @@ vec3 	CalculateNoisePattern1(vec2 offset, float size) {
 	coord = mod(coord + offset, vec2(size));
 	coord /= noiseTextureResolution;
 
-	return texture2D(noisetex, coord).xyz;
+	return texture(noisetex, coord).xyz;
 }
 
 vec2 DistortShadowSpace(in vec2 pos)
@@ -169,12 +190,12 @@ vec3 Contrast(in vec3 color, in float contrast)
 }
 
 float 	GetMaterialIDs(in vec2 coord) {			//Function that retrieves the texture that has all material IDs stored in it
-	return texture2D(gdepth, coord).r;
+	return texture(colortex1, coord).r;
 }
 
 float GetSkylight(in vec2 coord)
 {
-	return texture2DLod(gdepth, coord, 0).b;
+	return textureLod(colortex1, coord, 0).b;
 }
 
 float 	GetMaterialMask(in vec2 coord, const in int ID) {
@@ -234,9 +255,9 @@ float GetAO(in vec4 screenSpacePosition, in vec3 normal, in vec2 coord, in vec3 
 
 	for (int i = 0; i < 4; i++)
 	{
-		vec3 kernel = vec3(texture2D(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).r * 2.0f - 1.0f, 
-					     texture2D(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).g * 2.0f - 1.0f,
-					     texture2D(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).b * 1.0f);
+		vec3 kernel = vec3(texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).r * 2.0f - 1.0f, 
+					     texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).g * 2.0f - 1.0f,
+					     texture(noisetex, vec2(0.1f + (i * 1.0f) / 64.0f)).b * 1.0f);
 			 kernel = normalize(kernel);
 			 kernel *= pow(dither.x + 0.01f, 1.0f);
 
@@ -390,8 +411,8 @@ float Get3DNoise(in vec3 pos)
 
 	vec2 coord =  (uv  + 0.5f) / noiseTextureResolution;
 	vec2 coord2 = (uv2 + 0.5f) / noiseTextureResolution;
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord2).x;
+	float xy1 = texture(noisetex, coord).x;
+	float xy2 = texture(noisetex, coord2).x;
 	return mix(xy1, xy2, f.z);
 }
 
@@ -585,7 +606,7 @@ void 	CalculateClouds2 (inout vec4 color, vec4 screenSpacePosition, vec4 worldSp
 
 		float rayDepth = startingRayDepth;
 			  //rayDepth += CalculateDitherPattern1() * 0.85f;
-			  //rayDepth += texture2D(noisetex, texcoord.st * (viewWidth / noiseTextureResolution, viewHeight / noiseTextureResolution)).x * 0.1f;
+			  //rayDepth += texture(noisetex, texcoord.st * (viewWidth / noiseTextureResolution, viewHeight / noiseTextureResolution)).x * 0.1f;
 			  //rayDepth += CalculateDitherPattern2() * 0.1f;
 		float rayIncrement = far / 10.0f;
 
@@ -686,7 +707,7 @@ vec4 textureSmooth(in sampler2D tex, in vec2 coord)
 	coord -= 0.5f;
 	coord /= res;
 
-	return texture2D(tex, coord);
+	return texture(tex, coord);
 }
 
 float AlmostIdentity(in float x, in float m, in float n)
@@ -833,7 +854,7 @@ void main() {
 
 	
 	gl_FragData[0] = vec4(pow(light.rgb, vec3(1.0 / 2.2)), light.a);
-	gl_FragData[1] = vec4(vec2(0.0), texture2D(gaux3, texcoord.st).gb);
+	gl_FragData[1] = vec4(vec2(0.0), texture(colortex6, texcoord.st).gb);
 	// gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);
 }
 

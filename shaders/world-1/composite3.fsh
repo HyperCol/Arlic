@@ -1,30 +1,50 @@
-#version 120
+#version 330 compatibility
 
 /*
- _______ _________ _______  _______  _ 
-(  ____ \\__   __/(  ___  )(  ____ )( )
-| (    \/   ) (   | (   ) || (    )|| |
-| (_____    | |   | |   | || (____)|| |
-(_____  )   | |   | |   | ||  _____)| |
-      ) |   | |   | |   | || (      (_)
-/\____) |   | |   | (___) || )       _ 
-\_______)   )_(   (_______)|/       (_)
+                                                                
+                       H                                         
+                       HCHCHC                  H                
+                       HCHCHCHCHC            HCH                
+                       HCHCHCHCHCHCHCH    HCHCHCH               
+                      HCHCHCHCHCHCHCHCHCHCHCHCHCHC              
+           HCHCHCHCHCHCHCHCHCHCHCHCH HCHCHCHCHCHCHC             
+     HCHCHCHCHCHCHCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHC             
+        HCHCHCHCHCHCHC HCHCH         HCHCHCHCHCHCHCH            
+          HCHCHCHCHCHC H                     HCHCHCH            
+          HCHCHCHCHCH                      HCHCHCHCHCHCHCHCHCH  
+         HCHCH HCHCH                        HCHCHCHCHCHCHCHC    
+       HCHCHCHCH  HC                          HCHCHCHCHCHCH     
+      HCHCHCHCHCH                              HCHCHCHCHCH      
+     HCHCHCHCHCHCHC                         HCHC HCHCHCH        
+   HCHCHCHCHCHCHCHCH                        HCHCHCHCHCH         
+  HCHCHCHCHCHCHCHCHCHC                     HCHCHCHCHC           
+            HCHCHCHCH                  HC HCHCHCHCHCHCH         
+             HCHCHCHCHCHCHCHCHC   HCHCHCH HCHCHCHCHCHCHCHC      
+             HCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHCHCHCHCHCHCHC     
+              HCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHC                
+              HCHCHCHCHCHCHCHCHCHCHCHCHCH                       
+               HCHCHC        HCHCHCHCHCHC                       
+                HCH             HCHCHCHCH                       
+                                      HCH                       
+										H
 
-Do not modify this code until you have read the LICENSE.txt contained in the root directory of this shaderpack!
+
+2021@HyperCol Studios
+VisionLab is part of HyperCol Studios
+Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
 
-
-const bool		gnormalMipmapEnabled = true;
+const bool		colortex2MipmapEnabled = true;
 /* DRAWBUFFERS:0 */
 
-uniform sampler2D gnormal;
+uniform sampler2D colortex2;
 
 uniform float aspectRatio;
 uniform float viewWidth;
 uniform float viewHeight;
 
-varying vec4 texcoord;
+in vec4 texcoord;
 
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,7 +82,7 @@ vec3 CalculateBloom(in int LOD, in vec2 offset) {
 
 				if (weight > 0.0f)
 				{
-					bloom += pow(clamp(texture2D(gnormal, finalCoord, 0).rgb, vec3(0.0f), vec3(1.0f)), vec3(2.2f)) * weight;
+					bloom += pow(clamp(texture(colortex2, finalCoord, 0).rgb, vec3(0.0f), vec3(1.0f)), vec3(2.2f)) * weight;
 					allWeights += 1.0f * weight;
 				}
 			}

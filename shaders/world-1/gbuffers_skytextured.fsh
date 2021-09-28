@@ -1,11 +1,11 @@
-#version 120
+#version 330 compatibility
 
 //sun and moon
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 
-varying vec4 color;
-varying vec4 texcoord;
+in vec4 color;
+in vec4 texcoord;
 
 const int GL_LINEAR = 9729;
 const int GL_EXP = 2048;
@@ -21,7 +21,7 @@ float Luminance(in vec3 color)
 
 void main() {
 
-	vec4 tex = texture2D(texture, texcoord.st);
+	vec4 tex = texture(tex, texcoord.st);
 
 	gl_FragData[0] = tex * color;
 

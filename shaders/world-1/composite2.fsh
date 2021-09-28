@@ -1,38 +1,59 @@
-#version 130
+#version 330 compatibility
 
 /*
- _______ _________ _______  _______  _
-(  ____ \\__   __/(  ___  )(  ____ )( )
-| (    \/   ) (   | (   ) || (    )|| |
-| (_____    | |   | |   | || (____)|| |
-(_____  )   | |   | |   | ||  _____)| |
-      ) |   | |   | |   | || (      (_)
-/\____) |   | |   | (___) || )       _
-\_______)   )_(   (_______)|/       (_)
+                                                                
+                       H                                         
+                       HCHCHC                  H                
+                       HCHCHCHCHC            HCH                
+                       HCHCHCHCHCHCHCH    HCHCHCH               
+                      HCHCHCHCHCHCHCHCHCHCHCHCHCHC              
+           HCHCHCHCHCHCHCHCHCHCHCHCH HCHCHCHCHCHCHC             
+     HCHCHCHCHCHCHCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHC             
+        HCHCHCHCHCHCHC HCHCH         HCHCHCHCHCHCHCH            
+          HCHCHCHCHCHC H                     HCHCHCH            
+          HCHCHCHCHCH                      HCHCHCHCHCHCHCHCHCH  
+         HCHCH HCHCH                        HCHCHCHCHCHCHCHC    
+       HCHCHCHCH  HC                          HCHCHCHCHCHCH     
+      HCHCHCHCHCH                              HCHCHCHCHCH      
+     HCHCHCHCHCHCHC                         HCHC HCHCHCH        
+   HCHCHCHCHCHCHCHCH                        HCHCHCHCHCH         
+  HCHCHCHCHCHCHCHCHCHC                     HCHCHCHCHC           
+            HCHCHCHCH                  HC HCHCHCHCHCHCH         
+             HCHCHCHCHCHCHCHCHC   HCHCHCH HCHCHCHCHCHCHCHC      
+             HCHCHCHCHCHCHCHC  HCHCHCHCHCHCHCHCHCHCHCHCHCHC     
+              HCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHCHC                
+              HCHCHCHCHCHCHCHCHCHCHCHCHCH                       
+               HCHCHC        HCHCHCHCHCHC                       
+                HCH             HCHCHCHCH                       
+                                      HCH                       
+										H
 
-Do not modify this code until you have read the LICENSE.txt contained in the root directory of this shaderpack!
+
+2021@HyperCol Studios
+VisionLab is part of HyperCol Studios
+Do not modify this code until you have read the LICENSE contained in the root directory of this shaderpack!
 
 */
 
 //#define SMOOTH_CLOUDS
 
 /* DRAWBUFFERS:2 */
-const bool gcolorMipmapEnabled = true;
-const bool gdepthMipmapEnabled = true;
-const bool compositeMipmapEnabled = false;
+const bool colortex0MipmapEnabled = true;
+const bool colortex1MipmapEnabled = true;
+const bool colortex3MipmapEnabled = false;
 
-uniform sampler2D gcolor;
-uniform sampler2D gdepth;
+uniform sampler2D colortex0;
+uniform sampler2D colortex1;
 uniform sampler2D gdepthtex;
 uniform sampler2D depthtex1;
-uniform sampler2D gnormal;
-uniform sampler2D composite;
+uniform sampler2D colortex2;
+uniform sampler2D colortex3;
 uniform sampler2D noisetex;
-//uniform sampler2D gaux1;
-//uniform sampler2D gaux1;
-uniform sampler2D gaux2;
-uniform sampler2D gaux3;
-uniform sampler2D gaux4;
+//uniform sampler2D colortex4;
+//uniform sampler2D colortex4;
+uniform sampler2D colortex5;
+uniform sampler2D colortex6;
+uniform sampler2D colortex7;
 
 uniform float near;
 uniform float far;
@@ -57,19 +78,19 @@ uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
 uniform vec3 fogColor;
 
-varying vec4 texcoord;
+in vec4 texcoord;
 
-varying vec3 lightVector;
-varying vec3 upVector;
+in vec3 lightVector;
+in vec3 upVector;
 
-varying float timeSunriseSunset;
-varying float timeNoon;
-varying float timeMidnight;
-varying float timeSkyDark;
+in float timeSunriseSunset;
+in float timeNoon;
+in float timeMidnight;
+in float timeSkyDark;
 
-varying vec3 colorSunlight;
-varying vec3 colorSkylight;
-varying vec3 colorBouncedSunlight;
+in vec3 colorSunlight;
+in vec3 colorSkylight;
+in vec3 colorBouncedSunlight;
 
 
 
@@ -97,7 +118,7 @@ float saturate(float x)
 
 vec3 GetNormals(in vec2 coord) {
 	vec3 normal = vec3(0.0f);
-		 normal = texture2DLod(gnormal, coord.st, 0).rgb;
+		 normal = textureLod(colortex2, coord.st, 0).rgb;
 	normal = normal * 2.0f - 1.0f;
 
 	normal = normalize(normal);
@@ -106,7 +127,7 @@ vec3 GetNormals(in vec2 coord) {
 }
 
 float GetDepth(in vec2 coord) {
-	return texture2D(gdepthtex, coord).x;
+	return texture(gdepthtex, coord).x;
 }
 
 float 	ExpToLinearDepth(in float depth)
@@ -115,12 +136,12 @@ float 	ExpToLinearDepth(in float depth)
 }
 
 float GetDepthLinear(vec2 coord) {
-    return 2.0 * near * far / (far + near - (2.0 * texture2D(gdepthtex, coord).x - 1.0) * (far - near));
+    return 2.0 * near * far / (far + near - (2.0 * texture(gdepthtex, coord).x - 1.0) * (far - near));
 }
 
 vec4 	GetTransparentAlbedo(in vec2 coord)
 {
-	return pow(texture2D(gaux4, coord), vec4(2.2));
+	return pow(texture(colortex7, coord), vec4(2.2));
 }
 
 vec4  	GetViewSpacePosition(in vec2 coord) {	//Function that calculates the screen-space position of the objects in the scene using the depth texture and the texture coordinates of the full-screen quad
@@ -141,17 +162,17 @@ vec4  	GetViewSpacePosition(in vec2 coord, float depth) {	//Function that calcul
 }
 
 float 	GetMaterialIDs(in vec2 coord) {			//Function that retrieves the texture that has all material IDs stored in it
-	return texture2DLod(gdepth, coord, 0).r;
+	return textureLod(colortex1, coord, 0).r;
 }
 
 float 	GetTransparentID(in vec2 coord)
 {
-	return texture2D(gaux3, coord).a;
+	return texture(colortex6, coord).a;
 }
 
 vec3 GetSunlightVisibility(in vec2 coord)
 {
-	return texture2D(gaux2, coord).rgb;
+	return texture(colortex5, coord).rgb;
 }
 
 float cubicPulse(float c, float w, float x)
@@ -199,12 +220,12 @@ bool 	GetSkyMask(in vec2 coord)
 
 float 	GetSpecularity(in vec2 coord)
 {
-	return texture2D(composite, coord).r;
+	return texture(colortex3, coord).r;
 }
 
 float 	GetRoughness(in vec2 coord)
 {
-	return pow(texture2D(composite, coord).b, 1.5);
+	return pow(texture(colortex3, coord).b, 1.5);
 }
 
 
@@ -250,11 +271,11 @@ bool  	GetWaterMask(in vec2 coord) {					//Function that returns "true" if a pix
 }
 
 float 	GetLightmapSky(in vec2 coord) {
-	return texture2DLod(gdepth, texcoord.st, 0).b;
+	return textureLod(colortex1, texcoord.st, 0).b;
 }
 
 vec3 convertScreenSpaceToWorldSpace(vec2 co) {
-    vec4 fragposition = gbufferProjectionInverse * vec4(vec3(co, texture2DLod(gdepthtex, co, 0).x) * 2.0 - 1.0, 1.0);
+    vec4 fragposition = gbufferProjectionInverse * vec4(vec3(co, textureLod(gdepthtex, co, 0).x) * 2.0 - 1.0, 1.0);
     fragposition /= fragposition.w;
     return fragposition.xyz;
 }
@@ -304,7 +325,7 @@ vec3 	CalculateNoisePattern1(vec2 offset, float size) {
 	coord = mod(coord + offset, vec2(size));
 	coord /= 64.0f;
 
-	return texture2D(noisetex, coord).xyz;
+	return texture(noisetex, coord).xyz;
 }
 
 float noise (in float offset)
@@ -353,10 +374,10 @@ float Get3DNoise(in vec3 pos)
 
 	vec2 coord =  (uv  + 0.5f) / 64.0f;
 	vec2 coord2 = (uv2 + 0.5f) / 64.0f;
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord2).x;
+	float xy1 = texture(noisetex, coord).x;
+	float xy2 = texture(noisetex, coord2).x;
 	return mix(xy1, xy2, f.z);
-	//return texture2D(noisetex, pos.xz / 64.0f).x;
+	//return texture(noisetex, pos.xz / 64.0f).x;
 }
 
 float Get3DNoiseBillow(in vec3 pos)
@@ -380,11 +401,11 @@ float Get3DNoiseBillow(in vec3 pos)
 
 	vec2 coord =  (uv  + 0.5f) / 64.0f;
 	vec2 coord2 = (uv2 + 0.5f) / 64.0f;
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord2).x;
+	float xy1 = texture(noisetex, coord).x;
+	float xy2 = texture(noisetex, coord2).x;
 	//return mix(xy1, xy2, f.z);
 	return abs(mix(xy1, xy2, f.z) * 2.0 - 1.0);
-	//return texture2D(noisetex, pos.xz / 64.0f).x;
+	//return texture(noisetex, pos.xz / 64.0f).x;
 }
 
 float Get3DNoiseRidges(in vec3 pos)
@@ -408,11 +429,11 @@ float Get3DNoiseRidges(in vec3 pos)
 
 	vec2 coord =  (uv  + 0.5f) / 64.0f;
 	vec2 coord2 = (uv2 + 0.5f) / 64.0f;
-	float xy1 = texture2D(noisetex, coord).x;
-	float xy2 = texture2D(noisetex, coord2).x;
+	float xy1 = texture(noisetex, coord).x;
+	float xy2 = texture(noisetex, coord2).x;
 	//return mix(xy1, xy2, f.z);
 	return 1.0 - abs(mix(xy1, xy2, f.z) * 2.0 - 1.0);
-	//return texture2D(noisetex, pos.xz / 64.0f).x;
+	//return texture(noisetex, pos.xz / 64.0f).x;
 }
 
 
@@ -439,8 +460,8 @@ vec3 Get3DNoise2(in vec3 pos)
 
 	vec2 coord =  (uv  + 0.5f) / 64.0;
 	vec2 coord2 = (uv2 + 0.5f) / 64.0;
-	vec3 xy1 = texture2D(noisetex, coord).rgb;
-	vec3 xy2 = texture2D(noisetex, coord2).rgb;
+	vec3 xy1 = texture(noisetex, coord).rgb;
+	vec3 xy2 = texture(noisetex, coord2).rgb;
 	return mix(xy1, xy2, vec3(f.z));
 }
 
@@ -595,7 +616,7 @@ vec4 	ComputeRaytraceReflection(inout SurfaceStruct surface)
 	vec3 oldPosition = cameraSpacePosition;
     vec3 cameraSpaceVectorPosition = oldPosition + cameraSpaceVector;
     vec3 currentPosition = convertCameraSpaceToScreenSpace(cameraSpaceVectorPosition);
-    vec4 color = vec4(pow(texture2D(gcolor, screenSpacePosition2D).rgb, vec3(3.0f + 1.2f)), 0.0);
+    vec4 color = vec4(pow(texture(colortex0, screenSpacePosition2D).rgb, vec3(3.0f + 1.2f)), 0.0);
     const int maxRefinements = 3;
 	int numRefinements = 0;
     int count = 0;
@@ -648,7 +669,7 @@ vec4 	ComputeRaytraceReflection(inout SurfaceStruct surface)
         numSteps++;
     }
 
-	color = pow(texture2DLod(gcolor, finalSamplePos, 0), vec4(2.2f));
+	color = pow(textureLod(colortex0, finalSamplePos, 0), vec4(2.2f));
 
 	if (finalSamplePos.x == 0.0f || finalSamplePos.y == 0.0f) {
 		color.a = 0.0f;
@@ -1363,7 +1384,7 @@ void CalculateGlossySpecularReflections(inout SurfaceStruct surface)
 			vec2 finalCoord = (((texcoord.st * 2.0f - 1.0f) * scaling) * 0.5f + 0.5f) + translation;
 
 			float weight = (11 - i + 1) / 10.0f;
-			reflectionSum.rgb += pow(texture2DLod(gcolor, finalCoord, r).rgb, vec3(2.2f));
+			reflectionSum.rgb += pow(textureLod(colortex0, finalCoord, r).rgb, vec3(2.2f));
 		}
 
 
@@ -1387,7 +1408,7 @@ vec4 TextureSmooth(in sampler2D tex, in vec2 coord, in int level)
 	f = f * f * (3.0f - 2.0f * f);
 	coord = i + f;
 	coord = (coord - 0.5f) / res;
-	return texture2D(tex, coord, level);
+	return texture(tex, coord, level);
 }
 
 void SmoothSky(inout SurfaceStruct surface)
@@ -1400,7 +1421,7 @@ void SmoothSky(inout SurfaceStruct surface)
 	float cameraHeight = cameraPosition.y;
 	float surfaceHeight = surface.worldSpacePosition.y;
 
-	vec3 combined = pow(TextureSmooth(gcolor, texcoord.st, 2).rgb, vec3(2.2f));
+	vec3 combined = pow(TextureSmooth(colortex0, texcoord.st, 2).rgb, vec3(2.2f));
 	vec3 original = surface.color;
 
 	// surface.color = combined;
@@ -1460,7 +1481,7 @@ vec4 textureSmooth(in sampler2D tex, in vec2 coord)
 	coord -= 0.5f;
 	coord /= res;
 
-	return texture2D(tex, coord);
+	return texture(tex, coord);
 }
 
 float AlmostIdentity(in float x, in float m, in float n)
@@ -1569,7 +1590,7 @@ void WaterRefraction(inout SurfaceStruct surface)
 			 wavesNormal = GetWavesNormal((surface.worldSpacePosition.xyz + cameraPosition.xyz) * 4.0, 0.0).xzy;
 
 
-		float opaqueDepth = ExpToLinearDepth(texture2D(depthtex1, texcoord.st).x);
+		float opaqueDepth = ExpToLinearDepth(texture(depthtex1, texcoord.st).x);
 
 		float waterDepth = opaqueDepth - surface.linearDepth;
 
@@ -1608,9 +1629,9 @@ void WaterRefraction(inout SurfaceStruct surface)
 		// vec3 fakeRefractCoord = refract(fakeViewVector, surface.normal.xyz, 1.0 / 1.00001);
 		
 		/*
-		surface.color.r = pow(texture2DLod(gcolor, refractCoord0.xy, 1).r, (2.2));
-		surface.color.g = pow(texture2DLod(gcolor, refractCoord1.xy, 1).g, (2.2));
-		surface.color.b = pow(texture2DLod(gcolor, refractCoord2.xy, 1).b, (2.2));
+		surface.color.r = pow(textureLod(colortex0, refractCoord0.xy, 1).r, (2.2));
+		surface.color.g = pow(textureLod(colortex0, refractCoord1.xy, 1).g, (2.2));
+		surface.color.b = pow(textureLod(colortex0, refractCoord2.xy, 1).b, (2.2));
 		*/
 
 
@@ -1627,10 +1648,10 @@ void WaterRefraction(inout SurfaceStruct surface)
 
 		surface.color = 
 					(
-					    pow(texture2DLod(gcolor, refractCoord0.xy, 1).rgb, vec3(2.2)) * blendWeights.x
-					  + pow(texture2DLod(gcolor, refractCoord0.xy, 2).rgb, vec3(2.2)) * blendWeights.y
-					  + pow(texture2DLod(gcolor, refractCoord0.xy, 3).rgb, vec3(2.2)) * blendWeights.z
-					  + pow(texture2DLod(gcolor, refractCoord0.xy, 4).rgb, vec3(2.2)) * blendWeights.w
+					    pow(textureLod(colortex0, refractCoord0.xy, 1).rgb, vec3(2.2)) * blendWeights.x
+					  + pow(textureLod(colortex0, refractCoord0.xy, 2).rgb, vec3(2.2)) * blendWeights.y
+					  + pow(textureLod(colortex0, refractCoord0.xy, 3).rgb, vec3(2.2)) * blendWeights.z
+					  + pow(textureLod(colortex0, refractCoord0.xy, 4).rgb, vec3(2.2)) * blendWeights.w
 					) / blendWeightsTotal;
 		//*/
 	}
@@ -1680,9 +1701,9 @@ void NetherHeatRefraction(inout SurfaceStruct surface)
 		 refract += (Get3DNoise2(vec3(texcoord.x, texcoord.y * aspectCorrect, frameTimeCounter * 5.2) * vec3(vec2(283.0), 1.0) + vec3(0.0, -frameTimeCounter * 10.0, 0.0)).xy * 2.0 - 1.0) * 0.002;
 
 	vec2 refractCoord = texcoord.st + refract;
-	surface.color = pow(texture2DLod(gcolor, refractCoord.xy, 0).rgb, vec3(2.2));
+	surface.color = pow(textureLod(colortex0, refractCoord.xy, 0).rgb, vec3(2.2));
 
-	//pow(texture2DLod(gcolor, refractCoord0.xy, 1).rgb, vec3(2.2)) * blendWeights.x
+	//pow(textureLod(colortex0, refractCoord0.xy, 1).rgb, vec3(2.2)) * blendWeights.x
 
 }
 
@@ -1691,10 +1712,10 @@ void AddCrepuscularRays(vec2 coord, inout SurfaceStruct surface)
 	float rays = 0.0;
 	float spread = 1.0;
 
-	rays += texture2DLod(gdepth, coord + vec2(1.0 / viewWidth, 1.0 / viewHeight) * vec2(1.0, 1.0)		* spread, 2).g;
-	rays += texture2DLod(gdepth, coord + vec2(1.0 / viewWidth, 1.0 / viewHeight) * vec2(1.0, -1.0)		* spread, 2).g;
-	rays += texture2DLod(gdepth, coord + vec2(1.0 / viewWidth, 1.0 / viewHeight) * vec2(-1.0, 1.0)		* spread, 2).g;
-	rays += texture2DLod(gdepth, coord + vec2(1.0 / viewWidth, 1.0 / viewHeight) * vec2(-1.0, -1.0)		* spread, 2).g;
+	rays += textureLod(colortex1, coord + vec2(1.0 / viewWidth, 1.0 / viewHeight) * vec2(1.0, 1.0)		* spread, 2).g;
+	rays += textureLod(colortex1, coord + vec2(1.0 / viewWidth, 1.0 / viewHeight) * vec2(1.0, -1.0)		* spread, 2).g;
+	rays += textureLod(colortex1, coord + vec2(1.0 / viewWidth, 1.0 / viewHeight) * vec2(-1.0, 1.0)		* spread, 2).g;
+	rays += textureLod(colortex1, coord + vec2(1.0 / viewWidth, 1.0 / viewHeight) * vec2(-1.0, -1.0)		* spread, 2).g;
 
 	//rays *= 0.25;
 
@@ -1726,7 +1747,7 @@ void AddCrepuscularRays(vec2 coord, inout SurfaceStruct surface)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
 
-	surface.color = pow(texture2DLod(gcolor, texcoord.st, 0).rgb, vec3(2.2f));
+	surface.color = pow(textureLod(colortex0, texcoord.st, 0).rgb, vec3(2.2f));
 	surface.normal = GetNormals(texcoord.st);
 	surface.depth = GetDepth(texcoord.st);
 	surface.linearDepth 		= ExpToLinearDepth(surface.depth); 				//Get linear scene depth
@@ -1752,7 +1773,7 @@ void main() {
 
 	surface.cloudAlpha = 0.0f;
 	#ifdef SMOOTH_CLOUDS
-		surface.cloudAlpha = texture2D(composite, texcoord.st, 2).g;
+		surface.cloudAlpha = texture(colortex3, texcoord.st, 2).g;
 		SmoothSky(surface);
 	#endif
 
