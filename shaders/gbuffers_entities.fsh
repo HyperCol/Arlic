@@ -102,7 +102,8 @@ void main() {
 	
 	
 	vec4 frag2;
-	
+	float dir = float(gl_FrontFacing) * 2.0 - 1.0;
+
 	if (distance < bump_distance) {
 	
 			vec3 bump = texture(normals, texcoord.st).rgb * 2.0f - 1.0f;
@@ -113,11 +114,11 @@ void main() {
 
 			//bump += CalculateRainBump(worldPosition.xyz);
 			
-			frag2 = vec4(bump * tbnMatrix * 0.5 + 0.5, 1.0);
+			frag2 = vec4(dir * bump * tbnMatrix * 0.5 + 0.5, 1.0);
 			
 	} else {
 	
-			frag2 = vec4((normal) * 0.5f + 0.5f, 1.0f);
+			frag2 = vec4(dir * (normal) * 0.5f + 0.5f, 1.0f);					
 	}
 
 	//Diffuse

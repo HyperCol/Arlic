@@ -54,7 +54,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define GI_RENDER_RESOLUTION 0 // Render resolution of GI. 0 = High. 1 = Low. Set to 1 for faster but blurrier GI. [0 1]
 
 #define NEW_SKY_LIGHT
-//#define Disabled_SkyLight_Occlusion
+#define Disabled_SkyLight_Occlusion
 
 #define Emissive_Luminance	1.0		//[0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.2 1.4 1.6 1.8 2.0 2.25 2.5 2.75 3.0 4.0]
 
@@ -73,7 +73,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 	#define WHITECLOUDS 1.5                     // [0.01 1 1.5 4 6 9]
 	//#define MOREVOLUMETRIC_CLOUDS
 
-#define ATMOSPHERIC_SCATTERING // Blue tint of distant objects to simulate atmospheric scattering
+//#define ATMOSPHERIC_SCATTERING // Blue tint of distant objects to simulate atmospheric scattering
 
 #define RAYLEIGH_AMOUNT 1.0 // Strength of atmospheric scattering (atmospheric density). [0.5 1.0 1.5 2.0]
 
@@ -128,8 +128,8 @@ Do not modify this code until you have read the LICENSE contained in the root di
 //Some of these variables are critical for proper operation. Change at your own risk.
 
 
-const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096]
-const float 	shadowDistance 			= 120.0; // Shadow distance. Set lower if you prefer nicer close shadows. Set higher if you prefer nicer distant shadows. [80.0 120.0 180.0 240.0]
+const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096 8192]
+const float 	shadowDistance 			= 120.0; // Shadow distance. Set lower if you prefer nicer close shadows. Set higher if you prefer nicer distant shadows. [80.0 120.0 180.0 240.0 360.0 480.0 512.0 1024.0]
 const float 	shadowIntervalSize 		= 4.0f;
 const bool 		shadowHardwareFiltering0 = true;
 

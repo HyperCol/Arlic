@@ -51,7 +51,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define SATURATION_STRENGTH 0.0 // [-2.0 -1.95 -1.9 -1.85 -1.8 -1.75 -1.7 -1.65 -1.6 -1.55 -1.5 -1.45 -1.4 -1.35 -1.3 -1.25 -1.2 -1.15 -1.1 -0.05 0.0 0.05 1.0 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.17 1.75 1.8 1.85 1.9 1.95 2.0]
 #define MAX_BLUR_AMOUNT 1.2 // [0.2 0.4 0.6 0.9 1.2 1.5 1.9 2.3 2.7]
 
-#define DOF
+//#define DOF
 	#define HEXAGONAL_BOKEH
 		const float FringeOffset = 0.25;
 

@@ -62,8 +62,8 @@ Do not modify this code until you have read the LICENSE contained in the root di
 //of the shaders mod. The shaders mod only reads these lines and doesn't actually know the real value assigned to these variables in GLSL.
 //Some of these variables are critical for proper operation. Change at your own risk.
 
-const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096]
-const float 	shadowDistance 			= 120.0; // Shadow distance [80.0 120.0 180.0 240.0]
+const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096 8192]
+const float 	shadowDistance 			= 120.0; // Shadow distance. Set lower if you prefer nicer close shadows. Set higher if you prefer nicer distant shadows. [80.0 120.0 180.0 240.0 360.0 480.0 512.0 1024.0]
 const float 	shadowIntervalSize 		= 4.0f;
 const bool 		shadowHardwareFiltering0 = true;
 
