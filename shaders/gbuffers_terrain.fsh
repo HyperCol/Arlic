@@ -580,7 +580,7 @@ void main() {
 	float material_smoothness = materialData.r;
 	float material_metallic = materialData.g;
 	float material_id = materialData.b;
-	float material_emissive = materialData.a;
+	float material_emissive = textureLod(specular, parallaxCoord, 0).a;
 
 	//encode smoothness and metallic
 	float encode_spec_rg = pack2x8(vec2(material_smoothness, material_metallic));

@@ -1032,7 +1032,7 @@ float 	CalculateDirectLighting(in SurfaceStruct surface, float roughness) {
 	//Tall grass translucent shading
 	if (surface.mask.grass > 0.5f) {
 
-		return clamp(dot(surface.lightVector, surface.upVector) * 0.8 + 0.2, 0.0, 1.0);
+		return clamp(dot(surface.lightVector, surface.upVector) * 0.8 + 0.2, 0.0, 1.0) * (1.0 / 3.14159265);
 
 
 	//Leaves
@@ -1044,13 +1044,13 @@ float 	CalculateDirectLighting(in SurfaceStruct surface, float roughness) {
 		// 	return abs(surface.NdotL) * 0.25f;
 		// }
 
-		return 0.5f;
+		return 0.5;
 
 
 	//clouds
 	} else if (surface.mask.clouds > 0.5f) {
 
-		return 0.5f;
+		return 0.5;
 
 
 	} else if (surface.mask.ice > 0.5f) {
