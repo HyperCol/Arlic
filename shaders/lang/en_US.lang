@@ -292,6 +292,18 @@ option.OLD_LIGHTING_FIX=旧版本的原版光照修复
 
 option.VERSION=Arlic Shader版本
 
+option.Remap_Color=§6开启自定义色调
+option.Remap_Color_Red=§4全局红色
+option.Remap_Color_Green=§2全局绿色
+option.Remap_Color_Blue=§1全局蓝色
+option.Remap_Color_Blend=亮度乘数
+option.Remap_Color_Low_Luminance_Red=§4低亮度红色
+option.Remap_Color_Low_Luminance_Green=§2低亮度绿色
+option.Remap_Color_Low_Luminance_Blue=§1低亮度蓝色
+option.Remap_Color_High_Luminance_Red=§4高亮度红色
+option.Remap_Color_High_Luminance_Green=§2高亮度绿色
+option.Remap_Color_High_Luminance_Blue=§1高亮度蓝色
+
 //-------------------------- ScreenGUIs --------------------------//
 profile.NORMAL=默认或自定义模式
 profile.Work=性能模式

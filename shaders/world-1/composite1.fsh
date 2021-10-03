@@ -52,7 +52,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 
 
-#define VOLUMETRIC_CLOUDS
+//#define VOLUMETRIC_CLOUDS
 #define HQ_VOLUMETRIC_CLOUDS
 
 

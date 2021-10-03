@@ -247,7 +247,11 @@ void Hue_Adjustment(inout Tone t) {
 	vec3 color = t.color / Hardbaked_HDR;
 
 	//exposure
-	color *= 32.0 * EXPOSURE / DARKNESS;
+	color *= 32.0;
+	
+	ColorRemap(color);
+
+	color *= EXPOSURE / DARKNESS;
 
 	if (t.useToneMap > 0) t.color = mix(t.color, tonemap(color), t.useToneMap);
 	

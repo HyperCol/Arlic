@@ -639,6 +639,35 @@ void AverageExposure(inout vec3 color)
 	color *= Hardbaked_HDR;
 }
 
+//#define Remap_Color
+	#define Remap_Color_Red		1.0		//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+	#define Remap_Color_Green	1.0		//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+	#define Remap_Color_Blue	1.0		//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+
+	#define Remap_Color_Blend 10.0						//[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.5 2.0 2.5 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 12.0 14.0 16.0 18.0 20.0]
+	#define Remap_Color_Low_Luminance_Red	1.0			//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+	#define Remap_Color_Low_Luminance_Green	1.0			//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+	#define Remap_Color_Low_Luminance_Blue	1.0			//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+	#define Remap_Color_High_Luminance_Red		1.0		//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+	#define Remap_Color_High_Luminance_Green	1.0		//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+	#define Remap_Color_High_Luminance_Blue		1.0		//[0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+
+void ColorRemap(inout vec3 color){
+#ifdef Remap_Color
+	float luminance = dot(vec3(1.0 / 3.0), color);
+
+	color *= vec3(Remap_Color_Red, Remap_Color_Green, Remap_Color_Blue);
+
+	vec3 colorLowLight = vec3(Remap_Color_Low_Luminance_Red, Remap_Color_Low_Luminance_Green, Remap_Color_Low_Luminance_Blue);
+	vec3 colorHighLight = vec3(Remap_Color_High_Luminance_Red, Remap_Color_High_Luminance_Green, Remap_Color_High_Luminance_Blue);
+
+	float blend = luminance * Remap_Color_Blend;
+		  blend = blend / (blend + 1.0);
+
+	color *= mix(colorLowLight, colorHighLight, vec3(min(1.0, blend)));
+#endif
+}
+
 #include "/libs/tone.frag"
 
 Tone tone;
