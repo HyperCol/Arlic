@@ -42,7 +42,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define SHADOW_MAP_BIAS 0.90
 
 #define NEW_SKY_LIGHT
-//#define Disabled_SkyLight_Occlusion
+#define Disabled_SkyLight_Occlusion
 
 //---------------Atmosphere&Sky---------------//
 
@@ -140,8 +140,8 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 
 /* DRAWBUFFERS:2 */
-const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096]
-const float 	shadowDistance 			= 120.0; // Shadow distance. Set lower if you prefer nicer close shadows. Set higher if you prefer nicer distant shadows. [80.0 120.0 180.0 240.0]
+const int 		shadowMapResolution 	= 2048;	// Shadowmap resolution [1024 2048 4096 8192]
+const float 	shadowDistance 			= 120.0; // Shadow distance. Set lower if you prefer nicer close shadows. Set higher if you prefer nicer distant shadows. [80.0 120.0 180.0 240.0 360.0 480.0 512.0 1024.0]
 
 const int 		noiseTextureResolution  = 64;
 

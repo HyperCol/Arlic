@@ -212,6 +212,8 @@ option.FORCE_WET_EFFECT=雨天地面积水
 option.MOTION_BLUR=动态模糊
 option.LF=镜头光晕
 
+option.WIND_DIRECTION=风的方向
+option.STRENGTH_WIND=风的强度
 
 #=========Tone Option============
 screen.TONE_OPTION=色调与滤镜设置
