@@ -1,4 +1,4 @@
-#version 330 compatibility
+#version 460 compatibility
 
 /*
                                                                 
@@ -91,7 +91,7 @@ in vec3 colorSkylight;
 
 #define BANDING_FIX_FACTOR 1.0f
 
-#extension GL_ARB_shader_texture_lod: require
+//#extension GL_ARB_shader_texture_lod: require
 const bool colortex3MipmapEnabled = true;
 const bool colortex2MipmapEnabled = true;
 

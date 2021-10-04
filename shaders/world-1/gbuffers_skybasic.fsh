@@ -1,4 +1,4 @@
-#version 330 compatibility
+#version 460 compatibility
 
 //upper majority of sky
 

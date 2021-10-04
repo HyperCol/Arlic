@@ -1,4 +1,4 @@
-#version 330 compatibility
+#version 460 compatibility
 
 #include "/libs/antialiasing/taaProjection.glsl"
 

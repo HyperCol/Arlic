@@ -1,4 +1,4 @@
-#version 330 compatibility
+#version 460 compatibility
 
 /*
                                                                 
@@ -59,17 +59,17 @@ Do not modify this code until you have read the LICENSE contained in the root di
 //---------------Atmosphere&Sky---------------//
 
 //Clouds
-//#define VOLUMETRIC_CLOUDS // Volumetric clouds
-	#define CALCULATECLOUDDEPTH 280           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
-	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
-	#define CALCULATECLOUDSCONCENTRATION 2.5  // [0.5 1.0 1.5 2.0 2.5 3.0 4.0 5.0 7.0 9.0]
-	#define CALCULATECLOUDSQUALITY 35         // [5 10 20 35 50 70 100]
-	#define Vol_Cloud_Coverage 0.18				// Vol_Cloud_Coverage. 0.20 = Lowest Cover. 0.60 = Highest Cover [0.20 0.30 0.45 0.48 0.50 0.52 0.55 0.60 0.70]
-	#define High_Altitude_Clouds
-	#define CALCLOUD_SPEED 1				  // [0 0.2 0.5 1 2.5 5 8]
-	#define CALCLOUDHEIGHT 275				  // [100 150 200 225 250 275 300 325 350 400 450 500 600 700 800]
-	#define WHITECLOUDS 1.5                     // [0.01 1 1.5 4 6 9]
-	//#define MOREVOLUMETRIC_CLOUDS
+// //#define VOLUMETRIC_CLOUDS // Volumetric clouds
+// 	#define CALCULATECLOUDDEPTH 280           // [100 200 300 400 500 600 700 900 1100 1400 1700 62018]
+// 	#define CALCULATECLOUDSDENSITY 200        // [100 125 150 175 200 225 250 275 300 325 350]
+// 	#define CALCULATECLOUDSCONCENTRATION 2.5  // [0.5 1.0 1.5 2.0 2.5 3.0 4.0 5.0 7.0 9.0]
+// 	#define CALCULATECLOUDSQUALITY 35         // [5 10 20 35 50 70 100]
+// 	#define Vol_Cloud_Coverage 0.18				// Vol_Cloud_Coverage. 0.20 = Lowest Cover. 0.60 = Highest Cover [0.20 0.30 0.45 0.48 0.50 0.52 0.55 0.60 0.70]
+// 	#define High_Altitude_Clouds
+// 	#define CALCLOUD_SPEED 1				  // [0 0.2 0.5 1 2.5 5 8]
+// 	#define CALCLOUDHEIGHT 275				  // [100 150 200 225 250 275 300 325 350 400 450 500 600 700 800]
+// 	#define WHITECLOUDS 1.5                     // [0.01 1 1.5 4 6 9]
+// 	//#define MOREVOLUMETRIC_CLOUDS
 
 //#define ATMOSPHERIC_SCATTERING // Blue tint of distant objects to simulate atmospheric scattering
 

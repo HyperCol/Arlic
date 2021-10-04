@@ -1,4 +1,4 @@
-#version 330 compatibility
+#version 460 compatibility
 
 
 #define OLD_LIGHTING_FIX		//In newest versions of the shaders mod/optifine, old lighting isn't removed properly. If OldLighting is On and this is enabled, you'll get proper results in any shaders mod/minecraft version.
