@@ -77,7 +77,7 @@ float Get2DCloudsDensity(vec2 position, vec2 cloudsTime) {
 
 
 void Calculate2DClouds(inout vec3 color, vec3 viewVector, vec3 viewOffset, float dither, vec3 atmosphere) {
-	vec3 viewPosition = cameraPosition + gbufferModelViewInverse[3].xyz + viewOffset;
+	vec3 viewPosition = cameraPosition + viewOffset;
 
 	Ray ray;
 	ray.dir = viewVector;

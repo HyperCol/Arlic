@@ -331,6 +331,7 @@ vec4 VolumetricClouds(vec3 worldDir, vec3 worldOffset, vec3 atmosphere, CloudPro
 	//no clouds in front of sun
 	// cloudProperties.coverage *= mix(0.0, 1.0, 1.0 - pow(saturate(dot(worldDir, worldLightVector) * 0.5 + 0.5), 48.0));
 	CloudProperties cp = cloudProperties;
+	vec3 startPos = worldOffset + cameraPosition;
 
 	//cp.coverage += pow(dot(-worldDir, worldLightVector) * 0.5 + 0.5, 2.0) * 0.3;
 	#if VC_MARCHING
@@ -339,7 +340,7 @@ vec4 VolumetricClouds(vec3 worldDir, vec3 worldOffset, vec3 atmosphere, CloudPro
 		float rayStepSize = 1.0 / raySteps;
 		float actualCloudHeightGuess = 0.6;
 
-		vec3 rayStartPos = IntersectXZPlane(worldDir, worldOffset, fma(cloudProperties.thickness, 0.05f, cloudProperties.altitude)) + worldOffset + cameraPosition;
+		vec3 rayStartPos = IntersectXZPlane(worldDir, worldOffset, fma(cloudProperties.thickness, 0.05f, cloudProperties.altitude)) + startPos;
 
 		vec3 rayIncrement = (worldDir * cloudProperties.thickness * actualCloudHeightGuess * rayStepSize) / abs(worldDir.y);
 		// vec3 rayIncrement = worldDir * 40.1;
@@ -376,7 +377,7 @@ vec4 VolumetricClouds(vec3 worldDir, vec3 worldOffset, vec3 atmosphere, CloudPro
 
 		for (int i = 0; i < raySteps; i++)
 		{
-			vec3 rayPos = (worldDir * rayDepth) + cameraPosition;
+			vec3 rayPos = (worldDir * rayDepth) + startPos;
 
 			// cloudProperties.thickness *= 1.05;
 			// cp.altitude *= 0.99;
@@ -387,7 +388,7 @@ vec4 VolumetricClouds(vec3 worldDir, vec3 worldOffset, vec3 atmosphere, CloudPro
 			// cloudProperties.thickness = mix(200.0, 900.0, Get2DNoiseM(rayPos * 0.001));
 
 			// cloudProperties.thickness = 200.0 + length(rayPos - cameraPosition) * 0.1;
-			cp.altitude = CLOUD_GENUINE_ALTITUDE - length(rayPos - cameraPosition) * 0.0525;
+			cp.altitude = CLOUD_GENUINE_ALTITUDE - length(rayPos - startPos) * 0.0525;
 			// cloudProperties.coverage = mix(-0.1, 0.5, Get2DNoiseM(rayPos * 0.0015));
 
 

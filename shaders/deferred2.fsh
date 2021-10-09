@@ -3442,7 +3442,7 @@ void main() {
 	if (bool(step(0.5, surface.mask.sky))) {
 		float mu = dot(normalize(surface.screenSpacePosition.xyz), shadowLightVectorView);
 		vec3 fogColor = colorSkylight + HG(mu, 0.76) * colorSunlight;
-		vec3 worldDir = normalize(surface.worldSpacePosition.xyz);
+		vec3 worldDir = normalize(mat3(gbufferModelViewInverse) * surface.screenSpacePosition.xyz);
 		float noise_0  = bayer64(gl_FragCoord.xy);
 
 		float noise_1 = noise_0;
@@ -3451,11 +3451,11 @@ void main() {
     	#endif
 
 		#ifdef PLANE_CLOUDS
-			Calculate2DClouds(finalComposite, worldDir, vec3(0), noise_1, fogColor);
+			Calculate2DClouds(finalComposite, worldDir, gbufferModelViewInverse[3].xyz, noise_1, fogColor);
 		#endif
 
 		#ifdef VOLUMETRIC_CLOUDS
-			vec4 volumetricClouds = VolumetricClouds(worldDir, vec3(0), fogColor, cloudProperties, noise_1);
+			vec4 volumetricClouds = VolumetricClouds(worldDir, gbufferModelViewInverse[3].xyz, fogColor, cloudProperties, noise_1);
 			finalComposite = finalComposite * volumetricClouds.a + pow(volumetricClouds.rgb * 0.0001, vec3(1.0 / 2.2));
 		#endif
 

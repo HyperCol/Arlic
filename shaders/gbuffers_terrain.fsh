@@ -596,6 +596,6 @@ void main() {
 	gl_FragData[2] = frag2;
 		
 	//specularity
-	gl_FragData[3] = vec4(encode_spec_rg, encode_spec_ba, 1.0 - parallaxShadow, material_emissive);	
+	gl_FragData[3] = vec4(encode_spec_rg, encode_spec_ba, 1.0 - parallaxShadow, 1.0);	
 }
 /* DRAWBUFFERS:0123 */
