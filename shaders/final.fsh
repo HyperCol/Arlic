@@ -43,7 +43,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 //#define MOTION_BLUR // It's motion blur.
 
 #define ACES_TONEMAPPING
-	#define DARKNESS 4.25 // [0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.25 5.0 7.0 9.0 12.0]
+	#define DARKNESS 4.25 // [0.25 0.5 0.75 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.25 5.0 7.0 9.0 12.0 14.0 16.0 18.0 20.0 22.0 24.0 26.0 28.0 30.0]
 #define TONEMAP_STRENGTH 3.0 // Determines how bright colors are compressed during tonemapping. Lower levels result in more filmic soft look. Higher levels result in more natural vibrant look. [2.0 3.0 4.0]
 #define BRIGHTNESS_LEVEL 1.5 // Pre-tonemapping brightness levels. [1.0 1.25 1.5 1.75 2.0]
 #define SATURATION_STRENGTH 0.0 // [-2.0 -1.95 -1.9 -1.85 -1.8 -1.75 -1.7 -1.65 -1.6 -1.55 -1.5 -1.45 -1.4 -1.35 -1.3 -1.25 -1.2 -1.15 -1.1 -0.05 0.0 0.05 1.0 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.17 1.75 1.8 1.85 1.9 1.95 2.0]

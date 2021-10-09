@@ -1,7 +1,7 @@
 #version 330 compatibility
 
 #define SHADOW_MAP_BIAS 0.90
-#define STRENGTH_WIND 0 		//[0 1 2 4 6 8]
+#define STRENGTH_WIND 0 		//[0 -0.5 -1 -1.5 -2 -2.5 -3 -3.5 -4 -4.5 -5 -6 -7 -8]
 #define WIND_DIRECTION 0		//[0 15 30 45 60 75 90 105 120 135 150 165 180 195 210 225 240 255 270 285 300 315 330 345]
 
 out vec4 texcoord;
