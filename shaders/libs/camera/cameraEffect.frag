@@ -153,6 +153,15 @@ vec2 CalculateDistOffset(const vec2 prep, const float angle, const vec2 offset) 
     return offset * angle + prep * dot(prep, offset) * (1.0 - angle);
 }
 
+float CalculateFocus(float depth) {
+    float focalLength = cam.focalLength / 80.0;
+    float aperture    = (cam.focalLength / CAMERA_APERTURE) / 80.0;
+
+    float focus = -cam.dof_cfg.focalDepth;
+
+    return aperture * (focalLength * (focus - depth)) / (focus * (depth - focalLength));
+}
+
 vec3 DepthOfField(bool isHand) { //OPTIMISATION: Add circular option for lower end hardware. TODO: Look over for accuracy and speed.
     #ifndef DOF
         return GetColorTexture(texcoord.st);
@@ -178,10 +187,11 @@ vec3 DepthOfField(bool isHand) { //OPTIMISATION: Add circular option for lower e
     // Lens specifications referenced from Sigma 32mm F1.4 art.
     // Focal length of 32mm (assuming lens does not zoom), with a diaphram size of 25mm at F1.4.
     // For more accuracy to lens settings, set blades to 9.
-    float aperture  = (cam.focalLength / CAMERA_APERTURE);
-
+    float aperture  = (cam.focalLength * 1.5 / CAMERA_APERTURE);
+    
     float depth = ld(texture(depthtex0, texcoord.st).x);
-    float pcoc = cam.dof_cfg.focalDepth;
+    float pcoc = CalculateFocus(depth);
+    if (pcoc == 0) discard;
 
     //vec2 maxPos = CalculateDistOffset(prep, angle, (r - 1.0) * sampleAngle * pcoc) * distOffsetScale;
 
