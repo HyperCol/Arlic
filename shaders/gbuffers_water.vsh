@@ -68,7 +68,7 @@ void main() {
 
 	distance = length(localPosition.xyz);
 
-	gl_Position = gl_ProjectionMatrix * (gbufferModelView * position);
+	gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
 
 #ifdef Enabled_TemportalAntiAliasing
 	gl_Position.xy += jitter * 2.0 * gl_Position.w;

@@ -9,12 +9,23 @@ in vec4 texcoord;
 in vec4 lmcoord;
 
 void main() {
+	vec4 albedo = texture(tex, texcoord.st) * color;
 
-	//discard;
-	gl_FragData[0] = vec4(texture(tex, texcoord.st).rgb, texture(tex, texcoord.st).a * 1.0f) * color;
-	gl_FragData[1] = vec4(0.0f);
-	gl_FragData[2] = vec4(0.0f);
-	gl_FragData[3] = vec4(0.0f);
+	if(albedo.a < 0.2) discard;
+
+	vec4 lightmap = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	
+	//Separate lightmap types
+	lightmap.r = clamp((lmcoord.s * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
+	lightmap.b = clamp((lmcoord.t * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
+
+	lightmap.b = pow(lightmap.b, 1.0f);
+	lightmap.r = pow(lightmap.r, 1.0f);
+
+	gl_FragData[0] = vec4(albedo.rgb, 1.0);
+	gl_FragData[1] = vec4(63.1 / 255.0, lmcoord.r, lmcoord.b, 1.0);
+	gl_FragData[2] = vec4(vec3(0.0), 1.0);
+	gl_FragData[3] = vec4(vec3(0.0), 1.0);
 		
 	
 	

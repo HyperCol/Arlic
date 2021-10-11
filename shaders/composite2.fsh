@@ -117,6 +117,7 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 #define TEXTURE_RESOLUTION 128 // Resolution of current resource pack. This needs to be set properly for POM! [16 32 64 128 256 512]
 
+//#define Particles_Normals
 
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////INTERNAL VARIABLES////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,8 +186,9 @@ uniform sampler2D noisetex;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform sampler2D colortex6;
-uniform sampler2D depthtex1;
+
 uniform sampler2D depthtex0;
+uniform sampler2D depthtex1;
 
 in vec4 texcoord;
 in vec3 lightVector;
@@ -383,7 +385,7 @@ bool  	GetSky(in vec2 coord) {					//Function that returns true for any pixel th
 }
 
 float 	GetMaterialMask(in vec2 coord ,const in int ID, in float matID) {
-	matID = (matID * 255.0f);
+	matID = round(matID * 255.0f);
 
 	//Catch last part of sky
 	if (matID > 254.0f) {
@@ -699,6 +701,8 @@ struct MaskStruct {
 
 	float matIDs;
 
+	float particles;
+
 	float sky;
 	float land;
 	float grass;
@@ -888,6 +892,8 @@ void 	CalculateMasks(inout MaskStruct mask) {
 		mask.glowstone 		= GetMaterialMask(texcoord.st, 32, mask.matIDs);
 		mask.fire 			= GetMaterialMask(texcoord.st, 33, mask.matIDs);
 
+		mask.particles		= GetMaterialMask(texcoord.st, 63, mask.matIDs);
+
 		float transparentID = GetTransparentID(texcoord.st);
 
 		mask.water 			= GetWaterMask(texcoord.st, transparentID);
@@ -982,7 +988,6 @@ float 	CalculateDirectLighting(in SurfaceStruct surface) {
 vec3 	CalculateSunlightVisibility(inout SurfaceStruct surface, in ShadingStruct shadingStruct) {				//Calculates shadows
 	if (rainStrength >= 0.99f)
 		return vec3(1.0f);
-
 
 	if (shadingStruct.direct > 0.0f) {
 		float distance = sqrt(  surface.screenSpacePosition.x * surface.screenSpacePosition.x 	//Get surface distance in meters
@@ -1612,7 +1617,7 @@ void 	CalculateRainFog(inout vec3 color, in SurfaceStruct surface)
 uniform vec3 shadowLightVectorView;
 
 void 	CalculateAtmosphericScattering(inout vec3 color, in SurfaceStruct surface) {
-	if(bool(step(0.5, surface.mask.sky))) return;
+	if(max(surface.mask.particles, surface.mask.sky) > 0.5) return;
 
 	float mu = dot(normalize(surface.screenSpacePosition.xyz), shadowLightVectorView);
 	vec3 fogColor = colorSkylight + HG(mu, 0.76) * colorSunlight;
@@ -3043,11 +3048,26 @@ void main() {
 
 	//surface.albedo = normalize(surface.albedo) * (pow(length(surface.albedo), 1.2f));
 
+	surface.mask.matIDs 		= GetMaterialIDs(texcoord.st);					//Gets material ids
+	CalculateMasks(surface.mask);
+
 	//surface.albedo 				= vec3(0.8f);
 	surface.normal 				= GetNormals(texcoord.st);						//Gets the screen-space normals
 	surface.depth  				= GetDepth(texcoord.st);						//Gets the scene depth
-	surface.linearDepth 		= ExpToLinearDepth(surface.depth); 				//Get linear scene depth
 	surface.screenSpacePosition = GetScreenSpacePosition(texcoord.st); 			//Gets the screen-space position
+
+	if(surface.mask.particles > 0.5) {
+		surface.depth 	= texture(gdepthtex, texcoord.xy).x;
+		surface.screenSpacePosition = GetScreenSpacePosition(texcoord.xy, texture(gdepthtex, texcoord.xy).x);
+
+		#ifdef Particles_Normals
+		surface.normal 	= -normalize(gbufferProjectionInverse[3].xyz);
+		#else
+		surface.normal	= vec3(1.0);
+		#endif
+	}
+
+	surface.linearDepth 		= ExpToLinearDepth(surface.depth); 				//Get linear scene depth
 	surface.worldSpacePosition  = gbufferModelViewInverse * surface.screenSpacePosition;
 	surface.viewVector 			= normalize(surface.screenSpacePosition.rgb);	//Gets the view vector
 	surface.lightVector 		= lightVector;									//Gets the sunlight vector
@@ -3055,13 +3075,6 @@ void main() {
 	vec4 wlv 					= shadowModelViewInverse * vec4(0.0f, 0.0f, 1.0f, 0.0f);
 	surface.worldLightVector 	= normalize(wlv.xyz);
 	surface.upVector 			= upVector;										//Store the up vector
-
-
-
-
-
-	surface.mask.matIDs 		= GetMaterialIDs(texcoord.st);					//Gets material ids
-	CalculateMasks(surface.mask);
 
 	if (surface.mask.water > 0.5)
 	{
@@ -3159,7 +3172,7 @@ void main() {
 	delta.a = 1.0;
 
 	#ifndef BASIC_AMBIENT
-		if (isEyeInWater < 1)
+		if (isEyeInWater < 1 && surface.mask.particles < 0.5)
 		{
 			delta = Delta(surface.albedo.rgb, surface.normal.xyz, mcLightmap.sky);
 		}
@@ -3318,8 +3331,6 @@ void main() {
 		 finalComposite 	+= surface.sky.albedo;		//Add sky to final image
 		 finalComposite 	+= delta.rgb * sunlightMult * 1.4;
 
-
-
 	//if eye is in water, do underwater fog
 	if (isEyeInWater > 0) {
 		finalComposite *= 9.0;
@@ -3373,6 +3384,10 @@ void main() {
 	#ifdef RAINBOW
 	Rainbow(finalComposite);
 	#endif
+
+	if(surface.mask.particles > 0.5) {
+	//	finalComposite = vec3(1.0, 0.0, 0.0);
+	}
 
 	finalComposite *= 0.001f;												//Scale image down for HDR
 	finalComposite.b *= 1.0f;

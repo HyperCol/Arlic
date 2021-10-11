@@ -92,7 +92,7 @@ if (texture(tex, texcoord.st).a == 0.0f){
 	lightmap.b = clamp((lmcoord.t * 33.05f / 32.0f) - 1.05f / 32.0f, 0.0f, 1.0f);
 
 	lightmap.b = pow(lightmap.b, 1.0f);
-	lightmap.r = pow(lightmap.r, 3.0f);
+	lightmap.r = pow(lightmap.r, 1.0f);
 
 	float wetfactor = clamp(lightmap.b - 0.9f, 0.0f, 0.1f) / 0.1f;
 	
@@ -121,16 +121,18 @@ if (texture(tex, texcoord.st).a == 0.0f){
 			
 	}
 
+	vec4 albedo = texture(tex, texcoord.st) * color;
+
+	if(albedo.a < 0.2) discard;
+
 	//Diffuse
-		vec4 albedo = texture(tex, texcoord.st) * color;
-		
-		gl_FragData[0] = albedo;
+	gl_FragData[0] = vec4(albedo.rgb, 1.0);
 		
 
-	float mats_1 = 1.0f;
-		  mats_1 += 0.1f;
+	float mats_1 = 63.0;
+		  mats_1 += 0.1;
 	//Depth  
-	gl_FragData[1] = vec4(mats_1/255.0f, lightmap.r, lightmap.b, 1.0f);
+	gl_FragData[1] = vec4(mats_1 / 255.0, lightmap.r, lightmap.b, 1.0f);
 
 	//normal
 	gl_FragData[2] = frag2;
