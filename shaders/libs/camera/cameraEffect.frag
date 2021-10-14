@@ -70,7 +70,8 @@ struct Camera {
 } cam;
 
 float ld(float depth) {
-    return (near * far) / (depth * (near - far) + far);
+    depth = depth * 2.0 - 1.0;
+    return -1.0 / (depth * gbufferProjectionInverse[2][3] + gbufferProjectionInverse[3][3]);
 }
 
 float ild(float ldepth) {
@@ -106,7 +107,7 @@ void ComputeEV(inout Camera c) {
 
 void init_camera() {
     //cam.avgLuminance = texture(colortex7, vec2(0.5)).a + 0.0001;
-    cam.focalLength = SENSOR_SIZE * NfocalLength;
+    cam.focalLength = SENSOR_SIZE * NfocalLength * 6.0;
 
     ComputeEV(cam);
 
@@ -154,8 +155,8 @@ vec2 CalculateDistOffset(const vec2 prep, const float angle, const vec2 offset) 
 }
 
 float CalculateFocus(float depth) {
-    float focalLength = cam.focalLength / 80.0;
-    float aperture    = (cam.focalLength / CAMERA_APERTURE) / 80.0;
+    float focalLength = cam.focalLength / 1000.0;
+    float aperture    = (cam.focalLength / CAMERA_APERTURE) / 1000.0;
 
     float focus = -cam.dof_cfg.focalDepth;
 
@@ -187,11 +188,11 @@ vec3 DepthOfField(bool isHand) { //OPTIMISATION: Add circular option for lower e
     // Lens specifications referenced from Sigma 32mm F1.4 art.
     // Focal length of 32mm (assuming lens does not zoom), with a diaphram size of 25mm at F1.4.
     // For more accuracy to lens settings, set blades to 9.
-    float aperture  = (cam.focalLength * 1.5 / CAMERA_APERTURE);
+    float aperture  = (cam.focalLength / CAMERA_APERTURE);
     
     float depth = ld(texture(depthtex0, texcoord.st).x);
     float pcoc = CalculateFocus(depth);
-    if (pcoc == 0) discard;
+    //if (cam.focalLength > 5) discard;
 
     //vec2 maxPos = CalculateDistOffset(prep, angle, (r - 1.0) * sampleAngle * pcoc) * distOffsetScale;
 
