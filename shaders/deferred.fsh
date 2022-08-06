@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 /*
                                                                 
@@ -39,8 +39,6 @@ Do not modify this code until you have read the LICENSE contained in the root di
 /////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////ADJUSTABLE VARIABLES//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define VOLUMETRIC_CLOUDS
-#define CLOUD_SHADOW
 
 #define ENABLE_SSAO	// Screen space ambient occlusion.
 #define GI	// Indirect lighting from sunlight.
@@ -107,7 +105,6 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
 uniform mat4 shadowProjection;
-uniform mat4 shadowProjectionInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferProjection;
 
@@ -136,69 +133,14 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform float rainStrength;
 uniform float wetness;
-uniform float eyeAltitude;
 uniform float aspectRatio;
 uniform float frameTimeCounter;
 uniform float sunAngle;
 uniform vec3 skyColor;
 uniform vec3 cameraPosition;
 
-uniform vec3 worldLightVector;
-
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////FUNCTIONS/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct Ray {
-	vec3 dir;
-	vec3 origin;
-};
-
-struct Plane {
-	vec3 normal;
-	vec3 origin;
-};
-
-struct Intersection {
-	vec3 pos;
-	float distance;
-	float angle;
-};
-
-float saturate(float x)
-{
-	return clamp(x, 0.0, 1.0);
-}
-
-float Get3DNoise(in vec3 pos)
-{
-	pos.z += 0.0f;
-
-	pos.xyz += 0.5f;
-
-	vec3 p = floor(pos);
-	vec3 f = fract(pos);
-
-	// f.x = f.x * f.x * (3.0f - 2.0f * f.x);
-	// f.y = f.y * f.y * (3.0f - 2.0f * f.y);
-	// f.z = f.z * f.z * (3.0f - 2.0f * f.z);
-
-	vec2 uv =  (p.xy + p.z * vec2(17.0f)) + f.xy;
-	vec2 uv2 = (p.xy + (p.z + 1.0f) * vec2(17.0f)) + f.xy;
-
-	// uv -= 0.5f;
-	// uv2 -= 0.5f;
-
-	vec2 coord =  (uv  + 0.5f) / noiseTextureResolution;
-	vec2 coord2 = (uv2 + 0.5f) / noiseTextureResolution;
-	float xy1 = texture(noisetex, coord).x;
-	float xy2 = texture(noisetex, coord2).x;
-	return mix(xy1, xy2, f.z);
-}
-
-#include "/libs/bayer.glsl"
-#include "/libs/Clouds.glsl"
-#include "/libs/CloudsOld.glsl"
-#include "/libs/VolumetricFogCloud.glsl"
 
 vec3  	GetNormals(in vec2 coord) {				//Function that retrieves the screen space surface normals. Used for lighting calculations
 	return texture(colortex2, coord.st).rgb * 2.0f - 1.0f;
@@ -363,7 +305,7 @@ float GetAO(in vec4 screenSpacePosition, in vec3 normal, in vec2 coord, in vec3 
 	return ao;
 }
 
-vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3 noisePattern, vec3 worldLightVector, CloudProperties cloudProperties)
+vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3 noisePattern)
 {
 	float scale = pow(2.0f, float(LOD));
 
@@ -564,19 +506,8 @@ vec4 GetLight(in int LOD, in vec2 offset, in float range, in float quality, vec3
 						// }
 						//colorSample = normalized * colorMagnitude;
 
-						float cloudShadow = 1.0;
-						
-						#ifdef VOLUMETRIC_CLOUDS
-							#ifdef CLOUD_SHADOW
-								vec4 worldPosition = shadowProjectionInverse * vec4(coord * 2.0 - 1.0, 1.0, 1.0);
-								worldPosition /= worldPosition.w;
-								worldPosition = shadowModelViewInverse * worldPosition;
 
-								cloudShadow = CloudShadow(worldPosition.xyz, worldLightVector, cloudProperties);
-							#endif
-						#endif
-
-						fakeIndirect += colorSample * weight * distanceWeight * NdotL * skylightWeight * (cloudShadow * 0.98 + 0.02);
+						fakeIndirect += colorSample * weight * distanceWeight * NdotL * skylightWeight;
 						//fakeIndirect += skylightWeight * weight * distanceWeight * NdotL;
 					// fakeLargeAO += aoDistanceWeight * NdotL;
 					}
@@ -791,11 +722,10 @@ void main() {
 	vec4 worldSpacePosition = gbufferModelViewInverse * screenSpacePosition;
 	vec4 worldLightVector = shadowModelViewInverse * vec4(0.0f, 0.0f, 1.0f, 0.0f);
 	vec3 normal = GetNormals(texcoord.st);
-	CloudProperties cloudProperties = GetGlobalCloudProperties();
 
 	vec4 light = vec4(0.0, 0.0, 0.0, 1.0);
 	#ifdef GI
-		 light = GetLight(GI_RENDER_RESOLUTION, 		vec2(0.0f			), 16.0,  GI_QUALITY, noisePattern, worldLightVector.xyz, cloudProperties);
+		 light = GetLight(GI_RENDER_RESOLUTION, 		vec2(0.0f			), 16.0,  GI_QUALITY, noisePattern);
 	#endif
 	//light += GetLight(0, vec2(0.0f), 2.0f, 0.5f);
 

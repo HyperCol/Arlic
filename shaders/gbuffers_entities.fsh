@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 /*
                                                                 
@@ -41,6 +41,11 @@ Do not modify this code until you have read the LICENSE contained in the root di
 
 #define NORMAL_MAP_MAX_ANGLE 1.0f   		//The higher the value, the more extreme per-pixel normal mapping (bump mapping) will be.
 #define TILE_RESOLUTION 128
+
+#define Lab_PBR 0
+#define SEUS_Renewed 1
+
+#define PBR_Format Lab_PBR		//[Lab_PBR SEUS_Renewed]
 
 ///////////////////////////////////////////////////END OF ADJUSTABLE VARIABLES///////////////////////////////////////////////////
 
@@ -139,6 +144,16 @@ void main() {
 	
 	//specularity
 	vec4 spec = texture(specular, texcoord.st);
+
+	#if PBR_Format == Lab_PBR
+	float material_emissive = textureLod(specular, texcoord.xy, 0).a;
+		  material_emissive = material_emissive * step(material_emissive, 0.999) * (255.0 / 254.0);
+	#elif PBR_Format == SEUS_Renewed
+	float material_emissive = textureLod(specular, texcoord.xy, 0).b;
+	#endif
+
+	spec.a = material_emissive;
+
 	gl_FragData[3] = vec4(pack2x8(spec.rg), pack2x8(spec.ba), 0.0f, 1.0);		
 
 }

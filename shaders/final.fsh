@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 /*
                                                                 
@@ -51,6 +51,22 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define SATURATION_STRENGTH 0.0 // [-2.0 -1.95 -1.9 -1.85 -1.8 -1.75 -1.7 -1.65 -1.6 -1.55 -1.5 -1.45 -1.4 -1.35 -1.3 -1.25 -1.2 -1.15 -1.1 -0.05 0.0 0.05 1.0 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.17 1.75 1.8 1.85 1.9 1.95 2.0]
 #define MAX_BLUR_AMOUNT 1.2 // [0.2 0.4 0.6 0.9 1.2 1.5 1.9 2.3 2.7]
 
+//#define DOF
+	#define HEXAGONAL_BOKEH
+		const float FringeOffset = 0.25;
+
+	#define FOCUS_BLUR
+		//#define LINK_FOCUS_TO_BRIGHTNESS_BAR
+	#define BlurAmount 4.8 // [0.4 0.8 1.6 3.2 4.8 6.4 8.0 9.6]
+	
+	#define DISTANCE_BLUR
+	#define MaxDistanceBlurAmount 0.9 // [0.1 0.2 0.4 0.6 0.9 1.2 1.5 1.8]
+	#define DistanceBlurRange 360 // [60 120 180 240 360 480 600 720 960 1200]
+		
+	#define EDGE_BLUR
+	#define EdgeBlurAmount 1.75  // [0.5 0.75 1.0 1.25 1.5 1.75 2.0]
+	#define EdgeBlurDecline 3.0  // [0.3 0.6 0.9 1.2 1.5 1.8 1.9 2.0 2.1 2.4 3.0 3.3 3.6 3.9 4.2]
+
 in vec4 texcoord;
 in vec3 lightVector;
 
@@ -75,7 +91,7 @@ in vec3 colorSkylight;
 
 #define BANDING_FIX_FACTOR 1.0f
 
-//#extension GL_ARB_shader_texture_lod: require
+#extension GL_ARB_shader_texture_lod: require
 const bool colortex3MipmapEnabled = true;
 const bool colortex2MipmapEnabled = true;
 
@@ -233,7 +249,228 @@ float Luminance(in vec3 color)
 	return dot(color.rgb, vec3(0.2125f, 0.7154f, 0.0721f));
 }
 
+float ld(float depth) {
+    return near / (far + near - depth * (far - near));
+}
+
 vec2 fake_refract = vec2(sin(frameTimeCounter*1.7 + texcoord.x*50.0 + texcoord.y*25.0),cos(frameTimeCounter*2.5 + texcoord.y*100.0 + texcoord.x*25.0)) * isEyeInWater;
+/*
+void SaturationBoost(inout vec3 color) {
+	float satBoost = SATURATION_STRENGTH;
+
+	color.r = color.r * (0.97f + satBoost * 1.0f) - (color.g * satBoost) - (color.b * satBoost);
+	color.g = color.g * (0.97f + satBoost * 1.0f) - (color.r * satBoost) - (color.b * satBoost);
+	color.b = color.b * (0.97f + satBoost * 1.0f) - (color.r * satBoost) - (color.g * satBoost);
+}
+*/
+
+void SaturationBoost(inout vec3 color) {
+	float satBoost = (SATURATION_STRENGTH * 0.2);
+
+	color.r = color.r * (1.0f + satBoost) - (color.g * satBoost) - (color.b * satBoost);
+	color.g = color.g * (1.0f + satBoost) - (color.r * satBoost) - (color.b * satBoost);
+	color.b = color.b * (1.0f + satBoost) - (color.r * satBoost) - (color.g * satBoost);
+}
+
+
+void  DOF_Blur(out vec3 color, in float isHand) {
+
+	float depth= texture(gdepthtex, texcoord.st).x;
+		//depth += float(GetMaterialMask(texcoord.st, 5)) * 0.36f;
+
+	float naive = 0.0;
+
+	#ifdef LOW_QUALITY_CALCULATECLOUDS
+	float aaa=0;
+	#ifdef NOCALCULATECLOUDSNIGHT
+	float bbb=1.5 - 0.6 * timeMidnight;
+	#else
+	float bbb=1.5;
+	#endif
+	if(weather(texcoord.st)==3){
+	aaa += timeMidnight;
+	bbb = 0.0;
+	}
+	#else
+	float aaa = 1.0;
+	float bbb = 0.0;
+	#endif
+		
+	#ifdef FOCUS_BLUR
+		#ifdef LINK_FOCUS_TO_BRIGHTNESS_BAR
+			naive += (screenBrightness - depth) * 0.4 * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
+		#else
+			naive += (depth - centerDepthSmooth) * 0.01 * BlurAmount * (1.0 - isHand * 0.85);
+		#endif
+	#endif
+
+	if (depth <= 0.99999){
+	#ifdef DISTANCE_BLUR
+	#ifdef NOCALCULATECLOUDSNIGHT
+		naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb - 0.5 * timeMidnight));
+	#else
+	naive += clamp(1-(exp(-pow(ld(depth)/DistanceBlurRange*far,4.0-rainStrength)*3)),0.0,0.001 * (MaxDistanceBlurAmount*aaa+bbb));
+	#endif
+	#endif
+	}
+
+	#ifdef EDGE_BLUR
+		naive += pow(distance(texcoord.st, vec2(0.5)),EdgeBlurDecline) * 0.01 * EdgeBlurAmount;
+	#endif
+
+		vec2 aspectcorrect = vec2(1.0, aspectRatio) * 1.6;
+		vec3 col = vec3(0.0);
+		col += GetColorTexture(texcoord.st);
+
+
+
+	#ifdef HEXAGONAL_BOKEH
+	const vec2 offsets[60] = vec2[60] (	vec2(  0.2165,  0.1250 ),
+										vec2(  0.0000,  0.2500 ),
+										vec2( -0.2165,  0.1250 ),
+										vec2( -0.2165, -0.1250 ),
+										vec2( -0.0000, -0.2500 ),
+										vec2(  0.2165, -0.1250 ),
+										vec2(  0.4330,  0.2500 ),
+										vec2(  0.0000,  0.5000 ),
+										vec2( -0.4330,  0.2500 ),
+										vec2( -0.4330, -0.2500 ),
+										vec2( -0.0000, -0.5000 ),
+										vec2(  0.4330, -0.2500 ),
+										vec2(  0.6495,  0.3750 ),
+										vec2(  0.0000,  0.7500 ),
+										vec2( -0.6495,  0.3750 ),
+										vec2( -0.6495, -0.3750 ),
+										vec2( -0.0000, -0.7500 ),
+										vec2(  0.6495, -0.3750 ),
+										vec2(  0.8660,  0.5000 ),
+										vec2(  0.0000,  1.0000 ),
+										vec2( -0.8660,  0.5000 ),
+										vec2( -0.8660, -0.5000 ),
+										vec2( -0.0000, -1.0000 ),
+										vec2(  0.8660, -0.5000 ),
+										vec2(  0.2163,  0.3754 ),
+										vec2( -0.2170,  0.3750 ),
+										vec2( -0.4333, -0.0004 ),
+										vec2( -0.2163, -0.3754 ),
+										vec2(  0.2170, -0.3750 ),
+										vec2(  0.4333,  0.0004 ),
+										vec2(  0.4328,  0.5004 ),
+										vec2( -0.2170,  0.6250 ),
+										vec2( -0.6498,  0.1246 ),
+										vec2( -0.4328, -0.5004 ),
+										vec2(  0.2170, -0.6250 ),
+										vec2(  0.6498, -0.1246 ),
+										vec2(  0.6493,  0.6254 ),
+										vec2( -0.2170,  0.8750 ),
+										vec2( -0.8663,  0.2496 ),
+										vec2( -0.6493, -0.6254 ),
+										vec2(  0.2170, -0.8750 ),
+										vec2(  0.8663, -0.2496 ),
+										vec2(  0.2160,  0.6259 ),
+										vec2( -0.4340,  0.5000 ),
+										vec2( -0.6500, -0.1259 ),
+										vec2( -0.2160, -0.6259 ),
+										vec2(  0.4340, -0.5000 ),
+										vec2(  0.6500,  0.1259 ),
+										vec2(  0.4325,  0.7509 ),
+										vec2( -0.4340,  0.7500 ),
+										vec2( -0.8665, -0.0009 ),
+										vec2( -0.4325, -0.7509 ),
+										vec2(  0.4340, -0.7500 ),
+										vec2(  0.8665,  0.0009 ),
+										vec2(  0.2158,  0.8763 ),
+										vec2( -0.6510,  0.6250 ),
+										vec2( -0.8668, -0.2513 ),
+										vec2( -0.2158, -0.8763 ),
+										vec2(  0.6510, -0.6250 ),
+										vec2(  0.8668,  0.2513 ));
+	#else
+	const vec2 offsets[60] = vec2[60] ( vec2(  0.0000,  0.2500 ),
+										vec2( -0.2165,  0.1250 ),
+										vec2( -0.2165, -0.1250 ),
+										vec2( -0.0000, -0.2500 ),
+										vec2(  0.2165, -0.1250 ),
+										vec2(  0.2165,  0.1250 ),
+										vec2(  0.0000,  0.5000 ),
+										vec2( -0.2500,  0.4330 ),
+										vec2( -0.4330,  0.2500 ),
+										vec2( -0.5000,  0.0000 ),
+										vec2( -0.4330, -0.2500 ),
+										vec2( -0.2500, -0.4330 ),
+										vec2( -0.0000, -0.5000 ),
+										vec2(  0.2500, -0.4330 ),
+										vec2(  0.4330, -0.2500 ),
+										vec2(  0.5000, -0.0000 ),
+										vec2(  0.4330,  0.2500 ),
+										vec2(  0.2500,  0.4330 ),
+										vec2(  0.0000,  0.7500 ),
+										vec2( -0.2565,  0.7048 ),
+										vec2( -0.4821,  0.5745 ),
+										vec2( -0.6495,  0.3750 ),
+										vec2( -0.7386,  0.1302 ),
+										vec2( -0.7386, -0.1302 ),
+										vec2( -0.6495, -0.3750 ),
+										vec2( -0.4821, -0.5745 ),
+										vec2( -0.2565, -0.7048 ),
+										vec2( -0.0000, -0.7500 ),
+										vec2(  0.2565, -0.7048 ),
+										vec2(  0.4821, -0.5745 ),
+										vec2(  0.6495, -0.3750 ),
+										vec2(  0.7386, -0.1302 ),
+										vec2(  0.7386,  0.1302 ),
+										vec2(  0.6495,  0.3750 ),
+										vec2(  0.4821,  0.5745 ),
+										vec2(  0.2565,  0.7048 ),
+										vec2(  0.0000,  1.0000 ),
+										vec2( -0.2588,  0.9659 ),
+										vec2( -0.5000,  0.8660 ),
+										vec2( -0.7071,  0.7071 ),
+										vec2( -0.8660,  0.5000 ),
+										vec2( -0.9659,  0.2588 ),
+										vec2( -1.0000,  0.0000 ),
+										vec2( -0.9659, -0.2588 ),
+										vec2( -0.8660, -0.5000 ),
+										vec2( -0.7071, -0.7071 ),
+										vec2( -0.5000, -0.8660 ),
+										vec2( -0.2588, -0.9659 ),
+										vec2( -0.0000, -1.0000 ),
+										vec2(  0.2588, -0.9659 ),
+										vec2(  0.5000, -0.8660 ),
+										vec2(  0.7071, -0.7071 ),
+										vec2(  0.8660, -0.5000 ),
+										vec2(  0.9659, -0.2588 ),
+										vec2(  1.0000, -0.0000 ),
+										vec2(  0.9659,  0.2588 ),
+										vec2(  0.8660,  0.5000 ),
+										vec2(  0.7071,  0.7071 ),
+										vec2(  0.5000,  0.8660 ),
+										vec2(  0.2588,  0.9659 ));
+	#endif
+
+			
+	for ( int i = 0; i < 61; ++i) {
+		col.g += GetColorTexture(texcoord.st + offsets[i]*aspectcorrect*naive).g;
+	    col.r += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect + vec2(FringeOffset))*naive).r;
+		col.b += GetColorTexture(texcoord.st + (offsets[i]*aspectcorrect - vec2(FringeOffset))*naive).b;
+	}
+	color = col / 60.0;
+}
+
+float  	CalculateDitherPattern1() {
+	int[16] ditherPattern = int[16] (0 , 9 , 3 , 11,
+								 	 13, 5 , 15, 7 ,
+								 	 4 , 12, 2,  10,
+								 	 16, 8 , 14, 6 );
+
+	vec2 count = vec2(0.0f);
+	     count.x = floor(mod(texcoord.s * viewWidth, 4.0f));
+		 count.y = floor(mod(texcoord.t * viewHeight, 4.0f));
+
+	int dither = ditherPattern[int(count.x) + int(count.y) * 4];
+
+	return float(dither) / 17.0f;
+}
 
 float R2_dither(){
 	vec2 alpha = vec2(0.75487765, 0.56984026);
@@ -241,7 +478,51 @@ float R2_dither(){
 	return fract(alpha.x * gl_FragCoord.x + alpha.y * gl_FragCoord.y);
 }
 
-#include "/libs/camera/cameraEffect.frag"
+void 	MotionBlur(inout vec3 color) {
+	float depth = GetDepth(texcoord.st);
+	vec4 currentPosition = vec4(texcoord.x * 2.0f - 1.0f, texcoord.y * 2.0f - 1.0f, 2.0f * depth - 1.0f, 1.0f);
+
+	vec4 fragposition = gbufferProjectionInverse * currentPosition;
+	fragposition = gbufferModelViewInverse * fragposition;
+	fragposition /= fragposition.w;
+	fragposition.xyz += cameraPosition;
+
+	vec4 previousPosition = fragposition;
+	previousPosition.xyz -= previousCameraPosition;
+	previousPosition = gbufferPreviousModelView * previousPosition;
+	previousPosition = gbufferPreviousProjection * previousPosition;
+	previousPosition /= previousPosition.w;
+
+	vec2 velocity = (currentPosition - previousPosition).st * 0.12f;
+	float maxVelocity = 0.05f;
+		 velocity = clamp(velocity, vec2(-maxVelocity), vec2(maxVelocity));
+
+
+	bool isHand = GetMaterialMask(texcoord.st, 5);
+	velocity *= 1.0f - float(isHand);
+
+	int samples = 0;
+
+	float dither = R2_dither();
+
+	color.rgb = vec3(0.0f);
+
+	for (int i = 0; i < 2; ++i) {
+		vec2 coord = texcoord.st + velocity * (i - 0.5);
+			 coord += vec2(dither) * 0.08f * velocity;
+
+		if (coord.x > 0.0f && coord.x < 1.0f && coord.y > 0.0f || coord.y < 1.0f) {
+
+			color += GetColorTexture(coord).rgb;
+			samples += 1;
+
+		}
+	}
+
+	color.rgb /= samples;
+
+
+}
 
 void CalculateExposure(inout vec3 color) {
 	float exposureMax = 1.55f;
@@ -395,20 +676,18 @@ Tone tone;
 /////////////////////////MAIN//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void main() {
 
-	init_camera();
 	init_tone(tone, texcoord.st);
 
 	mask.matIDs = GetMaterialIDs(texcoord.st);
 	CalculateMasks(mask);
 
-	#if DOF > 0
-		tone.color = DepthOfField(mask.hand);
-	#endif
-
 	#ifdef MOTION_BLUR
 		MotionBlur(tone.color);
 	#endif
 
+	#ifdef DOF
+		DOF_Blur(tone.color, float(mask.hand));
+	#endif
 
 	#ifdef AVERAGE_EXPOSURE
 	AverageExposure(tone.color);

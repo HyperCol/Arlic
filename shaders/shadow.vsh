@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 #define SHADOW_MAP_BIAS 0.90
 #define STRENGTH_WIND 0 		//[0 1 2 4 6 8]

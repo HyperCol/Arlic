@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 /*
                                                                 
@@ -45,6 +45,11 @@ Do not modify this code until you have read the LICENSE contained in the root di
 #define PARALLAX_SHADOW // Texture self-shadowing from heightmaps
 
 #define FORCE_WET_EFFECT // Make all surfaces get wet during rain regardless of specular texture values
+
+#define Lab_PBR 0
+#define SEUS_Renewed 1
+
+#define PBR_Format Lab_PBR		//[Lab_PBR SEUS_Renewed]
 
 ///////////////////////////////////////////////////END OF ADJUSTABLE VARIABLES///////////////////////////////////////////////////
 
@@ -581,7 +586,13 @@ void main() {
 	float material_smoothness = materialData.r;
 	float material_metallic = materialData.g;
 	float material_id = materialData.b;
+
+	#if PBR_Format == Lab_PBR
 	float material_emissive = textureLod(specular, parallaxCoord, 0).a;
+		  material_emissive = material_emissive * step(material_emissive, 0.999) * (255.0 / 254.0);
+	#elif PBR_Format == SEUS_Renewed
+	float material_emissive = textureLod(specular, parallaxCoord, 0).b;
+	#endif
 
 	//encode smoothness and metallic
 	float encode_spec_rg = pack2x8(vec2(material_smoothness, material_metallic));
@@ -596,6 +607,6 @@ void main() {
 	gl_FragData[2] = frag2;
 		
 	//specularity
-	gl_FragData[3] = vec4(encode_spec_rg, encode_spec_ba, 1.0 - parallaxShadow, 1.0);	
+	gl_FragData[3] = vec4(encode_spec_rg, encode_spec_ba, 1.0 - parallaxShadow, material_emissive);	
 }
 /* DRAWBUFFERS:0123 */

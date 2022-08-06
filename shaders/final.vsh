@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 #define SKY_DESATURATION 0.0f
 

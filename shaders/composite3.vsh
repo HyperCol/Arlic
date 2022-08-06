@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 
 //---------- Sky＆Sun Light color ----------//
@@ -49,11 +49,8 @@ uniform float sunAngle;
 
 uniform int worldTime;
 
-uniform mat4 shadowModelViewInverse;
-
 out vec3 lightVector;
 out vec3 upVector;
-out vec3 worldLightVector;
 
 out float timeSunriseSunset;
 out float timeNoon;
@@ -307,5 +304,4 @@ void main() {
 
 	//colorSkylight = vec3(0.1f);
 	
-	worldLightVector = normalize((shadowModelViewInverse * vec4(0.0, 0.0, 1.0, 0.0)).xyz);
 }

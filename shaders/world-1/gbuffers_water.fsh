@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 #define WAVE_HEIGHT 0.75
 

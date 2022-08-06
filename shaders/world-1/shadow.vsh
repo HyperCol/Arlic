@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 #define SHADOW_MAP_BIAS 0.90
 

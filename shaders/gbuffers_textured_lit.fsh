@@ -1,4 +1,4 @@
-#version 460 compatibility
+#version 330 compatibility
 
 
 /*
@@ -40,6 +40,11 @@ Do not modify this code until you have read the LICENSE contained in the root di
 ////////////////////////////////////////////////////ADJUSTABLE VARIABLES/////////////////////////////////////////////////////////
 
 #define NORMAL_MAP_MAX_ANGLE 0.95f   		//The higher the value, the more extreme per-pixel normal mapping (bump mapping) will be.
+
+#define Lab_PBR 0
+#define SEUS_Renewed 1
+
+#define PBR_Format Lab_PBR		//[Lab_PBR SEUS_Renewed]
 
 ///////////////////////////////////////////////////END OF ADJUSTABLE VARIABLES///////////////////////////////////////////////////
 
@@ -84,6 +89,15 @@ void main() {
 		
 	vec4 spec = texture(specular, texcoord.st);
 
+	#if PBR_Format == Lab_PBR
+	float material_emissive = textureLod(specular, texcoord.xy, 0).a;
+		  material_emissive = material_emissive * step(material_emissive, 0.999) * (255.0 / 254.0);
+	#elif PBR_Format == SEUS_Renewed
+	float material_emissive = textureLod(specular, texcoord.xy, 0).b;
+	#endif
+
+	spec.a = material_emissive;
+
 	//store lightmap in auxilliary texture. r = torch light. g = lightning. b = sky light.
 	vec4 lightmap = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	
@@ -104,7 +118,7 @@ void main() {
 			vec3 bump = texture(normals, texcoord.st).rgb * 2.0f - 1.0f;
 			
 			float bumpmult = clamp(bump_distance * fademult - distance * fademult, 0.0f, 1.0f) * NORMAL_MAP_MAX_ANGLE;
-	              bumpmult *= 1.0f - (spec.g * 0.9f * wetness * wetfactor);
+	              //bumpmult *= 1.0f - (spec.g * 0.9f * wetness * wetfactor);
 				  
 			bump = bump * vec3(bumpmult, bumpmult, bumpmult) + vec3(0.0f, 0.0f, 1.0f - bumpmult);
 			
